@@ -5,6 +5,3 @@ build/
 .env.local
 *.log
 coverage/
-
-# Ancien dossier duplique, verrouille par un editeur ouvert - a supprimer manuellement
-/dbc-backend/
