@@ -1,0 +1,15 @@
+.pagination {
+  @apply inline-flex rounded-lg bg-gray-150 font-medium text-gray-700 dark:bg-surface-2 dark:text-dark-100;
+}
+
+.pagination-control {
+  @apply flex h-8 min-w-[2rem] shrink-0 items-center justify-center rounded-lg px-2.5 leading-tight outline-none transition-colors;
+}
+
+.pagination-control-icon {
+  @apply aspect-square !p-0;
+}
+
+.pagination-icon {
+  @apply size-4.5;
+}
