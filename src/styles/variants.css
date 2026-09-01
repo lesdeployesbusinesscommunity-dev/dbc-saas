@@ -1,0 +1,41 @@
+.this\:primary {
+  --this-lighter: var(--colors-primary-400);
+  --this-light: var(--colors-primary-500);
+  --this: var(--colors-primary-600);
+  --this-darker: var(--colors-primary-700);
+}
+
+.this\:secondary {
+  --this-lighter: var(--colors-secondary-lighter);
+  --this-light: var(--colors-secondary-light);
+  --this: var(--colors-secondary);
+  --this-darker: var(--colors-secondary-darker);
+}
+
+.this\:info {
+  --this-lighter: var(--colors-info-lighter);
+  --this-light: var(--colors-info-light);
+  --this: var(--colors-info);
+  --this-darker: var(--colors-info-darker);
+}
+
+.this\:success {
+  --this-lighter: var(--colors-success-lighter);
+  --this-light: var(--colors-success-light);
+  --this: var(--colors-success);
+  --this-darker: var(--colors-success-darker);
+}
+
+.this\:warning {
+  --this-lighter: var(--colors-warning-lighter);
+  --this-light: var(--colors-warning-light);
+  --this: var(--colors-warning);
+  --this-darker: var(--colors-warning-darker);
+}
+
+.this\:error {
+  --this-lighter: var(--colors-error-lighter);
+  --this-light: var(--colors-error-light);
+  --this: var(--colors-error);
+  --this-darker: var(--colors-error-darker);
+}
