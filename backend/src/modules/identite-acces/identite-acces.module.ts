@@ -28,6 +28,7 @@ import { HacheurMotDePassePort } from './domaine/hacheur-mot-de-passe.port';
 import { HacheurBcrypt } from './infrastructure/hacheur-bcrypt';
 import { JwtStrategy } from './infrastructure/jwt.strategy';
 import { AdhesionModule } from '../adhesion/adhesion.module';
+import { ReseauMlmModule } from '../reseau-mlm/reseau-mlm.module';
 
 @Module({
   imports: [
@@ -38,7 +39,8 @@ import { AdhesionModule } from '../adhesion/adhesion.module';
       SecretDoubleAuthentificationOrmEntity,
     ]),
     PassportModule,
-    AdhesionModule, // ValiderDemandeInscriptionUseCase orchestre Identité + Adhésion — voir ce use-case.
+    AdhesionModule, // ValiderDemandeInscriptionUseCase orchestre Identité + Adhésion + Réseau MLM — voir ce use-case.
+    ReseauMlmModule,
     // ConfigModule est global (voir AppModule) : ConfigService est déjà disponible ici.
     JwtModule.registerAsync({
       inject: [ConfigService],

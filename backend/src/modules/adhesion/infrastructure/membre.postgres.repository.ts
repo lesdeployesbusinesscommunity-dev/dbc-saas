@@ -31,6 +31,11 @@ export class MembrePostgresRepository implements MembreRepositoryPort {
     return ligne ? this.versDomaine(ligne) : null;
   }
 
+  async trouverParMatricule(matricule: string): Promise<Membre | null> {
+    const ligne = await this.repository.findOne({ where: { matricule } });
+    return ligne ? this.versDomaine(ligne) : null;
+  }
+
   async ajouterHistorique(entree: HistoriqueNiveauMembre): Promise<void> {
     await this.historiqueRepository.save({
       membreId: entree.membreId,

@@ -17,6 +17,11 @@ export class NiveauAdhesionPostgresRepository implements NiveauAdhesionRepositor
     return ligne ? this.versDomaine(ligne) : null;
   }
 
+  async trouverParId(id: number): Promise<NiveauAdhesion | null> {
+    const ligne = await this.repository.findOne({ where: { id } });
+    return ligne ? this.versDomaine(ligne) : null;
+  }
+
   async listerTous(): Promise<NiveauAdhesion[]> {
     const lignes = await this.repository.find({ order: { id: 'ASC' } });
     return lignes.map((ligne) => this.versDomaine(ligne));

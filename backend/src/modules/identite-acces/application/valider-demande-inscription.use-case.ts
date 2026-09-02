@@ -5,6 +5,7 @@ import { DemandeInscriptionRepositoryPort } from '../domaine/demande-inscription
 import { HacheurMotDePassePort } from '../domaine/hacheur-mot-de-passe.port';
 import { ChoisirNiveauAdhesionUseCase } from '../../adhesion/application/choisir-niveau-adhesion.use-case';
 import { Membre } from '../../adhesion/domaine/membre';
+import { EnregistrerParrainageUseCase } from '../../reseau-mlm/application/enregistrer-parrainage.use-case';
 
 export interface ValiderDemandeInscriptionCommande {
   demandeId: string;
@@ -23,10 +24,11 @@ export interface DemandeValidee {
  * et l'adhésion (Membre, avec matricule auto-généré — voir
  * ChoisirNiveauAdhesionUseCase du module Adhésion).
  *
- * Dépendance délibérée Identité → Adhésion (sens inhabituel pour ce
- * monolithe modulaire, où c'est plutôt Adhésion qui dépend des autres
- * modules) : l'onboarding est fondamentalement un seul geste métier qui
- * touche les deux bounded contexts.
+ * Dépendance délibérée Identité → Adhésion et Identité → Réseau MLM (sens
+ * inhabituel pour ce monolithe modulaire, où c'est plutôt Adhésion/MLM qui
+ * dépendent des autres modules) : l'onboarding est fondamentalement un seul
+ * geste métier qui touche les trois bounded contexts (compte, adhésion,
+ * position dans l'arbre de parrainage — cas d'utilisation 5.1).
  */
 @Injectable()
 export class ValiderDemandeInscriptionUseCase {
@@ -35,6 +37,7 @@ export class ValiderDemandeInscriptionUseCase {
     private readonly utilisateurs: UtilisateurRepositoryPort,
     private readonly hacheur: HacheurMotDePassePort,
     private readonly choisirNiveau: ChoisirNiveauAdhesionUseCase,
+    private readonly enregistrerParrainage: EnregistrerParrainageUseCase,
   ) {}
 
   async executer(commande: ValiderDemandeInscriptionCommande): Promise<DemandeValidee> {
@@ -56,6 +59,11 @@ export class ValiderDemandeInscriptionUseCase {
     const membre = await this.choisirNiveau.executer({
       utilisateurId: utilisateur.id!,
       codeNiveau: demande.niveauSouhaiteCode,
+    });
+
+    await this.enregistrerParrainage.executer({
+      membreId: utilisateur.id!,
+      matriculeParrain: demande.codeParrain,
     });
 
     const resultatValidation = demande.valider(utilisateur.id!);

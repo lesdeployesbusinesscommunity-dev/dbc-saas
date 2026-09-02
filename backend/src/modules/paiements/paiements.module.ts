@@ -25,6 +25,6 @@ import { FournisseurPaiementSimule } from './infrastructure/fournisseur-paiement
     { provide: PaiementRepositoryPort, useClass: PaiementPostgresRepository },
     { provide: FournisseurPaiementPort, useClass: FournisseurPaiementSimule },
   ],
-  exports: [InitierPaiementUseCase],
+  exports: [InitierPaiementUseCase, PaiementRepositoryPort],
 })
 export class PaiementsModule {}

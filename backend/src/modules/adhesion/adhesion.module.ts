@@ -26,6 +26,6 @@ import { AdhesionBootstrap } from './infrastructure/adhesion.bootstrap';
     { provide: MembreRepositoryPort, useClass: MembrePostgresRepository },
     { provide: NiveauAdhesionRepositoryPort, useClass: NiveauAdhesionPostgresRepository },
   ],
-  exports: [ChoisirNiveauAdhesionUseCase, MembreRepositoryPort],
+  exports: [ChoisirNiveauAdhesionUseCase, MembreRepositoryPort, NiveauAdhesionRepositoryPort],
 })
 export class AdhesionModule {}

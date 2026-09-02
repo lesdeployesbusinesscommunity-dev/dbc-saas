@@ -6,6 +6,7 @@ import { SanteModule } from './modules/sante/sante.module';
 import { IdentiteAccesModule } from './modules/identite-acces/identite-acces.module';
 import { PaiementsModule } from './modules/paiements/paiements.module';
 import { AdhesionModule } from './modules/adhesion/adhesion.module';
+import { ReseauMlmModule } from './modules/reseau-mlm/reseau-mlm.module';
 
 @Module({
   imports: [
@@ -25,8 +26,9 @@ import { AdhesionModule } from './modules/adhesion/adhesion.module';
     IdentiteAccesModule,
     PaiementsModule,
     AdhesionModule,
+    ReseauMlmModule,
     // Les modules suivants seront rattachés au fur et à mesure de leur implémentation :
-    // TontineModule, ReseauMlmModule,
+    // TontineModule (mis en attente, voir memoire),
     // GamificationModule, FormationModule, ProgrammesModule,
     // CommunauteDiasporaModule, GouvernanceModule
   ],
