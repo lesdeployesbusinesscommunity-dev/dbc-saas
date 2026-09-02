@@ -10,4 +10,8 @@ export default () => ({
     dureeAcces: '15m',
     dureeRefresh: '30d',
   },
+  paiements: {
+    // Partagé avec le fournisseur Mobile Money pour authentifier ses webhooks.
+    webhookSecret: process.env.PAIEMENTS_WEBHOOK_SECRET ?? 'change-moi-en-production',
+  },
 });

@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from './config/configuration';
 import { SanteModule } from './modules/sante/sante.module';
 import { IdentiteAccesModule } from './modules/identite-acces/identite-acces.module';
+import { PaiementsModule } from './modules/paiements/paiements.module';
 
 @Module({
   imports: [
@@ -21,8 +22,9 @@ import { IdentiteAccesModule } from './modules/identite-acces/identite-acces.mod
     }),
     SanteModule,
     IdentiteAccesModule,
+    PaiementsModule,
     // Les modules suivants seront rattachés au fur et à mesure de leur implémentation :
-    // AdhesionModule, PaiementsModule, TontineModule, ReseauMlmModule,
+    // AdhesionModule, TontineModule, ReseauMlmModule,
     // GamificationModule, FormationModule, ProgrammesModule,
     // CommunauteDiasporaModule, GouvernanceModule
   ],

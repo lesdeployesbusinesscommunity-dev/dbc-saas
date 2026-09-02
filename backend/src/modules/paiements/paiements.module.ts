@@ -1,15 +1,30 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PaiementsController } from './interface/paiements.controller';
+import { InitierPaiementUseCase } from './application/initier-paiement.use-case';
+import { RecevoirCallbackPaiementUseCase } from './application/recevoir-callback-paiement.use-case';
+import { PaiementRepositoryPort } from './domaine/paiement.repository.port';
+import { PaiementOrmEntity } from './infrastructure/paiement.orm-entity';
+import { PaiementPostgresRepository } from './infrastructure/paiement.postgres.repository';
+import { FournisseurPaiementPort } from './domaine/fournisseur-paiement.port';
+import { FournisseurPaiementSimule } from './infrastructure/fournisseur-paiement.simule';
 
 /**
- * Module 3 — Paiements — squelette du module.
- * Structure à suivre (identique au module Identité & Accès déjà implémenté) :
- *   domaine/        entités métier pures + tests unitaires, zéro dépendance framework
- *   application/    cas d'utilisation (use-cases), orchestration pure
- *   infrastructure/ adaptateurs (Postgres, files d'attente, appels externes)
- *   interface/      contrôleurs REST + DTO
- *
- * Voir le cahier de conception, Module 3 — Paiements, pour les cas d'utilisation,
- * le diagramme de classes et les diagrammes d'activité de ce module.
+ * Module 3 — Paiements. Socle partagé (shared kernel) consulté par Adhésion,
+ * Tontine et Réseau MLM — voir le cahier de conception, synthèse des relations
+ * inter-modules. InitierPaiementUseCase est exporté pour être injecté par ces
+ * modules une fois implémentés.
  */
-@Module({})
+@Module({
+  imports: [TypeOrmModule.forFeature([PaiementOrmEntity])],
+  controllers: [PaiementsController],
+  providers: [
+    InitierPaiementUseCase,
+    RecevoirCallbackPaiementUseCase,
+    // Le domaine/application dépend des PORTS (abstraits), jamais des implémentations.
+    { provide: PaiementRepositoryPort, useClass: PaiementPostgresRepository },
+    { provide: FournisseurPaiementPort, useClass: FournisseurPaiementSimule },
+  ],
+  exports: [InitierPaiementUseCase],
+})
 export class PaiementsModule {}
