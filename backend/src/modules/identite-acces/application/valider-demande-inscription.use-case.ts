@@ -6,6 +6,7 @@ import { HacheurMotDePassePort } from '../domaine/hacheur-mot-de-passe.port';
 import { ChoisirNiveauAdhesionUseCase } from '../../adhesion/application/choisir-niveau-adhesion.use-case';
 import { Membre } from '../../adhesion/domaine/membre';
 import { EnregistrerParrainageUseCase } from '../../reseau-mlm/application/enregistrer-parrainage.use-case';
+import { EnregistrerAuditUseCase } from '../../gouvernance/application/enregistrer-audit.use-case';
 
 export interface ValiderDemandeInscriptionCommande {
   demandeId: string;
@@ -38,6 +39,7 @@ export class ValiderDemandeInscriptionUseCase {
     private readonly hacheur: HacheurMotDePassePort,
     private readonly choisirNiveau: ChoisirNiveauAdhesionUseCase,
     private readonly enregistrerParrainage: EnregistrerParrainageUseCase,
+    private readonly enregistrerAudit: EnregistrerAuditUseCase,
   ) {}
 
   async executer(commande: ValiderDemandeInscriptionCommande): Promise<DemandeValidee> {
@@ -71,6 +73,13 @@ export class ValiderDemandeInscriptionUseCase {
       throw new BadRequestException(resultatValidation.erreur);
     }
     await this.demandes.sauvegarder(demande);
+
+    await this.enregistrerAudit.executer({
+      action: 'demande_inscription_validee',
+      typeEntite: 'DemandeInscription',
+      acteurId: null, // pas de vraie identité admin authentifiée — voir AdminSecretGuard
+      metadonnees: { demandeId: demande.id, utilisateurId: utilisateur.id, matricule: membre.matricule },
+    });
 
     return { utilisateur, membre };
   }

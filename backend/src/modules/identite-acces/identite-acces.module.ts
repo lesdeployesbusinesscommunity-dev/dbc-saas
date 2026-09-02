@@ -29,6 +29,7 @@ import { HacheurBcrypt } from './infrastructure/hacheur-bcrypt';
 import { JwtStrategy } from './infrastructure/jwt.strategy';
 import { AdhesionModule } from '../adhesion/adhesion.module';
 import { ReseauMlmModule } from '../reseau-mlm/reseau-mlm.module';
+import { GouvernanceModule } from '../gouvernance/gouvernance.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ReseauMlmModule } from '../reseau-mlm/reseau-mlm.module';
     PassportModule,
     AdhesionModule, // ValiderDemandeInscriptionUseCase orchestre Identité + Adhésion + Réseau MLM — voir ce use-case.
     ReseauMlmModule,
+    GouvernanceModule,
     // ConfigModule est global (voir AppModule) : ConfigService est déjà disponible ici.
     JwtModule.registerAsync({
       inject: [ConfigService],

@@ -7,6 +7,7 @@ import { StrategieParrainageDirect } from '../domaine/strategie-commission';
 import { MembreRepositoryPort } from '../../adhesion/domaine/membre.repository.port';
 import { NiveauAdhesionRepositoryPort } from '../../adhesion/domaine/niveau-adhesion.repository.port';
 import { PaiementRepositoryPort } from '../../paiements/domaine/paiement.repository.port';
+import { EnregistrerAuditUseCase } from '../../gouvernance/application/enregistrer-audit.use-case';
 
 export interface ConfirmerAchatCommande {
   achatId: string;
@@ -31,6 +32,7 @@ export class ConfirmerAchatPackUseCase {
     private readonly commissions: CommissionMlmRepositoryPort,
     private readonly membres: MembreRepositoryPort,
     private readonly niveaux: NiveauAdhesionRepositoryPort,
+    private readonly enregistrerAudit: EnregistrerAuditUseCase,
   ) {}
 
   async executer(commande: ConfirmerAchatCommande) {
@@ -73,6 +75,13 @@ export class ConfirmerAchatPackUseCase {
 
     const commissionsCreees =
       commissionsACreer.length > 0 ? await this.commissions.sauvegarderPlusieurs(commissionsACreer) : [];
+
+    await this.enregistrerAudit.executer({
+      action: 'achat_pack_mlm_confirme',
+      typeEntite: 'AchatPackMlm',
+      acteurId: null,
+      metadonnees: { achatId: achatConfirme.id, membreId: achatConfirme.membreId, commissionsCreees: commissionsCreees.length },
+    });
 
     return { achat: achatConfirme, commissions: commissionsCreees };
   }

@@ -20,6 +20,7 @@ import { ReseauMlmBootstrap } from './infrastructure/reseau-mlm.bootstrap';
 import { AdhesionModule } from '../adhesion/adhesion.module';
 import { PaiementsModule } from '../paiements/paiements.module';
 import { GamificationModule } from '../gamification/gamification.module';
+import { GouvernanceModule } from '../gouvernance/gouvernance.module';
 
 /**
  * Module 5 — Réseau MLM. Dépend d'Adhésion (niveaux, membres) et de Paiements
@@ -33,6 +34,7 @@ import { GamificationModule } from '../gamification/gamification.module';
     AdhesionModule,
     PaiementsModule,
     GamificationModule,
+    GouvernanceModule,
   ],
   controllers: [ReseauMlmController],
   providers: [

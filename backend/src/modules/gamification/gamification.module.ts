@@ -10,16 +10,18 @@ import { TransactionCoinsOrmEntity } from './infrastructure/transaction-coins.or
 import { CatalogueActionsCoinsPostgresRepository } from './infrastructure/catalogue-actions-coins.postgres.repository';
 import { TransactionCoinsPostgresRepository } from './infrastructure/transaction-coins.postgres.repository';
 import { GamificationBootstrap } from './infrastructure/gamification.bootstrap';
+import { GouvernanceModule } from '../gouvernance/gouvernance.module';
 
 /**
  * Module 6 — Gamification (DBC Coins). Ne dépend jamais directement des
- * autres modules — elle se contente d'écouter leurs événements (cahier de
+ * modules métier — elle se contente d'écouter leurs événements (cahier de
  * conception, synthèse des relations inter-modules) : ReclamerGainCoinsUseCase
  * est exporté pour être appelé par les modules qui déclenchent un gain
  * (Réseau MLM aujourd'hui ; Formation, Tontine, Communauté plus tard).
+ * Exception délibérée : Gouvernance (audit transverse à tous les modules).
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([CatalogueActionsCoinsOrmEntity, TransactionCoinsOrmEntity])],
+  imports: [TypeOrmModule.forFeature([CatalogueActionsCoinsOrmEntity, TransactionCoinsOrmEntity]), GouvernanceModule],
   controllers: [GamificationController],
   providers: [
     ReclamerGainCoinsUseCase,
