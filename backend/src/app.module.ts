@@ -8,6 +8,7 @@ import { PaiementsModule } from './modules/paiements/paiements.module';
 import { AdhesionModule } from './modules/adhesion/adhesion.module';
 import { ReseauMlmModule } from './modules/reseau-mlm/reseau-mlm.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
+import { ProgrammesModule } from './modules/programmes/programmes.module';
 
 @Module({
   imports: [
@@ -29,10 +30,10 @@ import { GamificationModule } from './modules/gamification/gamification.module';
     AdhesionModule,
     ReseauMlmModule,
     GamificationModule,
+    ProgrammesModule,
     // Les modules suivants seront rattachés au fur et à mesure de leur implémentation :
     // TontineModule (mis en attente, voir memoire),
-    // FormationModule, ProgrammesModule,
-    // CommunauteDiasporaModule, GouvernanceModule
+    // FormationModule, CommunauteDiasporaModule, GouvernanceModule
   ],
 })
 export class AppModule {}
