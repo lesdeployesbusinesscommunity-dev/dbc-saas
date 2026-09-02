@@ -5,6 +5,7 @@ import configuration from './config/configuration';
 import { SanteModule } from './modules/sante/sante.module';
 import { IdentiteAccesModule } from './modules/identite-acces/identite-acces.module';
 import { PaiementsModule } from './modules/paiements/paiements.module';
+import { AdhesionModule } from './modules/adhesion/adhesion.module';
 
 @Module({
   imports: [
@@ -23,8 +24,9 @@ import { PaiementsModule } from './modules/paiements/paiements.module';
     SanteModule,
     IdentiteAccesModule,
     PaiementsModule,
+    AdhesionModule,
     // Les modules suivants seront rattachés au fur et à mesure de leur implémentation :
-    // AdhesionModule, TontineModule, ReseauMlmModule,
+    // TontineModule, ReseauMlmModule,
     // GamificationModule, FormationModule, ProgrammesModule,
     // CommunauteDiasporaModule, GouvernanceModule
   ],

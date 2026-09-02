@@ -31,6 +31,24 @@ export class Utilisateur {
     );
   }
 
+  /**
+   * Fabrique utilisée lors de la validation d'une DemandeInscription par un
+   * admin : l'identité a déjà été vérifiée manuellement (hors-ligne), donc le
+   * compte naît directement "actif" — pas de vérification OTP à faire.
+   */
+  static creerParAdmin(params: {
+    telephone: string;
+    email?: string;
+    motDePasseHache: string;
+  }): ResultatOperation<Utilisateur> {
+    if (!/^\+?[0-9]{8,15}$/.test(params.telephone)) {
+      return ResultatOperation.echec('Numéro de téléphone invalide');
+    }
+    return ResultatOperation.ok(
+      new Utilisateur(undefined, params.email, params.telephone, params.motDePasseHache, 'actif'),
+    );
+  }
+
   /** Reconstruction depuis la persistance (l'id existe déjà). */
   static depuisPersistance(donnees: {
     id: string;

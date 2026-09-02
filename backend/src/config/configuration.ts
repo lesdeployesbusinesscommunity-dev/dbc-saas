@@ -14,4 +14,8 @@ export default () => ({
     // Partagé avec le fournisseur Mobile Money pour authentifier ses webhooks.
     webhookSecret: process.env.PAIEMENTS_WEBHOOK_SECRET ?? 'change-moi-en-production',
   },
+  admin: {
+    // Temporaire (voir AdminSecretGuard) en attendant de vrais rôles.
+    secret: process.env.ADMIN_SECRET ?? 'change-moi-en-production',
+  },
 });
