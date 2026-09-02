@@ -21,7 +21,7 @@ export const defaultTheme = {
         name: DEFAULT_PRIMARY_COLOR,
         ...colors[DEFAULT_PRIMARY_COLOR]
     },
-    defaultLang: "en",
+    defaultLang: "fr",
     fallbackLang: "en",
     notification: {
         isExpanded: false,

@@ -9,5 +9,102 @@
       "general": "General",
       "appearance": "Appearance"
     }
+  },
+  "visiteur": {
+    "header": {
+      "brandLine1": "Les Déployés",
+      "brandLine2": "Business Community",
+      "nav": {
+        "home": "Home",
+        "about": "About",
+        "simulator": "Income Simulator",
+        "pricing": "Pricing & Plans",
+        "contact": "Contact"
+      },
+      "login": "Log in"
+    },
+    "hero": {
+      "titleLine1": "Join the",
+      "titleHighlight": "First Ecosystem",
+      "titleLine3": "for Pan-African Business",
+      "subtitle": "Equip · Connect · Finance African entrepreneurs to build lasting wealth.",
+      "levelsButton": "See the levels",
+      "africaImageAlt": "Business map of Africa"
+    },
+    "stats": {
+      "title": "Statistics",
+      "subtitle": "Business statistics in Africa",
+      "population": "People in Sub-Saharan Africa",
+      "youth": "of the African population under 25",
+      "remittances": "diaspora remittances / year",
+      "coachingMarket": "coaching & training market"
+    },
+    "about": {
+      "title": "About DBC",
+      "subtitle": "Our vision and our mission",
+      "visionLabel": "* Vision",
+      "visionText": "To be the very first pan-African business ecosystem creating everyday millionaires through the strength of community.",
+      "missionLabel": "* Mission",
+      "missionText": "Equip, connect and finance African entrepreneurs of every kind so they can build lasting wealth.",
+      "valuesTitle": "Our 6 Founding Values",
+      "valuesSubtitle": "Discover the values of DBC",
+      "values": {
+        "excellence": {
+          "title": "Excellence",
+          "description": "Rigor as the standard, never the exception"
+        },
+        "solidarity": {
+          "title": "Solidarity",
+          "description": "The strength of the collective serving every member"
+        },
+        "transparency": {
+          "title": "Transparency",
+          "description": "The strength of the collective serving every member"
+        },
+        "progressivity": {
+          "title": "Progressivity",
+          "description": "Growth by stages, accessible to everyone"
+        },
+        "impact": {
+          "title": "Impact",
+          "description": "Concrete, measurable, lasting results"
+        },
+        "faith": {
+          "title": "Faith in the future",
+          "description": "The deep conviction of a continent that is rising."
+        }
+      }
+    },
+    "profiles": {
+      "title": "3 Member Profiles",
+      "subtitle": "Discover the different profiles",
+      "starter": {
+        "age": "18-35 years old",
+        "title": "Early-Stage Entrepreneur",
+        "level": "Level 1 to 3 recommended",
+        "description": "A business idea, little capital, a lot of ambition."
+      },
+      "established": {
+        "age": "30-50 years old",
+        "title": "Established Entrepreneur",
+        "level": "Level 4 to 6 recommended",
+        "description": "An SME looking to scale and access investors."
+      },
+      "diaspora": {
+        "age": "Any age",
+        "title": "African Diaspora",
+        "level": "Level 5 to 8 recommended",
+        "description": "A professional established abroad who wants to invest."
+      },
+      "widgetPrompt": "Ready to take action?"
+    },
+    "footer": {
+      "tagline": "Equip · Connect · Finance African entrepreneurs to build lasting wealth.",
+      "navTitle": "Navigation",
+      "ctaTitle": "Ready to get started?",
+      "ctaText": "Join the first pan-African business ecosystem.",
+      "copyright": "Les Déployés Business Community. All rights reserved."
+    },
+    "joinButton": "Join the DBC"
   }
 }
