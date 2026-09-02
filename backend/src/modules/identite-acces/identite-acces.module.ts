@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './interface/auth.controller';
@@ -10,10 +11,12 @@ import { UtilisateurOrmEntity } from './infrastructure/utilisateur.orm-entity';
 import { UtilisateurPostgresRepository } from './infrastructure/utilisateur.postgres.repository';
 import { HacheurMotDePassePort } from './domaine/hacheur-mot-de-passe.port';
 import { HacheurBcrypt } from './infrastructure/hacheur-bcrypt';
+import { JwtStrategy } from './infrastructure/jwt.strategy';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UtilisateurOrmEntity]),
+    PassportModule,
     // ConfigModule est global (voir AppModule) : ConfigService est déjà disponible ici.
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -29,6 +32,7 @@ import { HacheurBcrypt } from './infrastructure/hacheur-bcrypt';
   providers: [
     InscrireUtilisateurUseCase,
     ConnecterUtilisateurUseCase,
+    JwtStrategy,
     // Le domaine/application dépend des PORTS (abstraits), jamais des implémentations.
     // Remplacer ces lignes suffira à changer de base de données / d'algo de hachage plus tard.
     { provide: UtilisateurRepositoryPort, useClass: UtilisateurPostgresRepository },

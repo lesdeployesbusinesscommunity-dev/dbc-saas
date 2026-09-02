@@ -29,6 +29,7 @@ async function bootstrap() {
     .setTitle('DBC SAAS API')
     .setDescription("Documentation de l'API du backend DBC SAAS")
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const documentSwagger = SwaggerModule.createDocument(app, configSwagger);
   SwaggerModule.setup('api/docs', app, documentSwagger);

@@ -1,9 +1,21 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InscrireUtilisateurUseCase } from '../application/inscrire-utilisateur.use-case';
 import { ConnecterUtilisateurUseCase } from '../application/connecter-utilisateur.use-case';
 import { InscriptionDto } from './dto/inscription.dto';
 import { ConnexionDto } from './dto/connexion.dto';
+import { Utilisateur } from '../domaine/utilisateur';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { UtilisateurCourant } from './utilisateur-courant.decorator';
+
+function versReponseUtilisateur(utilisateur: Utilisateur) {
+  return {
+    id: utilisateur.id,
+    telephone: utilisateur.telephone,
+    email: utilisateur.email,
+    statut: utilisateur.statut,
+  };
+}
 
 @ApiTags('auth')
 @Controller('auth')
@@ -24,12 +36,7 @@ export class AuthController {
       motDePasse: dto.password,
     });
 
-    return {
-      id: utilisateur.id,
-      telephone: utilisateur.telephone,
-      email: utilisateur.email,
-      statut: utilisateur.statut,
-    };
+    return versReponseUtilisateur(utilisateur);
   }
 
   @Post('login')
@@ -43,14 +50,16 @@ export class AuthController {
       motDePasse: dto.password,
     });
 
-    return {
-      accessToken,
-      utilisateur: {
-        id: utilisateur.id,
-        telephone: utilisateur.telephone,
-        email: utilisateur.email,
-        statut: utilisateur.statut,
-      },
-    };
+    return { accessToken, utilisateur: versReponseUtilisateur(utilisateur) };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Profil de l'utilisateur authentifié" })
+  @ApiResponse({ status: 200, description: 'Profil renvoyé' })
+  @ApiResponse({ status: 401, description: 'Jeton absent, invalide ou expiré' })
+  async monProfil(@UtilisateurCourant() utilisateur: Utilisateur) {
+    return versReponseUtilisateur(utilisateur);
   }
 }
