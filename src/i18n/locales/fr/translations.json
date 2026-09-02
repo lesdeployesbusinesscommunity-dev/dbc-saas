@@ -1,0 +1,110 @@
+{
+  "nav": {
+    "dashboards": {
+      "dashboards": "Dashboards",
+      "home": "Home"
+    },
+    "settings": {
+      "settings": "Paramètres",
+      "general": "Général",
+      "appearance": "Apparence"
+    }
+  },
+  "visiteur": {
+    "header": {
+      "brandLine1": "Les Déployés",
+      "brandLine2": "Business Community",
+      "nav": {
+        "home": "Home",
+        "about": "A propos",
+        "simulator": "Simulateur de revenus",
+        "pricing": "Revenus et tarif",
+        "contact": "Contacts"
+      },
+      "login": "Se connecter"
+    },
+    "hero": {
+      "titleLine1": "Rejoignez le",
+      "titleHighlight": "Premier Écosystème",
+      "titleLine3": "Business Panafricain",
+      "subtitle": "Équiper · Connecter · Financer les entrepreneurs africains pour créer une richesse durable.",
+      "levelsButton": "Voir les niveaux",
+      "africaImageAlt": "Carte d'affaires en Afrique"
+    },
+    "stats": {
+      "title": "Statistiques",
+      "subtitle": "Statistiques des affaires en Afrique",
+      "population": "Habitants en Afrique Subsaherienne",
+      "youth": "de la pop. africaine < 25 ans",
+      "remittances": "transferts diaspora/an",
+      "coachingMarket": "marché coaching & formation"
+    },
+    "about": {
+      "title": "La DBC",
+      "subtitle": "Notre vision et notre mission",
+      "visionLabel": "* Vision",
+      "visionText": "Être le tout 1er écosystème Business panafricain créant des millionnaires ordinaires grâce à la force de la communauté.",
+      "missionLabel": "* Mission",
+      "missionText": "Équiper, connecter et financer les entrepreneurs africains de toutes catégories pour qu'ils créent une richesse durable.",
+      "valuesTitle": "Nos 6 Valeurs Fondatrices",
+      "valuesSubtitle": "Découvrez les valeurs de la DBC",
+      "values": {
+        "excellence": {
+          "title": "Excellence",
+          "description": "L'exigence comme standard, jamais comme exception"
+        },
+        "solidarity": {
+          "title": "Solidarité",
+          "description": "La force du collectif au service de chaque membre"
+        },
+        "transparency": {
+          "title": "Transparence",
+          "description": "La force du collectif au service de chaque membre"
+        },
+        "progressivity": {
+          "title": "Progressivité",
+          "description": "Une croissance par paliers, accessible à tous"
+        },
+        "impact": {
+          "title": "Impact",
+          "description": "Des résultats concrets, mesurables, durables"
+        },
+        "faith": {
+          "title": "Foi en l'avenir",
+          "description": "La conviction profonde d'un continent qui se lève."
+        }
+      }
+    },
+    "profiles": {
+      "title": "3 Profils de Membres",
+      "subtitle": "Découvrez les différents profils",
+      "starter": {
+        "age": "18-35 ans",
+        "title": "Entrepreneur en Démarrage",
+        "level": "Niv. 1 à 3 recommandé",
+        "description": "Idée business, peu de capital, beaucoup d'ambition."
+      },
+      "established": {
+        "age": "30-50 ans",
+        "title": "Entrepreneur Établi",
+        "level": "Niv. 4 à 6 recommandé",
+        "description": "PME cherchant à scaler et accéder aux investisseurs."
+      },
+      "diaspora": {
+        "age": "Tout âge",
+        "title": "Africain de la Diaspora",
+        "level": "Niv. 5 à 8 recommandé",
+        "description": "Professionnel établi à l'étranger, souhaite investir."
+      },
+      "widgetPrompt": "Prêt à passer à l'action ?"
+    },
+    "footer": {
+      "tagline": "Équiper · Connecter · Financer les entrepreneurs africains pour créer une richesse durable.",
+      "navTitle": "Navigation",
+      "ctaTitle": "Prêt à te lancer ?",
+      "ctaText": "Rejoins le premier écosystème business panafricain.",
+      "copyright": "Les Déployés Business Community. Tous droits réservés."
+    },
+    "joinButton": "Rejoins la DBC"
+  }
+}
