@@ -103,8 +103,125 @@
       "navTitle": "Navigation",
       "ctaTitle": "Ready to get started?",
       "ctaText": "Join the first pan-African business ecosystem.",
-      "copyright": "Les Déployés Business Community. All rights reserved."
+      "copyright": "Les Déployés Business Community. All rights reserved.",
+      "disclaimer": "The potential income shown on this site (simulator, level comparison table) is an estimate for illustration only and is not a guarantee of earnings. Results depend on each member's own engagement and activity."
     },
     "joinButton": "Join the DBC"
+  },
+  "simulateur": {
+    "title": "DBC Income Simulator",
+    "subtitle": "Pick your level to see your income potential over 12 months.",
+    "levelLabel": "Selected level:",
+    "filleulsLabel": "Referrals/month:",
+    "perMonth": "/month",
+    "cotisationLabel": "Monthly contribution",
+    "cagnotteLabel": "Pot received",
+    "commissionsLabel": "MLM commissions/year ({{count}} referrals)",
+    "revenuLabel": "Total potential income/year",
+    "advantagesTitle": "Benefits included at this level",
+    "tableTitle": "Comparison table of all levels",
+    "tableHeaders": {
+      "level": "Level",
+      "cotisation": "Contribution/month",
+      "commission": "Commission",
+      "cagnotte": "Pot received",
+      "potentiel": "Potential/year"
+    },
+    "footnote": "Assumption: 36 members minimum per group · You contribute for 12 months and receive the pot on your turn (11 months net) · The 1st month is the annual sign-up fee",
+    "levels": {
+      "starter": {
+        "name": "DBC Starter",
+        "advantages": [
+          "Active member ID",
+          "DBC WhatsApp groups",
+          "Onboarding webinars",
+          "Resource library",
+          "Digital Masters",
+          "Mastermind",
+          "DBC News",
+          "Weekly Opportunity"
+        ]
+      },
+      "batisseur": {
+        "name": "DBC Builder",
+        "advantages": [
+          "Level 1 included",
+          "Business School Level 1",
+          "Speed Networking",
+          "DBC Marketplace",
+          "Invest Club Level 1",
+          "Finance Clinic",
+          "Joint Ventures",
+          "50 Coins/month"
+        ]
+      },
+      "batisseurPro": {
+        "name": "DBC Builder Pro",
+        "advantages": [
+          "Level 2 included",
+          "Business School Level 2",
+          "Leadership Academy",
+          "Sales Academy",
+          "Marketplace Premium",
+          "Solidarity Credit",
+          "Pitch School",
+          "100 Coins/month"
+        ]
+      },
+      "performer": {
+        "name": "DBC Performer",
+        "advantages": [
+          "Level 3 included",
+          "Business School Level 3",
+          "Invest Club Level 2",
+          "Micro-Equity",
+          "Women in Business",
+          "150 Coins/month"
+        ]
+      },
+      "performerPro": {
+        "name": "DBC Performer Pro",
+        "advantages": [
+          "Level 4 included",
+          "Free annual Summit",
+          "DBC Diaspora Fund",
+          "Export-Import Club",
+          "Mentor Connect",
+          "Real Estate Commons",
+          "Personal Branding",
+          "200 Coins/month"
+        ]
+      },
+      "stratege": {
+        "name": "DBC Strategist",
+        "advantages": [
+          "Level 5 included",
+          "Free DBC Consulting",
+          "Invest Back Home",
+          "Invest Club Level 3",
+          "300 Coins/month"
+        ]
+      },
+      "elite": {
+        "name": "DBC Elite",
+        "advantages": [
+          "Level 6 included",
+          "DBC Consulting support",
+          "Prestige Joint Ventures",
+          "Elite Club",
+          "500 Coins/month"
+        ]
+      },
+      "legende": {
+        "name": "DBC Legend",
+        "advantages": [
+          "FULL ACCESS",
+          "National Council of Legends",
+          "Special Legends Fund",
+          "Invest Club Level 4",
+          "1000 Coins/month"
+        ]
+      }
+    }
   }
 }

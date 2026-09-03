@@ -83,6 +83,13 @@ export function PublicFooter() {
         <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-white/50">
           © {new Date().getFullYear()} {t("visiteur.footer.copyright")}
         </div>
+
+        {/* Avertissement sur les revenus : présent sur la plupart des sites
+            présentant un simulateur/plan de revenus, pour ne jamais laisser
+            penser que les chiffres affichés sont garantis. */}
+        <p className="mt-3 text-center text-[11px] text-white/30">
+          {t("visiteur.footer.disclaimer")}
+        </p>
       </div>
     </footer>
   );

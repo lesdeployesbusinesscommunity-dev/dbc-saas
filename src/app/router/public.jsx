@@ -19,6 +19,13 @@ const publicRoutes = {
             Component: (await import("app/pages/Visiteur")).default,
           }),
         },
+        {
+          // URL: /simulateur-de-revenus -> affiche le simulateur de revenus
+          path: "simulateur-de-revenus",
+          lazy: async () => ({
+            Component: (await import("app/pages/Simulateur")).default,
+          }),
+        },
       ],
     },
   ],

@@ -103,8 +103,125 @@
       "navTitle": "Navigation",
       "ctaTitle": "Prêt à te lancer ?",
       "ctaText": "Rejoins le premier écosystème business panafricain.",
-      "copyright": "Les Déployés Business Community. Tous droits réservés."
+      "copyright": "Les Déployés Business Community. Tous droits réservés.",
+      "disclaimer": "Les revenus potentiels affichés sur ce site (simulateur, tableau des niveaux) sont des estimations à titre indicatif et ne constituent pas une garantie de gain. Les résultats dépendent de l'engagement et de l'activité de chaque membre."
     },
     "joinButton": "Rejoins la DBC"
+  },
+  "simulateur": {
+    "title": "Simulateur de Revenus DBC",
+    "subtitle": "Sélectionne ton niveau pour voir ton potentiel de revenus sur 12 mois.",
+    "levelLabel": "Niveau choisi :",
+    "filleulsLabel": "Filleuls/mois :",
+    "perMonth": "/mois",
+    "cotisationLabel": "Cotisation mensuelle",
+    "cagnotteLabel": "Cagnotte reçue",
+    "commissionsLabel": "Commissions MLM/an ({{count}} filleuls)",
+    "revenuLabel": "Revenu total potentiel/an",
+    "advantagesTitle": "Avantages inclus à ce niveau",
+    "tableTitle": "Tableau comparatif de tous niveaux",
+    "tableHeaders": {
+      "level": "Niveau",
+      "cotisation": "Cotisation/mois",
+      "commission": "Commission",
+      "cagnotte": "Cagnotte reçue",
+      "potentiel": "Potentiel/an"
+    },
+    "footnote": "Hypothèse : 36 membres minimum par groupe · On cotise 12 mois, on reçoit lors de son tour (11 mois nets) · 1er mois = frais d'inscription annuelle",
+    "levels": {
+      "starter": {
+        "name": "DBC Starter",
+        "advantages": [
+          "Matricule activé",
+          "Groupes WhatsApp DBC",
+          "Webinaires d'accueil",
+          "Bibliothèque ressources",
+          "Digital Masters",
+          "Mastermind",
+          "DBC News",
+          "Hebdo Opportunity"
+        ]
+      },
+      "batisseur": {
+        "name": "DBC Bâtisseur",
+        "advantages": [
+          "Niv.1 inclus",
+          "École des Affaires Niv.1",
+          "Speed Networking",
+          "DBC Marketplace",
+          "Invest Club Niv.1",
+          "Clinique Finance",
+          "Joint-Ventures",
+          "50 Coins/mois"
+        ]
+      },
+      "batisseurPro": {
+        "name": "DBC Bâtisseur Pro",
+        "advantages": [
+          "Niv.2 inclus",
+          "École des Affaires Niv.2",
+          "Leadership Academy",
+          "Sales Academy",
+          "Marketplace Premium",
+          "Crédit Solidaire",
+          "Pitch School",
+          "100 Coins/mois"
+        ]
+      },
+      "performer": {
+        "name": "DBC Performer",
+        "advantages": [
+          "Niv.3 inclus",
+          "École des Affaires Niv.3",
+          "Invest Club Niv.2",
+          "Micro-Equity",
+          "Women in Business",
+          "150 Coins/mois"
+        ]
+      },
+      "performerPro": {
+        "name": "DBC Performer Pro",
+        "advantages": [
+          "Niv.4 inclus",
+          "Summit annuel gratuit",
+          "DBC Diaspora Fund",
+          "Export-Import Club",
+          "Mentor Connect",
+          "Communs Real Estate",
+          "Personal Branding",
+          "200 Coins/mois"
+        ]
+      },
+      "stratege": {
+        "name": "DBC Stratège",
+        "advantages": [
+          "Niv.5 inclus",
+          "DBC Consulting gratuit",
+          "Invest Back Home",
+          "Invest Club Niv.3",
+          "300 Coins/mois"
+        ]
+      },
+      "elite": {
+        "name": "DBC Elite",
+        "advantages": [
+          "Niv.6 inclus",
+          "Accompagnement DBC Consulting",
+          "Joint-Ventures Prestige",
+          "Club des Élites",
+          "500 Coins/mois"
+        ]
+      },
+      "legende": {
+        "name": "DBC Légende",
+        "advantages": [
+          "ACCÈS TOTAL",
+          "Conseil National des Légendes",
+          "Fonds Spécial des Légendes",
+          "Invest Club Niv.4",
+          "1000 Coins/mois"
+        ]
+      }
+    }
   }
 }
