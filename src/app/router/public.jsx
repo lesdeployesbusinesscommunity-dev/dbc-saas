@@ -26,7 +26,30 @@ const publicRoutes = {
             Component: (await import("app/pages/Simulateur")).default,
           }),
         },
+        {
+          // URL: /a-propos -> affiche la page A propos
+          path: "a-propos",
+          lazy: async () => ({
+            Component: (await import("app/pages/APropos")).default,
+          }),
+        },
+        {
+          // URL: /contacts -> affiche la page Contacts
+          path: "contacts",
+          lazy: async () => ({
+            Component: (await import("app/pages/Contacts")).default,
+          }),
+        },
       ],
+    },
+    {
+      // URL: /inscription -> écran plein "Rejoindre la DBC" (nom +
+      // matricule), volontairement en dehors de PublicLayout : pas de
+      // header/footer, comme une page de connexion classique.
+      path: "inscription",
+      lazy: async () => ({
+        Component: (await import("app/pages/Inscription")).default,
+      }),
     },
   ],
 };

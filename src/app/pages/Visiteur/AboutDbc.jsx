@@ -7,6 +7,8 @@ import {
   ChartBarIcon,
   SparklesIcon,
   GlobeAltIcon,
+  EyeIcon,
+  FlagIcon,
 } from "@heroicons/react/24/solid";
 import { FaHandshake } from "react-icons/fa";
 
@@ -123,7 +125,13 @@ export function AboutDbc() {
         </Reveal>
 
         <Reveal show={isInView} delay={320}>
-          <p className="mt-4 text-sm font-bold text-[#EE7115]">
+          <p className="mt-4 flex items-center gap-2 text-sm font-bold text-[#EE7115]">
+            <span
+              aria-hidden="true"
+              className="flex size-6 items-center justify-center rounded-full bg-[#EE7115]/[0.1]"
+            >
+              <EyeIcon className="size-3.5" />
+            </span>
             {t("visiteur.about.visionLabel")}
           </p>
           <p className="mt-1 text-sm text-gray-800">
@@ -132,7 +140,13 @@ export function AboutDbc() {
         </Reveal>
 
         <Reveal show={isInView} delay={480}>
-          <p className="mt-4 text-sm font-bold text-[#EE7115]">
+          <p className="mt-4 flex items-center gap-2 text-sm font-bold text-[#EE7115]">
+            <span
+              aria-hidden="true"
+              className="flex size-6 items-center justify-center rounded-full bg-[#EE7115]/[0.1]"
+            >
+              <FlagIcon className="size-3.5" />
+            </span>
             {t("visiteur.about.missionLabel")}
           </p>
           <p className="mt-1 text-sm text-gray-800">

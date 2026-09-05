@@ -62,7 +62,7 @@ export function ComparisonTable({ levels, selectedKey }) {
                         level.bgTintClass,
                       )}
                     >
-                      <span aria-hidden="true">{level.emoji}</span>
+                      <level.Icon aria-hidden="true" className="size-3.5" />
                       {t(`simulateur.levels.${level.key}.name`)}
                     </span>
                     <span className="text-gray-700">

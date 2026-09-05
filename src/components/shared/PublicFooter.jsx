@@ -1,19 +1,31 @@
 // Import Dependencies
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
+import {
+  EnvelopeIcon,
+  PhoneIcon,
+  MapPinIcon,
+} from "@heroicons/react/24/solid";
 
 // Local Imports
 import { JoinDbcButton } from "components/shared/JoinDbcButton";
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE,
+  CONTACT_PHONE_HREF,
+  CONTACT_ADDRESS,
+  socialLinks,
+} from "components/shared/contactInfo";
 
 // ----------------------------------------------------------------------
 
-// Mêmes liens de menu que le header (voir PublicHeader.jsx), le
+// Mêmes liens de menu que le header (voir PublicHeader.jsx) — "Revenus et
+// tarif" retiré, la page Simulateur contient déjà ce tableau. Le
 // "labelKey" pointe vers la clé de traduction.
 const navLinks = [
   { labelKey: "home", to: "/accueil" },
   { labelKey: "about", to: "/a-propos" },
   { labelKey: "simulator", to: "/simulateur-de-revenus" },
-  { labelKey: "pricing", to: "/revenus-et-tarif" },
   { labelKey: "contact", to: "/contacts" },
 ];
 
@@ -27,7 +39,7 @@ export function PublicFooter() {
   return (
     <footer className="bg-[#0B2540] text-white">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Logo + accroche */}
           <div>
             <div className="flex items-center gap-3">
@@ -67,8 +79,49 @@ export function PublicFooter() {
             </nav>
           </div>
 
+          {/* Coordonnées : même source que ContactInfo.jsx sur la page
+              Contacts (components/shared/contactInfo.js), pour ne mettre
+              ces informations à jour qu'à un seul endroit. */}
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-white/50">
+              {t("visiteur.footer.contactTitle")}
+            </p>
+            <div className="mt-4 flex flex-col gap-3 text-sm text-white/80">
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="flex items-center gap-2 transition-colors hover:text-[#EE7115]"
+              >
+                <EnvelopeIcon aria-hidden="true" className="size-4 shrink-0" />
+                {CONTACT_EMAIL}
+              </a>
+              <a
+                href={CONTACT_PHONE_HREF}
+                className="flex items-center gap-2 transition-colors hover:text-[#EE7115]"
+              >
+                <PhoneIcon aria-hidden="true" className="size-4 shrink-0" />
+                {CONTACT_PHONE}
+              </a>
+              <p className="flex items-center gap-2 text-white/70">
+                <MapPinIcon aria-hidden="true" className="size-4 shrink-0" />
+                {CONTACT_ADDRESS}
+              </p>
+            </div>
+            <div className="mt-4 flex items-center gap-2">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.key}
+                  href={social.href}
+                  aria-label={social.label}
+                  className="flex size-8 items-center justify-center rounded-full bg-white/10 text-white/80 transition-colors hover:bg-[#EE7115] hover:text-white"
+                >
+                  <social.Icon className="size-3.5" />
+                </a>
+              ))}
+            </div>
+          </div>
+
           {/* Appel à l'action */}
-          <div className="flex flex-col items-start sm:items-end">
+          <div className="flex flex-col items-start lg:items-end">
             <p className="text-sm font-bold uppercase tracking-wide text-white/50">
               {t("visiteur.footer.ctaTitle")}
             </p>
