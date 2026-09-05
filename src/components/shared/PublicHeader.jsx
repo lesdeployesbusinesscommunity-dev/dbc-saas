@@ -8,15 +8,14 @@ import { LanguageToggle } from "components/shared/LanguageToggle";
 
 // ----------------------------------------------------------------------
 
-// Liens du menu. Seul "Home" (/accueil) est déjà branché à une page pour
-// l'instant, les autres pointent vers de futures pages qu'on construira
-// ensuite (A propos, Simulateur de revenus, Revenus et tarif, Contacts).
+// Liens du menu. "Revenus et tarif" a été retiré : la page Simulateur
+// contient déjà le tableau comparatif des niveaux/tarifs (ComparisonTable),
+// donc les deux ne pointaient vers rien d'autre que la même information.
 // Le "labelKey" pointe vers la clé de traduction (voir i18n/locales).
 const navLinks = [
   { labelKey: "home", to: "/accueil" },
   { labelKey: "about", to: "/a-propos" },
   { labelKey: "simulator", to: "/simulateur-de-revenus" },
-  { labelKey: "pricing", to: "/revenus-et-tarif" },
   { labelKey: "contact", to: "/contacts" },
 ];
 

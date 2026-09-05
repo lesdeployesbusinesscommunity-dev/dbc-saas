@@ -42,9 +42,9 @@
     "about": {
       "title": "About DBC",
       "subtitle": "Our vision and our mission",
-      "visionLabel": "* Vision",
+      "visionLabel": "Vision",
       "visionText": "To be the very first pan-African business ecosystem creating everyday millionaires through the strength of community.",
-      "missionLabel": "* Mission",
+      "missionLabel": "Mission",
       "missionText": "Equip, connect and finance African entrepreneurs of every kind so they can build lasting wealth.",
       "valuesTitle": "Our 6 Founding Values",
       "valuesSubtitle": "Discover the values of DBC",
@@ -101,6 +101,7 @@
     "footer": {
       "tagline": "Equip · Connect · Finance African entrepreneurs to build lasting wealth.",
       "navTitle": "Navigation",
+      "contactTitle": "Get in touch",
       "ctaTitle": "Ready to get started?",
       "ctaText": "Join the first pan-African business ecosystem.",
       "copyright": "Les Déployés Business Community. All rights reserved.",
@@ -222,6 +223,175 @@
           "1000 Coins/month"
         ]
       }
+    }
+  },
+  "apropos": {
+    "whatIsDbc": {
+      "titleLead": "What is",
+      "titleHighlight": "Les Déployés Business Community?",
+      "description": "DBC is the Business branch of the Les Déployés movement. Founded in <strong>Yaoundé,</strong> it is building a <strong>pan-African entrepreneurial ecosystem</strong> giving entrepreneurs access to the resources, skills and opportunities they need to grow their business.",
+      "imageAlt": "Who we are"
+    },
+    "pillars": {
+      "titleLead": "Our",
+      "titleHighlight": "4 pillars",
+      "titleTail": "are as follows:",
+      "items": {
+        "financer": {
+          "title": "Finance",
+          "description": "Access financing mechanisms tailored to support projects."
+        },
+        "former": {
+          "title": "Train",
+          "description": "Develop the skills and knowledge essential to running a successful business."
+        },
+        "reseauter": {
+          "title": "Network",
+          "description": "Build connections within a community of entrepreneurs and grow your network."
+        },
+        "investir": {
+          "title": "Invest",
+          "description": "Take part in creating and developing new economic opportunities."
+        }
+      }
+    },
+    "ecosystem": {
+      "titleLead": "An",
+      "titleHighlight": "ecosystem",
+      "titleTail": ", not just a community",
+      "subtitle": "the 4 differentiating mechanisms are:",
+      "items": {
+        "tontine": {
+          "title": "Digital tontine",
+          "description": "A digitized community financing system."
+        },
+        "parrainage": {
+          "title": "Growth through sponsorship",
+          "description": "A network that helps you grow your business through the community."
+        },
+        "formation": {
+          "title": "Business training",
+          "description": "A structured path to learn how to build and grow your business."
+        },
+        "gamification": {
+          "title": "Gamification",
+          "description": "An 8-level progression path to encourage engagement and member growth."
+        }
+      }
+    },
+    "programs": {
+      "titleLead": "The DBC",
+      "titleHighlight": "programs",
+      "titleTail": "",
+      "subtitle": "Learn, Develop, Progress.",
+      "text": "30+ programs across 5 families.",
+      "items": {
+        "ecole": {
+          "title": "Business School",
+          "description": "Create, structure and grow your business."
+        },
+        "leadership": {
+          "title": "Leadership Academy",
+          "description": "Develop your leadership and management skills."
+        },
+        "digital": {
+          "title": "Digital Masters",
+          "description": "Master the digital tools that power business today."
+        },
+        "sales": {
+          "title": "Sales Academy",
+          "description": "Develop your sales skills."
+        },
+        "challenge": {
+          "title": "DBC Challenge",
+          "description": "Take action and put your skills into practice."
+        }
+      }
+    },
+    "ambition": {
+      "titleLead": "Our ambition",
+      "titleHighlight": "2026 → 2030",
+      "phases": {
+        "lancement": {
+          "label": "Launch",
+          "items": [
+            "100 founding members",
+            "First DBC Summit",
+            "Institutional partnerships",
+            "Paris & Montreal chapters"
+          ]
+        },
+        "expansion": {
+          "label": "Expansion",
+          "items": [
+            "5,000 active members",
+            "Rollout across several African countries",
+            "International certification for the Business School"
+          ]
+        },
+        "rayonnement": {
+          "label": "Global reach",
+          "items": [
+            "25,000+ members",
+            "15 countries",
+            "DBC Bank",
+            "DBC Foundation",
+            "DBC Prize"
+          ]
+        }
+      }
+    },
+    "panAfrican": {
+      "title": "Pan-African presence",
+      "subtitle": "A community that goes beyond borders",
+      "todayLabel": "Today:",
+      "todayList": ["Yaoundé", "Douala"],
+      "deploymentLabel": "Expanding to:",
+      "deploymentList": ["Paris, Brussels, Montreal", "Abidjan, Dakar, Dubai..."],
+      "imageAlt": "Africa fingerprint"
+    }
+  },
+  "contacts": {
+    "hero": {
+      "titleLead": "Contact",
+      "titleHighlight": "the DBC",
+      "subtitle": "A question about our programs, a partnership idea, or you just want to know more about the community? Our team replies within 24 to 48 business hours."
+    },
+    "info": {
+      "titleLead": "Our",
+      "titleHighlight": "contact details",
+      "subtitle": "Several ways to reach us:",
+      "emailTitle": "Email",
+      "phoneTitle": "Phone",
+      "addressTitle": "Address",
+      "socialTitle": "Social media",
+      "socialText": "Follow the community every day"
+    },
+    "form": {
+      "subjects": ["Become a member", "Training program", "Partnership", "Technical support", "Other"],
+      "nameLabel": "Full name",
+      "namePlaceholder": "Your name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@email.com",
+      "phoneLabel": "Phone",
+      "phoneOptional": "(optional)",
+      "phonePlaceholder": "+1 ...",
+      "subjectLabel": "Subject",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Your message...",
+      "submitIdle": "Send message",
+      "submitSending": "Sending...",
+      "sentTitle": "Message sent!",
+      "sentText": "Thanks for reaching out. Our team replies within 24 to 48 business hours.",
+      "sentReset": "Send another message",
+      "reasonsTitle": "Why write to us?",
+      "reasons": {
+        "membre": "Become a DBC member",
+        "formation": "Join a training program",
+        "partenariat": "Partnership or press",
+        "autre": "Any other question"
+      },
+      "ctaText": "Want to join the community directly instead of waiting for a reply?"
     }
   }
 }

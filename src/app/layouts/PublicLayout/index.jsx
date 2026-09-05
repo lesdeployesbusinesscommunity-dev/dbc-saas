@@ -15,13 +15,17 @@ import { PublicFooter } from "components/shared/PublicFooter";
 // en bas.
 export function PublicLayout() {
   return (
-    <div className="flex min-h-100vh flex-col">
+    <div className="flex min-h-100vh flex-col bg-white">
       {/* Header commun à toutes les pages publiques (déplacé dans
           components/shared pour être réutilisable sur d'autres layouts) */}
       <PublicHeader />
 
-      {/* Zone où s'affiche le contenu de la page active (ex: Visiteur) */}
-      <main className="grow">
+      {/* Zone où s'affiche le contenu de la page active (ex: Visiteur).
+          bg-white forcé ici : sans ça, si le mode sombre du tableau de
+          bord est actif (togglé ailleurs dans l'admin), le fond noir du
+          thème remontait derrière nos sections publiques qui n'ont pas
+          leur propre couleur de fond. */}
+      <main className="grow bg-white">
         <Outlet />
       </main>
 

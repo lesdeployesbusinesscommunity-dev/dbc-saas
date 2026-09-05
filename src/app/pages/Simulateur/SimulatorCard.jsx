@@ -6,7 +6,7 @@ import {
   ListboxOptions,
   Transition,
 } from "@headlessui/react";
-import { ChevronDownIcon } from "@heroicons/react/24/solid";
+import { ChevronDownIcon, GiftIcon } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 
@@ -59,8 +59,12 @@ export function SimulatorCard({
             {({ open }) => (
               <div className="relative w-72 max-w-full">
                 <ListboxButton className="flex w-full items-center justify-between rounded-lg border border-[#EE7115]/40 bg-[#EE7115]/[0.1] px-4 py-2.5 text-sm font-medium text-gray-800 transition-colors">
-                  <span className="truncate">
-                    {selectedLevel.emoji} {levelName(selectedLevel)} –{" "}
+                  <span className="flex min-w-0 items-center gap-1.5 truncate">
+                    <selectedLevel.Icon
+                      aria-hidden="true"
+                      className="size-4 shrink-0"
+                    />
+                    {levelName(selectedLevel)} –{" "}
                     {formatMoney(selectedLevel.cotisation, locale)}
                     {t("simulateur.perMonth")}
                   </span>
@@ -94,9 +98,15 @@ export function SimulatorCard({
                           )
                         }
                       >
-                        {level.emoji} {levelName(level)} –{" "}
-                        {formatMoney(level.cotisation, locale)}
-                        {t("simulateur.perMonth")}
+                        <span className="flex items-center gap-1.5">
+                          <level.Icon
+                            aria-hidden="true"
+                            className="size-4 shrink-0"
+                          />
+                          {levelName(level)} –{" "}
+                          {formatMoney(level.cotisation, locale)}
+                          {t("simulateur.perMonth")}
+                        </span>
                       </ListboxOption>
                     ))}
                   </ListboxOptions>
@@ -170,7 +180,7 @@ export function SimulatorCard({
       {/* Avantages inclus au niveau choisi */}
       <div className="mt-6 rounded-xl border border-[#EE7115]/[0.1] bg-[#EE7115]/[0.1] p-5">
         <p className="flex items-center gap-2 text-sm font-bold text-gray-900">
-          <span aria-hidden="true">🎯</span>
+          <GiftIcon aria-hidden="true" className="size-4 text-[#EE7115]" />
           {t("simulateur.advantagesTitle")}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">

@@ -1,3 +1,15 @@
+// Import Dependencies
+import {
+  SparklesIcon,
+  BuildingOffice2Icon,
+  WrenchScrewdriverIcon,
+  BoltIcon,
+  EyeIcon,
+  PuzzlePieceIcon,
+  ShieldCheckIcon,
+  TrophyIcon,
+} from "@heroicons/react/24/solid";
+
 // ----------------------------------------------------------------------
 // Les 8 niveaux DBC. Chaque niveau porte ses classes Tailwind écrites en
 // toutes lettres (jamais construites via un gabarit `bg-[${color}]`) :
@@ -6,10 +18,11 @@
 // les autres pages du site). Le "name" et les "advantages" viennent des
 // fichiers de traduction (clé simulateur.levels.<key>) pour supporter le
 // FR/EN — ce fichier ne garde que les données chiffrées et les couleurs.
+// "Icon" remplace les emojis d'origine par de vraies icônes.
 export const levels = [
   {
     key: "starter",
-    emoji: "🌱",
+    Icon: SparklesIcon,
     cotisation: 5000,
     commission: 1000,
     cagnotte: 55000,
@@ -21,7 +34,7 @@ export const levels = [
   },
   {
     key: "batisseur",
-    emoji: "🏗️",
+    Icon: BuildingOffice2Icon,
     cotisation: 10000,
     commission: 2000,
     cagnotte: 110000,
@@ -33,7 +46,7 @@ export const levels = [
   },
   {
     key: "batisseurPro",
-    emoji: "⚒️",
+    Icon: WrenchScrewdriverIcon,
     cotisation: 30000,
     commission: 5000,
     cagnotte: 330000,
@@ -45,7 +58,7 @@ export const levels = [
   },
   {
     key: "performer",
-    emoji: "🎯",
+    Icon: BoltIcon,
     cotisation: 100000,
     commission: 10000,
     cagnotte: 1100000,
@@ -57,7 +70,7 @@ export const levels = [
   },
   {
     key: "performerPro",
-    emoji: "🔭",
+    Icon: EyeIcon,
     cotisation: 165000,
     commission: 15000,
     cagnotte: 1815000,
@@ -69,7 +82,7 @@ export const levels = [
   },
   {
     key: "stratege",
-    emoji: "♟️",
+    Icon: PuzzlePieceIcon,
     cotisation: 350000,
     commission: 20000,
     cagnotte: 3850000,
@@ -81,7 +94,7 @@ export const levels = [
   },
   {
     key: "elite",
-    emoji: "⚜️",
+    Icon: ShieldCheckIcon,
     cotisation: 900000,
     commission: 100000,
     cagnotte: 9900000,
@@ -93,7 +106,7 @@ export const levels = [
   },
   {
     key: "legende",
-    emoji: "👑",
+    Icon: TrophyIcon,
     cotisation: 2000000,
     commission: 200000,
     cagnotte: 22000000,

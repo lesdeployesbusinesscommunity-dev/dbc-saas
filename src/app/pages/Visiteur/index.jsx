@@ -72,7 +72,7 @@ export default function Visiteur() {
               <JoinDbcButton />
 
               <Link
-                to="/niveaux"
+                to="/simulateur-de-revenus"
                 className="rounded-lg border border-[#52A2DF] bg-[#52A2DF]/[0.32] px-5 py-2.5 text-sm font-semibold text-[#52A2DF]"
               >
                 {t("visiteur.hero.levelsButton")}
