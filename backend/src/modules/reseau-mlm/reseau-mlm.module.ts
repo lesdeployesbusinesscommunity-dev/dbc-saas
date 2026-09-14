@@ -50,3 +50,5 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
   exports: [EnregistrerParrainageUseCase],
 })
 export class ReseauMlmModule {}
+
+

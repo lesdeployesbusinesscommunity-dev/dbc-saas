@@ -70,7 +70,7 @@ export class ReseauMlmController {
       })),
     };
   }
-
+  // pour la premiere 
   @Get('mon-reseau')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
