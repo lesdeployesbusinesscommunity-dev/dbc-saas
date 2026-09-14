@@ -1,0 +1,140 @@
+{
+  "info": {
+    "name": "DBC SAAS API - Visiteur",
+    "description": "Routes publiques accessibles sans authentification (partie visiteur, avant login/adhesion). Prefixe global: /api/v1. Reponses succes: { data: ... }. Reponses erreur: { error: { message, code } }.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Sante",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Demande d'adhesion",
+      "item": [
+        {
+          "name": "Soumettre une demande d'adhesion",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Wakap\",\n  \"firstName\": \"Hubert\",\n  \"age\": 30,\n  \"country\": \"Cameroun\",\n  \"phoneNumber\": \"+237600000000\",\n  \"sponsorCode\": \"DBC-2026-00001\",\n  \"desiredLevelCode\": \"starter\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/demandes-inscription", "host": ["{{baseUrl}}"], "path": ["demandes-inscription"] },
+            "description": "sponsorCode est optionnel. desiredLevelCode doit correspondre a un code du catalogue GET /adhesion/niveaux (ex: starter, batisseur, batisseur_pro, performer, performer_pro, strategie, elite, legende)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalogue Adhesion",
+      "item": [
+        {
+          "name": "Niveaux d'adhesion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/adhesion/niveaux", "host": ["{{baseUrl}}"], "path": ["adhesion", "niveaux"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalogue Reseau MLM",
+      "item": [
+        {
+          "name": "Packs Longrich",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/reseau-mlm/packs", "host": ["{{baseUrl}}"], "path": ["reseau-mlm", "packs"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gamification",
+      "item": [
+        {
+          "name": "Classement (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gamification/classement?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["gamification", "classement"],
+              "query": [{ "key": "limit", "value": "20" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Programmes",
+      "item": [
+        {
+          "name": "Les 4 piliers DBC",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/programmes/piliers", "host": ["{{baseUrl}}"], "path": ["programmes", "piliers"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Communaute Diaspora",
+      "item": [
+        {
+          "name": "Lister les zones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/communaute/zones", "host": ["{{baseUrl}}"], "path": ["communaute", "zones"] }
+          }
+        },
+        {
+          "name": "Lister les antennes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/communaute/antennes", "host": ["{{baseUrl}}"], "path": ["communaute", "antennes"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gouvernance",
+      "item": [
+        {
+          "name": "Lister les annonces",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gouvernance/annonces?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["gouvernance", "annonces"],
+              "query": [{ "key": "limit", "value": "20" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

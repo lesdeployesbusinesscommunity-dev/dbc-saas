@@ -1,0 +1,483 @@
+{
+  "info": {
+    "name": "DBC SAAS API",
+    "description": "Collection de test pour l'API backend DBC SAAS. Prefixe global: /api/v1. Reponses succes: { data: ... }. Reponses erreur: { error: { message, code } }.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.add({ key: 'ngrok-skip-browser-warning', value: 'true' });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "https://debug-awkward-animator.ngrok-free.dev/api/v1", "type": "string" },
+    { "key": "adminSecret", "value": "secret-admin-de-dev-local", "type": "string" },
+    { "key": "webhookSecret", "value": "secret-de-dev-local", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "demandeId", "value": "", "type": "string" },
+    { "key": "achatId", "value": "", "type": "string" },
+    { "key": "antenneId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Sante",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.data && body.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', body.data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+237600000000\",\n  \"password\": \"motdepasse123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Si l'utilisateur a la 2FA active, la reponse contient { otpRequired: true, otpChallengeId } au lieu du accessToken -> utiliser la requete 'Verifier OTP' ensuite."
+          }
+        },
+        {
+          "name": "Verifier OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.data && body.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', body.data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otpChallengeId\": \"\",\n  \"code\": \"123456\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/verify-otp", "host": ["{{baseUrl}}"], "path": ["auth", "verify-otp"] }
+          }
+        },
+        {
+          "name": "Mon profil (me)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Activer 2FA",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/auth/2fa/enable", "host": ["{{baseUrl}}"], "path": ["auth", "2fa", "enable"] }
+          }
+        },
+        {
+          "name": "Desactiver 2FA",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/auth/2fa/disable", "host": ["{{baseUrl}}"], "path": ["auth", "2fa", "disable"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Demandes d'inscription",
+      "item": [
+        {
+          "name": "Soumettre une demande d'adhesion (visiteur)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('demandeId', body.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Wakap\",\n  \"firstName\": \"Hubert\",\n  \"age\": 30,\n  \"country\": \"Cameroun\",\n  \"phoneNumber\": \"+237600000000\",\n  \"sponsorCode\": \"DBC-2026-00001\",\n  \"desiredLevelCode\": \"starter\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/demandes-inscription", "host": ["{{baseUrl}}"], "path": ["demandes-inscription"] }
+          }
+        },
+        {
+          "name": "Lister les demandes en attente (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-admin-secret", "value": "{{adminSecret}}" }],
+            "url": { "raw": "{{baseUrl}}/demandes-inscription", "host": ["{{baseUrl}}"], "path": ["demandes-inscription"] }
+          }
+        },
+        {
+          "name": "Valider une demande (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-admin-secret", "value": "{{adminSecret}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"temporaryPassword\": \"motdepasse-temporaire-123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/demandes-inscription/{{demandeId}}/valider",
+              "host": ["{{baseUrl}}"],
+              "path": ["demandes-inscription", "{{demandeId}}", "valider"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Adhesion",
+      "item": [
+        {
+          "name": "Catalogue des niveaux d'adhesion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/adhesion/niveaux", "host": ["{{baseUrl}}"], "path": ["adhesion", "niveaux"] }
+          }
+        },
+        {
+          "name": "Mon tableau de bord (moi)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/adhesion/moi", "host": ["{{baseUrl}}"], "path": ["adhesion", "moi"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reseau MLM",
+      "item": [
+        {
+          "name": "Catalogue des packs Longrich",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/reseau-mlm/packs", "host": ["{{baseUrl}}"], "path": ["reseau-mlm", "packs"] }
+          }
+        },
+        {
+          "name": "Acheter un pack",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('achatId', body.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"packCode\": \"decouverte\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/reseau-mlm/achats", "host": ["{{baseUrl}}"], "path": ["reseau-mlm", "achats"] }
+          }
+        },
+        {
+          "name": "Confirmer un achat (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "x-admin-secret", "value": "{{adminSecret}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/reseau-mlm/achats/{{achatId}}/confirmer",
+              "host": ["{{baseUrl}}"],
+              "path": ["reseau-mlm", "achats", "{{achatId}}", "confirmer"]
+            }
+          }
+        },
+        {
+          "name": "Mon reseau (filleuls directs)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/reseau-mlm/mon-reseau", "host": ["{{baseUrl}}"], "path": ["reseau-mlm", "mon-reseau"] }
+          }
+        },
+        {
+          "name": "Mes commissions",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/reseau-mlm/mes-commissions", "host": ["{{baseUrl}}"], "path": ["reseau-mlm", "mes-commissions"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gamification",
+      "item": [
+        {
+          "name": "Mon solde de DBC Coins",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/gamification/mon-solde", "host": ["{{baseUrl}}"], "path": ["gamification", "mon-solde"] }
+          }
+        },
+        {
+          "name": "Classement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gamification/classement?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["gamification", "classement"],
+              "query": [{ "key": "limit", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Attribuer des coins (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-admin-secret", "value": "{{adminSecret}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"membreId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n  \"amount\": 50,\n  \"reason\": \"Recompense evenement DBC Summit\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/gamification/attribuer", "host": ["{{baseUrl}}"], "path": ["gamification", "attribuer"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Programmes",
+      "item": [
+        {
+          "name": "Les 4 piliers DBC",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/programmes/piliers", "host": ["{{baseUrl}}"], "path": ["programmes", "piliers"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Communaute Diaspora",
+      "item": [
+        {
+          "name": "Lister les zones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/communaute/zones", "host": ["{{baseUrl}}"], "path": ["communaute", "zones"] }
+          }
+        },
+        {
+          "name": "Lister les antennes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/communaute/antennes", "host": ["{{baseUrl}}"], "path": ["communaute", "antennes"] }
+          }
+        },
+        {
+          "name": "Creer une antenne (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('antenneId', body.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-admin-secret", "value": "{{adminSecret}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"zoneId\": 1,\n  \"city\": \"Bafoussam\",\n  \"status\": \"preparation\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/communaute/antennes", "host": ["{{baseUrl}}"], "path": ["communaute", "antennes"] }
+          }
+        },
+        {
+          "name": "Rejoindre une antenne",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/communaute/antennes/{{antenneId}}/rejoindre",
+              "host": ["{{baseUrl}}"],
+              "path": ["communaute", "antennes", "{{antenneId}}", "rejoindre"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gouvernance",
+      "item": [
+        {
+          "name": "Publier une annonce (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-admin-secret", "value": "{{adminSecret}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"1er DBC Tour - Yaounde\",\n  \"content\": \"Rendez-vous le 15 du mois...\",\n  \"targetLevelId\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/gouvernance/annonces", "host": ["{{baseUrl}}"], "path": ["gouvernance", "annonces"] }
+          }
+        },
+        {
+          "name": "Lister les annonces",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gouvernance/annonces?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["gouvernance", "annonces"],
+              "query": [{ "key": "limit", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Journal d'audit (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-admin-secret", "value": "{{adminSecret}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/gouvernance/audit?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["gouvernance", "audit"],
+              "query": [{ "key": "limit", "value": "50" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Paiements",
+      "item": [
+        {
+          "name": "Initier un paiement Mobile Money",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"purpose\": \"Cotisation tontine - tour 3\",\n  \"phoneNumber\": \"+237600000001\",\n  \"idempotencyKey\": \"cotisation-test-tour-3\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/paiements", "host": ["{{baseUrl}}"], "path": ["paiements"] }
+          }
+        },
+        {
+          "name": "Webhook paiement (interne)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-webhook-secret", "value": "{{webhookSecret}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"cotisation-test-tour-3\",\n  \"success\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/paiements/webhook", "host": ["{{baseUrl}}"], "path": ["paiements", "webhook"] }
+          }
+        }
+      ]
+    }
+  ]
+}
