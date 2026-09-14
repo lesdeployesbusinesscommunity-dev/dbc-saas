@@ -11,6 +11,7 @@ import { GamificationModule } from './modules/gamification/gamification.module';
 import { ProgrammesModule } from './modules/programmes/programmes.module';
 import { CommunauteDiasporaModule } from './modules/communaute-diaspora/communaute-diaspora.module';
 import { GouvernanceModule } from './modules/gouvernance/gouvernance.module';
+import { FormationModule } from './modules/formation/formation.module';
 
 @Module({
   imports: [
@@ -35,8 +36,8 @@ import { GouvernanceModule } from './modules/gouvernance/gouvernance.module';
     ProgrammesModule,
     CommunauteDiasporaModule,
     GouvernanceModule,
-    // Les modules suivants seront rattachés au fur et à mesure de leur implémentation :
-    // TontineModule (mis en attente, voir memoire), FormationModule
+    FormationModule,
+    // TontineModule reste à construire (voir mémoire "Tontine : ambiguïté cycles").
   ],
 })
 export class AppModule {}
