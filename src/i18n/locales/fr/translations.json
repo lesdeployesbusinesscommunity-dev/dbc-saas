@@ -345,9 +345,15 @@
       "title": "Présence panafricaine",
       "subtitle": "Une communauté qui dépasse les frontières",
       "todayLabel": "Aujourd'hui :",
-      "todayList": ["Yaoundé", "Douala"],
+      "todayList": [
+        "Yaoundé",
+        "Douala"
+      ],
       "deploymentLabel": "Déploiement :",
-      "deploymentList": ["Paris, Bruxelles, Montréal", "Abidjan, Dakar, Dubaï..."],
+      "deploymentList": [
+        "Paris, Bruxelles, Montréal",
+        "Abidjan, Dakar, Dubaï..."
+      ],
       "imageAlt": "Empreinte Afrique"
     }
   },
@@ -368,7 +374,13 @@
       "socialText": "Suis la communauté au quotidien"
     },
     "form": {
-      "subjects": ["Devenir membre", "Programme de formation", "Partenariat", "Support technique", "Autre"],
+      "subjects": [
+        "Devenir membre",
+        "Programme de formation",
+        "Partenariat",
+        "Support technique",
+        "Autre"
+      ],
       "nameLabel": "Nom complet",
       "namePlaceholder": "Ton nom",
       "emailLabel": "Email",
@@ -392,6 +404,247 @@
         "autre": "Toute autre question"
       },
       "ctaText": "Envie de rejoindre directement la communauté plutôt que d'attendre une réponse ?"
+    }
+  },
+  "admin": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "membres": "Gestion des membres",
+      "reseau": "Gestion du réseau",
+      "gouvernance": "Gouvernance",
+      "finance": "Finance",
+      "formation": "Formation",
+      "parametres": "Paramètres"
+    },
+    "comingSoon": {
+      "message": "Cette section est en cours de construction et arrive bientôt."
+    },
+    "topbar": {
+      "searchPlaceholder": "Recherche",
+      "notifications": "Notifications"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "welcome": "Bonjour {{name}}",
+      "subtitle": "Bienvenue sur votre session",
+      "globalView": "Vue Globale",
+      "stats": {
+        "membres": "Membres actifs",
+        "niveaux": "Niveaux DBC",
+        "tontine": "Membres Tontine",
+        "antennes": "Antennes",
+        "piliers": "Piliers",
+        "programmes": "Programmes"
+      },
+      "cagnottesChart": {
+        "title": "Cagnottes par niveau (potentiel)",
+        "seriesName": "Cagnotte potentielle"
+      },
+      "calendar": {
+        "title": "Calendrier",
+        "month": "Mois",
+        "year": "Année",
+        "day": "Jour",
+        "prevDay": "Jour précédent",
+        "nextDay": "Jour suivant"
+      },
+      "beneficiaries": {
+        "title": "Bénéficiaire tontine",
+        "allLevels": "Tous les niveaux",
+        "empty": "Aucun bénéficiaire pour ce niveau.",
+        "residesIn": "Résident à {{city}}",
+        "statusPaid": "{{name}} a bénéficié de sa tontine",
+        "statusUnpaid": "{{name}} n'a pas bénéficié de sa tontine",
+        "statusPending": "Statut de {{name}} en attente"
+      },
+      "trainings": {
+        "title": "Formation en cours",
+        "empty": "Aucune formation en cours pour ce niveau.",
+        "viewAria": "Voir la formation {{name}} — {{trainer}}",
+        "prev": "Formations précédentes",
+        "next": "Formations suivantes"
+      },
+      "level": "Niveau {{n}}"
+    },
+    "membres": {
+      "title": "Gestion des membres",
+      "allLevels": "Tous les niveaux",
+      "level": "Niveau {{n}}",
+      "levelWithName": "Niveau {{n}} : {{name}}",
+      "addNewMember": "Ajouter un nouveau membre",
+      "addMember": "Ajouter un membre",
+      "searchPlaceholder": "Rechercher par nom ou matricule",
+      "sortBy": "Trier par",
+      "export": "Exporter",
+      "filters": {
+        "none": "Aucun filtre",
+        "date": "Date d'arrivée",
+        "recent": "Plus récent",
+        "city": "Ville",
+        "country": "Pays"
+      },
+      "status": {
+        "pending": "En attente",
+        "active": "Actif",
+        "disabled": "Désactivé"
+      },
+      "table": {
+        "columns": {
+          "name": "Nom",
+          "matricule": "Matricule",
+          "role": "Rôle",
+          "domain": "Domaine d'activité",
+          "level": "Niveau",
+          "city": "Ville",
+          "country": "Pays",
+          "sponsor": "Parrain",
+          "coins": "Coins",
+          "status": "Etat"
+        },
+        "empty": "Aucun membre à ce niveau pour l'instant.",
+        "noSponsor": "Aucun"
+      },
+      "rowMenu": {
+        "actions": "Actions",
+        "update": "Mettre à jour",
+        "view": "Voir",
+        "reactivate": "Réactiver",
+        "deactivate": "Désactiver",
+        "delete": "Supprimer"
+      },
+      "pagination": {
+        "label": "Pagination",
+        "prev": "Page précédente",
+        "next": "Page suivante"
+      },
+      "confirm": {
+        "cancel": "Annuler",
+        "update": {
+          "title": "Modifier ce membre ?",
+          "description": "Vous allez modifier les informations de {{name}}.",
+          "confirmLabel": "Modifier"
+        },
+        "delete": {
+          "title": "Supprimer ce membre ?",
+          "description": "{{name}} sera définitivement supprimé(e). Cette action est irréversible.",
+          "confirmLabel": "Supprimer"
+        },
+        "reactivate": {
+          "title": "Réactiver ce membre ?",
+          "description": "{{name}} retrouvera l'accès à son compte.",
+          "confirmLabel": "Réactiver"
+        },
+        "deactivate": {
+          "title": "Désactiver ce membre ?",
+          "description": "{{name}} n'aura plus accès à son compte tant qu'il ou elle ne sera pas réactivé(e).",
+          "confirmLabel": "Désactiver"
+        }
+      },
+      "modal": {
+        "addTitle": "Ajouter un membre",
+        "editTitle": "Mettre à jour le membre",
+        "viewTitle": "Fiche membre",
+        "close": "Fermer",
+        "cancel": "Annuler",
+        "add": "Ajouter",
+        "save": "Enregistrer",
+        "matricule": "Matricule",
+        "fullName": "Nom complet",
+        "level": "Niveau",
+        "role": "Rôle",
+        "rolePlaceholder": "Membre",
+        "coins": "Coins",
+        "domain": "Domaine d'activité",
+        "domainPlaceholder": "Ex : Coach Consultant · Conférencier",
+        "city": "Ville",
+        "country": "Pays",
+        "sponsorName": "Parrain (nom)",
+        "sponsorNamePlaceholder": "Aucun",
+        "sponsorMatricule": "Parrain (matricule)",
+        "sponsorMatriculePlaceholder": "Ex : DBC-1-0001",
+        "status": "Etat"
+      },
+      "details": {
+        "coordinates": "Coordonnées",
+        "city": "Ville",
+        "country": "Pays",
+        "domain": "Domaine",
+        "sponsor": "Parrain",
+        "noSponsor": "Aucun",
+        "tontine": "Tontine",
+        "nextContribution": "Prochaine cotisation",
+        "amountContributed": "Montant déjà cotisé",
+        "coinsEarned": "Coins gagnés",
+        "amountContributedTile": "Montant cotisé",
+        "referralEarnings": "Gains de parrainage",
+        "filleul": "Filleul",
+        "filleuls": "Filleuls",
+        "trainings": "Formations",
+        "inProgress": "En cours",
+        "none": "Aucune",
+        "noneYet": "Aucune pour l'instant",
+        "completed": "Terminées",
+        "gains": "Gains",
+        "network": "Réseau (filleuls)",
+        "noSponsoredMembers": "Aucun filleul pour l'instant."
+      },
+      "awards": {
+        "cotisation": {
+          "label": "Cotisation à jour",
+          "description": "Toujours à jour sur ses cotisations tontine"
+        },
+        "parrainage": {
+          "label": "Recruteur du mois",
+          "description": "A invité le plus de nouveaux membres à la tontine ce mois-ci"
+        },
+        "formation": {
+          "label": "Assidu formation",
+          "description": "Participe le plus aux formations"
+        }
+      },
+      "top": {
+        "title": "Top des membres",
+        "subtitle": "Les membres qui se distinguent en ce moment"
+      }
+    },
+    "common": {
+      "days": [
+        "Dim",
+        "Lun",
+        "Mar",
+        "Mer",
+        "Jeu",
+        "Ven",
+        "Sam"
+      ],
+      "monthsShort": [
+        "Janv",
+        "Févr",
+        "Mars",
+        "Avr",
+        "Mai",
+        "Juin",
+        "Juil",
+        "Août",
+        "Sept",
+        "Oct",
+        "Nov",
+        "Déc"
+      ],
+      "monthsFull": [
+        "Janvier",
+        "Février",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juillet",
+        "Août",
+        "Septembre",
+        "Octobre",
+        "Novembre",
+        "Décembre"
+      ]
     }
   }
 }
