@@ -1,5 +1,5 @@
 // Import Dependencies
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
@@ -18,6 +18,7 @@ import {
   ArrowPathIcon,
   CheckCircleIcon,
   CheckIcon,
+  ExclamationCircleIcon,
 } from "@heroicons/react/24/solid";
 
 // Local Imports
@@ -55,39 +56,85 @@ const countries = [
 // Les 3 étapes du formulaire, avec leurs champs.
 const STEP_COUNT = 3;
 
+// Champs obligatoires par étape ("pays" et "tontine" ont toujours une
+// valeur par défaut — voir le state "form" — donc jamais vides).
+const REQUIRED_FIELDS_BY_STEP = {
+  1: ["nom", "prenom", "email", "dateNaissance"],
+  2: ["cni", "whatsapp"],
+  3: ["travail", "parrain"],
+};
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // Champ texte/email/date/tel avec icône intégrée, même style visuel que
-// le reste du site (bordure bleue à 32%, focus bleu plein).
-function FieldInput({ label, icon: Icon, ...inputProps }) {
+// le reste du site (bordure bleue à 32%, focus bleu plein). "error" :
+// bordure rouge + message qui apparaît en fondu sous le champ — remplace
+// l'infobulle native du navigateur ("Please fill in this field"), jugée
+// démodée (voir goNext/handleSubmit plus bas, "noValidate" sur le <form>
+// désactive cette infobulle et cette logique manuelle prend le relais).
+function FieldInput({ label, icon: Icon, error, ...inputProps }) {
   return (
     <label className="block text-sm font-semibold text-gray-700">
       {label}
       <div className="relative mt-1.5">
         <Icon
           aria-hidden="true"
-          className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[#52A2DF]"
+          className={clsx(
+            "pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 transition-colors duration-200",
+            error ? "text-red-500" : "text-[#52A2DF]",
+          )}
         />
         <input
           {...inputProps}
-          className="mt-0 w-full rounded-lg border border-[#52A2DF]/[0.32] bg-white py-2.5 pl-10 pr-4 text-sm text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-[#52A2DF]"
+          aria-invalid={error ? "true" : "false"}
+          className={clsx(
+            "mt-0 w-full rounded-lg border bg-white py-2.5 pl-10 pr-4 text-sm text-gray-800 outline-none transition-colors duration-200 placeholder:text-gray-400",
+            error
+              ? "border-red-400 focus:border-red-500"
+              : "border-[#52A2DF]/[0.32] focus:border-[#52A2DF]",
+          )}
         />
       </div>
+      <span
+        className={clsx(
+          "grid text-xs font-medium text-red-600 transition-all duration-200 ease-out",
+          error ? "mt-1.5 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <span className="flex items-center gap-1 overflow-hidden">
+          <ExclamationCircleIcon aria-hidden="true" className="size-3.5 shrink-0" />
+          {error}
+        </span>
+      </span>
     </label>
   );
 }
 
-// Même principe pour un <select> (Pays, Choix de tontine).
-function FieldSelect({ label, icon: Icon, children, ...selectProps }) {
+// Même principe pour un <select> (Pays, Choix de tontine) — ces deux
+// champs ont toujours une valeur par défaut (countries[0] / levels[0]),
+// donc pas de message "requis" possible pour eux, mais "error" reste
+// disponible pour rester cohérent visuellement si besoin plus tard.
+function FieldSelect({ label, icon: Icon, error, children, ...selectProps }) {
   return (
     <label className="block text-sm font-semibold text-gray-700">
       {label}
       <div className="relative mt-1.5">
         <Icon
           aria-hidden="true"
-          className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[#52A2DF]"
+          className={clsx(
+            "pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 transition-colors duration-200",
+            error ? "text-red-500" : "text-[#52A2DF]",
+          )}
         />
         <select
           {...selectProps}
-          className="mt-0 w-full appearance-none rounded-lg border border-[#52A2DF]/[0.32] bg-white py-2.5 pl-10 pr-4 text-sm text-gray-800 outline-none transition-colors focus:border-[#52A2DF]"
+          aria-invalid={error ? "true" : "false"}
+          className={clsx(
+            "mt-0 w-full appearance-none rounded-lg border bg-white py-2.5 pl-10 pr-4 text-sm text-gray-800 outline-none transition-colors duration-200",
+            error
+              ? "border-red-400 focus:border-red-500"
+              : "border-[#52A2DF]/[0.32] focus:border-[#52A2DF]",
+          )}
         >
           {children}
         </select>
@@ -146,10 +193,10 @@ function Stepper({ currentStep }) {
 export default function Inscription() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const formRef = useRef(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [status, setStatus] = useState("idle"); // idle | sending | sent
   const [showSent, setShowSent] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [form, setForm] = useState({
     nom: "",
     prenom: "",
@@ -163,8 +210,29 @@ export default function Inscription() {
     parrain: "",
   });
 
-  const updateField = (field) => (event) =>
-    setForm((prev) => ({ ...prev, [field]: event.target.value }));
+  const updateField = (field) => (event) => {
+    const { value } = event.target;
+    setForm((prev) => ({ ...prev, [field]: value }));
+    // Efface l'erreur du champ dès qu'on recommence à le modifier, pour un
+    // retour visuel immédiat plutôt que d'attendre le prochain "Suivant".
+    setFieldErrors((prev) => (prev[field] ? { ...prev, [field]: null } : prev));
+  };
+
+  // Valide les champs obligatoires de l'étape donnée ; renvoie les erreurs
+  // trouvées ({} si tout est valide) sans jamais utiliser l'infobulle
+  // native du navigateur (reportValidity()).
+  const validateStep = (step) => {
+    const errors = {};
+    for (const field of REQUIRED_FIELDS_BY_STEP[step]) {
+      if (!form[field].trim()) {
+        errors[field] = "Ce champ est requis";
+      }
+    }
+    if (step === 1 && form.email.trim() && !EMAIL_PATTERN.test(form.email.trim())) {
+      errors.email = "Adresse email invalide";
+    }
+    return errors;
+  };
 
   // La coche "s'anime" avec un léger décalage après le passage à "sent",
   // pour qu'elle apparaisse avec un fondu + zoom plutôt que d'un coup.
@@ -178,17 +246,27 @@ export default function Inscription() {
   }, [status]);
 
   const goNext = () => {
-    // reportValidity() ne vérifie que les champs présents dans le DOM :
-    // comme seule l'étape active est montée, ça valide juste ses champs.
-    if (formRef.current && !formRef.current.reportValidity()) return;
+    const errors = validateStep(currentStep);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
     setCurrentStep((step) => Math.min(step + 1, STEP_COUNT));
   };
 
-  const goBack = () => setCurrentStep((step) => Math.max(step - 1, 1));
+  const goBack = () => {
+    setFieldErrors({});
+    setCurrentStep((step) => Math.max(step - 1, 1));
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (formRef.current && !formRef.current.reportValidity()) return;
+    const errors = validateStep(currentStep);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
     setStatus("sending");
     setTimeout(() => setStatus("sent"), 1400);
   };
@@ -326,7 +404,7 @@ export default function Inscription() {
                   <Stepper currentStep={currentStep} />
                 </div>
 
-                <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} noValidate className="space-y-5">
                   {currentStep === 1 && (
                     <>
                       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -334,37 +412,37 @@ export default function Inscription() {
                           label="Nom"
                           icon={UserIcon}
                           type="text"
-                          required
                           value={form.nom}
                           onChange={updateField("nom")}
                           placeholder="Ton nom"
+                          error={fieldErrors.nom}
                         />
                         <FieldInput
                           label="Prénom"
                           icon={UserIcon}
                           type="text"
-                          required
                           value={form.prenom}
                           onChange={updateField("prenom")}
                           placeholder="Ton prénom"
+                          error={fieldErrors.prenom}
                         />
                       </div>
                       <FieldInput
                         label="Email"
                         icon={EnvelopeIcon}
                         type="email"
-                        required
                         value={form.email}
                         onChange={updateField("email")}
                         placeholder="ton@email.com"
+                        error={fieldErrors.email}
                       />
                       <FieldInput
                         label="Date de naissance"
                         icon={CalendarDaysIcon}
                         type="date"
-                        required
                         value={form.dateNaissance}
                         onChange={updateField("dateNaissance")}
+                        error={fieldErrors.dateNaissance}
                       />
                     </>
                   )}
@@ -375,15 +453,14 @@ export default function Inscription() {
                         label="Numéro CNI"
                         icon={IdentificationIcon}
                         type="text"
-                        required
                         value={form.cni}
                         onChange={updateField("cni")}
                         placeholder="Numéro de ta carte d'identité"
+                        error={fieldErrors.cni}
                       />
                       <FieldSelect
                         label="Pays"
                         icon={GlobeAltIcon}
-                        required
                         value={form.pays}
                         onChange={updateField("pays")}
                       >
@@ -397,10 +474,10 @@ export default function Inscription() {
                         label="Numéro WhatsApp"
                         icon={DevicePhoneMobileIcon}
                         type="tel"
-                        required
                         value={form.whatsapp}
                         onChange={updateField("whatsapp")}
                         placeholder="+225 ..."
+                        error={fieldErrors.whatsapp}
                       />
                     </>
                   )}
@@ -410,7 +487,6 @@ export default function Inscription() {
                       <FieldSelect
                         label="Choix de tontine"
                         icon={BanknotesIcon}
-                        required
                         value={form.tontine}
                         onChange={updateField("tontine")}
                       >
@@ -426,19 +502,19 @@ export default function Inscription() {
                         label="Travail / Profession"
                         icon={BriefcaseIcon}
                         type="text"
-                        required
                         value={form.travail}
                         onChange={updateField("travail")}
                         placeholder="Ton activité actuelle"
+                        error={fieldErrors.travail}
                       />
                       <FieldInput
                         label="Matricule du parrain"
                         icon={UserGroupIcon}
                         type="text"
-                        required
                         value={form.parrain}
                         onChange={updateField("parrain")}
                         placeholder="Ex : DBC-00123"
+                        error={fieldErrors.parrain}
                       />
                     </>
                   )}

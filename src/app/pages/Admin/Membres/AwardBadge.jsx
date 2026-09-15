@@ -18,7 +18,11 @@ const AWARD_STYLES = {
 
 // Petit rond avec l'icône d'un award ; au survol, un popover s'ouvre
 // au-dessus avec l'icône et le nom de l'award (pas juste l'infobulle native
-// du navigateur) — demandé explicitement par l'utilisateur.
+// du navigateur) — demandé explicitement par l'utilisateur. L'icône est un
+// vrai <button> (plutôt qu'un <span>) pour rester accessible au clavier
+// (Tab) et surtout au tactile : sur tablette/mobile il n'y a pas de survol
+// "hover", donc un tap doit pouvoir déclencher le même popover — "focus"
+// fait ce travail ici (group-focus-within), sans JS supplémentaire.
 export function AwardBadge({ awardKey }) {
   const { t } = useTranslation();
   const def = awardDefinitions[awardKey];
@@ -30,14 +34,16 @@ export function AwardBadge({ awardKey }) {
 
   return (
     <div className="group relative">
-      <span
+      <button
+        type="button"
+        aria-label={label}
         className={clsx(
-          "flex size-7 items-center justify-center rounded-full",
+          "flex size-7 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
           style.className,
         )}
       >
         <Icon aria-hidden="true" className="size-3.5" />
-      </span>
+      </button>
 
       <div
         role="tooltip"
