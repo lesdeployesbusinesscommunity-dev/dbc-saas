@@ -10,6 +10,8 @@ import {
   UserGroupIcon,
   SparklesIcon,
   CheckBadgeIcon,
+  ShareIcon,
+  MapPinIcon,
 } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
@@ -79,7 +81,21 @@ function InfoRow({ label, value, align = "right" }) {
 // générales organisées en sections nettement séparées, et son réseau de
 // filleuls (parrainage) en bas. Purement en lecture — les modifications
 // passent par "Mettre à jour" (voir RowActionsMenu / AddMemberModal).
-export function MemberDetailsCard({ member, open, onClose }) {
+//
+// "networkContext" (optionnel) est fourni quand la fiche est ouverte
+// depuis "Gestion du réseau" (voir Reseau/index.jsx) : le rôle et la
+// branche occupés dans l'arbre administratif du pays, et l'étendue de sa
+// responsabilité dans CET arbre (sous-branches directes, personnes en
+// poste en dessous de lui...) — une notion différente du "parrainage"
+// (sponsoredMembers) déjà affiché plus bas, qui reste la même quelle que
+// soit la fiche d'où on l'ouvre.
+//
+// "extraBadge" (optionnel) est un simple texte affiché en pastille dans
+// l'en-tête, à côté du niveau et du statut — utilisé par "Gestion de la
+// gouvernance" pour rappeler le poste occupé (ex: "Directeur Marketing
+// Digital · Comité Exécutif") sans les statistiques d'arbre ci-dessus,
+// qui ne concernent que "Gestion du réseau".
+export function MemberDetailsCard({ member, open, onClose, networkContext, extraBadge }) {
   const { t } = useTranslation();
 
   if (!member) return null;
@@ -117,6 +133,19 @@ export function MemberDetailsCard({ member, open, onClose }) {
                     {t(`simulateur.levels.${member.levelKey}.name`)}
                   </span>
                   <StatusBadge status={member.status} />
+                  {extraBadge && (
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-600 shadow-sm">
+                      {extraBadge}
+                    </span>
+                  )}
+                  {networkContext && (
+                    <span className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-bold text-[#52A2DF] shadow-sm">
+                      <ShareIcon aria-hidden="true" className="size-3" />
+                      {networkContext.branchLabel
+                        ? `${networkContext.roleLabel} · ${networkContext.branchLabel}`
+                        : networkContext.roleLabel}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -131,6 +160,56 @@ export function MemberDetailsCard({ member, open, onClose }) {
           </div>
 
           <div className="max-h-[70vh] overflow-y-auto p-6">
+            {networkContext && (
+              <div className="mb-6">
+                <InfoSection Icon={ShareIcon} title={t("admin.reseau.details.title")}>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="rounded-xl bg-[#52A2DF]/[0.08] p-3 text-center">
+                      <p className="text-lg font-bold text-[#52A2DF]">
+                        {networkContext.assignedCount}
+                      </p>
+                      <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-500">
+                        {t("admin.reseau.details.peopleUnderResponsibility")}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-gray-50 p-3 text-center">
+                      <p className="text-lg font-bold text-gray-800">
+                        {networkContext.directBranches}
+                      </p>
+                      <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-500">
+                        {t("admin.reseau.details.directBranches")}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-gray-50 p-3 text-center">
+                      <p className="text-lg font-bold text-gray-800">
+                        {networkContext.vacantCount}
+                      </p>
+                      <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-500">
+                        {t("admin.reseau.details.vacantInTeam")}
+                      </p>
+                    </div>
+                  </div>
+                  <dl className="mt-3 divide-y divide-gray-50">
+                    <InfoRow
+                      label={t("admin.reseau.details.branch")}
+                      value={
+                        networkContext.branchLabel ?? t("admin.reseau.details.noBranch")
+                      }
+                    />
+                    <InfoRow
+                      label={t("admin.reseau.details.country")}
+                      value={
+                        <span className="flex items-center gap-1">
+                          <MapPinIcon aria-hidden="true" className="size-3.5 text-gray-400" />
+                          {networkContext.country}
+                        </span>
+                      }
+                    />
+                  </dl>
+                </InfoSection>
+              </div>
+            )}
+
             {member.awards?.length > 0 && (
               <div className="mb-6 flex flex-wrap gap-2">
                 {member.awards.map((key) => {

@@ -645,6 +645,273 @@
         "November",
         "December"
       ]
+    },
+    "reseau": {
+      "title": "Network management",
+      "levels": {
+        "national": "National",
+        "region": "Region",
+        "ville": "City",
+        "branche": "Branch"
+      },
+      "vacant": "Vacant position",
+      "addBranch": "Add a branch",
+      "hasNetwork": "Active network",
+      "noNetworkYet": "No network yet",
+      "empty": {
+        "title": "No network for this country yet",
+        "description": "Create the National Supervisor position for {{country}} to start its network.",
+        "cta": "Start the network"
+      },
+      "picker": {
+        "parentBranch": "Reference branch",
+        "createTitle": "Add a branch",
+        "createRootTitle": "Start the network — {{country}}",
+        "assignTitle": "Assign a lead",
+        "branchName": "Branch name",
+        "branchNamePlaceholder": "E.g.: Littoral, Yaoundé…",
+        "searchPlaceholder": "Search a member (name, ID)",
+        "allCountries": "All countries",
+        "allLevels": "All levels",
+        "noResults": "No member matches this search.",
+        "confirmCreate": "Add",
+        "confirmAssign": "Assign",
+        "placement": "Placement",
+        "placementBelow": "Below the selected branch",
+        "placementAbove": "Right above the selected branch",
+        "childHint": "A new branch will be created under: {{parent}}",
+        "aboveHint": "A new branch will be inserted right above: {{target}} (which will become one of its sub-branches)"
+      },
+      "renameLevel": "Click to rename this level (applies to every branch at the same tier)",
+      "viewMember": "View profile",
+      "details": {
+        "title": "Network responsibility",
+        "peopleUnderResponsibility": "Under their responsibility",
+        "directBranches": "Direct sub-branches",
+        "vacantInTeam": "Vacant positions in the team",
+        "branch": "Branch",
+        "noBranch": "National position (no branch)",
+        "country": "Country"
+      }
+    },
+    "gouvernance": {
+      "title": "Governance management",
+      "quote": {
+        "label": "Founding quote"
+      },
+      "poles": {
+        "fondatrice": {
+          "title": "Founding Leadership",
+          "description": "Founder & CEO — Overall strategic vision and final arbitration"
+        },
+        "executif": {
+          "title": "Executive Committee",
+          "description": "5 Directors: Operations · Finance · Training · Digital Marketing · Diaspora"
+        },
+        "antennes": {
+          "title": "Chapter Leaders Network",
+          "description": "Legend Leader + Coordinator duo in every local chapter and diaspora antenna",
+          "empty": "No branch has been created in Network management yet — chapters and antennas will appear here automatically."
+        },
+        "legendes": {
+          "title": "Council of Legends",
+          "description": "All Level 8 members — consulted for major strategic decisions",
+          "empty": "No member has reached Level 8 yet — this council will form automatically once someone does."
+        }
+      },
+      "seats": {
+        "ceo": "Founder & CEO",
+        "directorOperations": "Operations Director",
+        "directorFinance": "Finance Director",
+        "directorTrainings": "Training Director",
+        "directorMarketing": "Digital Marketing Director",
+        "directorDiaspora": "Diaspora Director",
+        "leaderLegende": "Legend Leader",
+        "coordinateur": "Coordinator"
+      },
+      "assignModal": {
+        "title": "Assign — {{seat}}"
+      },
+      "otherBranches": "Other branches",
+      "addPole": "Add a pole",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": {
+        "title": "Delete this pole?",
+        "description": "“{{title}}” will be permanently removed from the governance page.",
+        "confirmLabel": "Delete"
+      },
+      "poleForm": {
+        "addTitle": "New pole",
+        "editTitle": "Edit pole",
+        "name": "Pole title",
+        "description": "Description",
+        "icon": "Icon",
+        "seats": "Seats",
+        "addSeat": "Add a seat",
+        "removeSeat": "Remove this seat",
+        "seatPlaceholder": "e.g. Communications Director",
+        "seatsManagedElsewhere": "This card's seats aren't managed here — see Network Management or Member Management depending on the pole.",
+        "noSeats": "No seats yet — edit this pole to add some.",
+        "cancel": "Cancel",
+        "add": "Add",
+        "save": "Save"
+      }
+    },
+    "finance": {
+      "title": "Financial Management",
+      "currentLevelHint": "Figures shown for this level — click a row in the table below to switch",
+      "cards": {
+        "currentPot": "Current monthly pool",
+        "totalCollected": "Total collected",
+        "toursCount_one": "({{count}} round)",
+        "toursCount_other": "({{count}} rounds)",
+        "contributions": "Contributions received this month",
+        "cycle": "Cycle progress",
+        "cycleValue": "Round {{current}}/{{total}}"
+      },
+      "memberCount_one": "{{count}} member at this level",
+      "memberCount_other": "{{count}} members at this level"
+    },
+    "formation": {
+      "title": "Training Management",
+      "filters": {
+        "allLevels": "All levels"
+      },
+      "progress": "Progress",
+      "completed": "Completed",
+      "empty": "No training scheduled for this level yet.",
+      "modal": {
+        "close": "Close",
+        "globalObjectives": "Overall objectives",
+        "outcomes": "By the end of this training, the member will be able to",
+        "addTitle": "New training",
+        "name": "Training name",
+        "trainer": "Trainer",
+        "duration": "Duration",
+        "startDate": "Start date",
+        "level": "Level",
+        "image": "Image",
+        "imageHint": "PNG or JPG — a default visual will be used if no image is chosen.",
+        "chaptersSection": "Chapters",
+        "chapterTitlePlaceholder": "Chapter title",
+        "chapterObjectives": "Chapter objectives",
+        "addChapter": "Add a chapter",
+        "removeChapter": "Remove this chapter",
+        "addObjective": "Add an objective",
+        "removeObjective": "Remove",
+        "objectivePlaceholder": "e.g. Understand the fundamentals...",
+        "cancel": "Cancel",
+        "add": "Add",
+        "durationUnits": {
+          "jours_one": "day",
+          "jours_other": "days",
+          "semaines_one": "week",
+          "semaines_other": "weeks",
+          "mois_one": "month",
+          "mois_other": "months",
+          "annees_one": "year",
+          "annees_other": "years"
+        }
+      },
+      "addButton": "Add a training"
+    },
+    "parametres": {
+      "title": "Settings",
+      "saved": "Saved",
+      "general": {
+        "title": "General",
+        "description": "Platform identity and regional preferences",
+        "platformName": "Platform name",
+        "supportEmail": "Contact email",
+        "supportPhone": "Contact phone",
+        "timezone": "Time zone",
+        "defaultLanguage": "Default language",
+        "currency": "Currency",
+        "dateFormat": "Date format",
+        "timezoneOptions": {
+          "douala": "Africa/Douala (GMT+1)",
+          "dakar": "Africa/Dakar (GMT+0)",
+          "nairobi": "Africa/Nairobi (GMT+3)",
+          "paris": "Europe/Paris (GMT+1)"
+        },
+        "languageOptions": {
+          "fr": "French",
+          "en": "English"
+        },
+        "currencyOptions": {
+          "xaf": "CFA Franc (XAF)",
+          "ghs": "Ghanaian Cedi (GHS)",
+          "ngn": "Nigerian Naira (NGN)",
+          "usd": "US Dollar (USD)"
+        },
+        "dateFormatOptions": {
+          "dmy": "DD/MM/YYYY",
+          "mdy": "MM/DD/YYYY",
+          "ymd": "YYYY-MM-DD"
+        }
+      },
+      "tontine": {
+        "title": "Tontine",
+        "description": "Contribution cycle settings, shared across all levels",
+        "cycleDurationMonths": "Cycle duration (months)",
+        "contributionDay": "Monthly contribution day",
+        "reminderDaysBefore": "Reminder before due date (days)"
+      },
+      "security": {
+        "title": "Security",
+        "description": "Admin authentication and sessions",
+        "twoFactorEnabled": "Two-factor authentication",
+        "twoFactorHint": "Requires an extra code when admins sign in",
+        "sessionTimeout": "Session timeout",
+        "passwordPolicy": "Password policy",
+        "sessionTimeoutOptions": {
+          "15": "15 minutes",
+          "30": "30 minutes",
+          "60": "1 hour",
+          "240": "4 hours",
+          "480": "8 hours"
+        },
+        "passwordPolicyOptions": {
+          "standard": "Standard (8 characters minimum)",
+          "renforcee": "Strong (12 characters, uppercase, digit, symbol)"
+        }
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Choose who receives which notification, and about what",
+        "masterToggle": "Enable notifications",
+        "audiences": {
+          "membres": "Members",
+          "directeurs": "Directors",
+          "leaders": "Chapter leaders",
+          "admins": "Administrators"
+        },
+        "types": {
+          "cotisationRecue": "New contribution received",
+          "rappelEcheance": "Contribution due reminder",
+          "tourAttribue": "Tontine round awarded",
+          "nouveauMembre": "New member registered",
+          "nouvelleFormation": "New training available",
+          "rappelFormation": "Training progress reminder",
+          "changementNiveau": "Level change",
+          "annonceGouvernance": "Governance announcement"
+        }
+      },
+      "backup": {
+        "title": "Backup & export",
+        "description": "Automatic export of the platform's data",
+        "autoExportEnabled": "Automatic export",
+        "exportFrequency": "Export frequency",
+        "exportNow": "Export settings",
+        "exportFrequencyOptions": {
+          "daily": "Daily",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      }
     }
   }
 }

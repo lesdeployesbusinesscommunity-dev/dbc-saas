@@ -645,6 +645,273 @@
         "Novembre",
         "Décembre"
       ]
+    },
+    "reseau": {
+      "title": "Gestion du réseau",
+      "levels": {
+        "national": "National",
+        "region": "Région",
+        "ville": "Ville",
+        "branche": "Branche"
+      },
+      "vacant": "Poste à pourvoir",
+      "addBranch": "Ajouter une branche",
+      "hasNetwork": "Réseau actif",
+      "noNetworkYet": "Pas encore de réseau",
+      "empty": {
+        "title": "Aucun réseau pour ce pays",
+        "description": "Créez le poste de Superviseur National pour {{country}} afin de démarrer son réseau.",
+        "cta": "Créer le réseau"
+      },
+      "picker": {
+        "parentBranch": "Branche de référence",
+        "createTitle": "Ajouter une branche",
+        "createRootTitle": "Créer le réseau — {{country}}",
+        "assignTitle": "Assigner un responsable",
+        "branchName": "Nom de la branche",
+        "branchNamePlaceholder": "Ex : Littoral, Yaoundé…",
+        "searchPlaceholder": "Rechercher un membre (nom, matricule)",
+        "allCountries": "Tous les pays",
+        "allLevels": "Tous les niveaux",
+        "noResults": "Aucun membre ne correspond à cette recherche.",
+        "confirmCreate": "Ajouter",
+        "confirmAssign": "Assigner",
+        "placement": "Emplacement",
+        "placementBelow": "En dessous de la branche choisie",
+        "placementAbove": "Juste au-dessus de la branche choisie",
+        "childHint": "Une nouvelle branche sera créée sous : {{parent}}",
+        "aboveHint": "Une nouvelle branche sera insérée juste au-dessus de : {{target}} (qui en deviendra une sous-branche)"
+      },
+      "renameLevel": "Cliquer pour renommer ce niveau (s'applique à toutes les branches du même échelon)",
+      "viewMember": "Voir la fiche",
+      "details": {
+        "title": "Responsabilité dans le réseau",
+        "peopleUnderResponsibility": "Sous sa responsabilité",
+        "directBranches": "Sous-branches directes",
+        "vacantInTeam": "Postes vacants dans l'équipe",
+        "branch": "Branche",
+        "noBranch": "Poste national (aucune branche)",
+        "country": "Pays"
+      }
+    },
+    "gouvernance": {
+      "title": "Gestion de la gouvernance",
+      "quote": {
+        "label": "Citation fondatrice"
+      },
+      "poles": {
+        "fondatrice": {
+          "title": "Direction Fondatrice",
+          "description": "Fondateur & CEO — Vision stratégique globale et arbitrage final"
+        },
+        "executif": {
+          "title": "Comité Exécutif",
+          "description": "5 Directeurs : Opérations · Financier · Formations · Marketing Digital · Diaspora"
+        },
+        "antennes": {
+          "title": "Réseau des Leaders d'Antennes",
+          "description": "Binôme Leader Légende + Coordinateur dans chaque chapitre local et antenne diaspora",
+          "empty": "Aucune branche n'a encore été créée dans Gestion du réseau — les chapitres et antennes apparaîtront ici automatiquement."
+        },
+        "legendes": {
+          "title": "Conseil des Légendes",
+          "description": "Tous les membres Niveau 8 — consultés pour les décisions stratégiques majeures",
+          "empty": "Aucun membre n'a encore atteint le Niveau 8 — ce conseil se formera automatiquement dès qu'un membre l'atteint."
+        }
+      },
+      "seats": {
+        "ceo": "Fondateur & CEO",
+        "directorOperations": "Directeur Opérations",
+        "directorFinance": "Directeur Financier",
+        "directorTrainings": "Directeur Formations",
+        "directorMarketing": "Directeur Marketing Digital",
+        "directorDiaspora": "Directeur Diaspora",
+        "leaderLegende": "Leader Légende",
+        "coordinateur": "Coordinateur"
+      },
+      "assignModal": {
+        "title": "Assigner — {{seat}}"
+      },
+      "otherBranches": "Autres branches",
+      "addPole": "Ajouter un pôle",
+      "moveUp": "Monter",
+      "moveDown": "Descendre",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "confirmDelete": {
+        "title": "Supprimer ce pôle ?",
+        "description": "« {{title}} » sera définitivement retiré de la page de gouvernance.",
+        "confirmLabel": "Supprimer"
+      },
+      "poleForm": {
+        "addTitle": "Nouveau pôle",
+        "editTitle": "Modifier le pôle",
+        "name": "Titre du pôle",
+        "description": "Description",
+        "icon": "Icône",
+        "seats": "Postes",
+        "addSeat": "Ajouter un poste",
+        "removeSeat": "Supprimer ce poste",
+        "seatPlaceholder": "ex : Directeur Communication",
+        "seatsManagedElsewhere": "Les postes de cette carte ne se gèrent pas ici — voir Gestion du réseau ou Gestion des membres selon le pôle.",
+        "noSeats": "Aucun poste pour l'instant — modifiez ce pôle pour en ajouter.",
+        "cancel": "Annuler",
+        "add": "Ajouter",
+        "save": "Enregistrer"
+      }
+    },
+    "finance": {
+      "title": "Gestion financière",
+      "currentLevelHint": "Chiffres affichés pour ce niveau — cliquez une ligne du tableau ci-dessous pour changer",
+      "cards": {
+        "currentPot": "Cagnotte mensuelle courante",
+        "totalCollected": "Total collecté",
+        "toursCount_one": "({{count}} tour)",
+        "toursCount_other": "({{count}} tours)",
+        "contributions": "Cotisations reçues ce mois",
+        "cycle": "Avancement du cycle",
+        "cycleValue": "Tour {{current}}/{{total}}"
+      },
+      "memberCount_one": "{{count}} membre à ce niveau",
+      "memberCount_other": "{{count}} membres à ce niveau"
+    },
+    "formation": {
+      "title": "Gestion des formations",
+      "filters": {
+        "allLevels": "Tous les niveaux"
+      },
+      "progress": "Avancement",
+      "completed": "Terminée",
+      "empty": "Aucune formation programmée pour ce niveau pour l'instant.",
+      "modal": {
+        "close": "Fermer",
+        "globalObjectives": "Objectifs globaux",
+        "outcomes": "À l'issue de cette formation, le membre sera capable de",
+        "addTitle": "Nouvelle formation",
+        "name": "Nom de la formation",
+        "trainer": "Formateur",
+        "duration": "Durée",
+        "startDate": "Date de début",
+        "level": "Niveau",
+        "image": "Image",
+        "imageHint": "PNG ou JPG — un visuel par défaut sera utilisé si aucune image n'est choisie.",
+        "chaptersSection": "Chapitres",
+        "chapterTitlePlaceholder": "Titre du chapitre",
+        "chapterObjectives": "Objectifs du chapitre",
+        "addChapter": "Ajouter un chapitre",
+        "removeChapter": "Supprimer ce chapitre",
+        "addObjective": "Ajouter un objectif",
+        "removeObjective": "Supprimer",
+        "objectivePlaceholder": "ex : Comprendre les fondamentaux...",
+        "cancel": "Annuler",
+        "add": "Ajouter",
+        "durationUnits": {
+          "jours_one": "jour",
+          "jours_other": "jours",
+          "semaines_one": "semaine",
+          "semaines_other": "semaines",
+          "mois_one": "mois",
+          "mois_other": "mois",
+          "annees_one": "année",
+          "annees_other": "années"
+        }
+      },
+      "addButton": "Ajouter une formation"
+    },
+    "parametres": {
+      "title": "Paramètres",
+      "saved": "Enregistré",
+      "general": {
+        "title": "Général",
+        "description": "Identité de la plateforme et préférences régionales",
+        "platformName": "Nom de la plateforme",
+        "supportEmail": "Email de contact",
+        "supportPhone": "Téléphone de contact",
+        "timezone": "Fuseau horaire",
+        "defaultLanguage": "Langue par défaut",
+        "currency": "Devise",
+        "dateFormat": "Format de date",
+        "timezoneOptions": {
+          "douala": "Afrique/Douala (GMT+1)",
+          "dakar": "Afrique/Dakar (GMT+0)",
+          "nairobi": "Afrique/Nairobi (GMT+3)",
+          "paris": "Europe/Paris (GMT+1)"
+        },
+        "languageOptions": {
+          "fr": "Français",
+          "en": "Anglais"
+        },
+        "currencyOptions": {
+          "xaf": "Franc CFA (XAF)",
+          "ghs": "Cedi ghanéen (GHS)",
+          "ngn": "Naira nigérian (NGN)",
+          "usd": "Dollar américain (USD)"
+        },
+        "dateFormatOptions": {
+          "dmy": "JJ/MM/AAAA",
+          "mdy": "MM/JJ/AAAA",
+          "ymd": "AAAA-MM-JJ"
+        }
+      },
+      "tontine": {
+        "title": "Tontine",
+        "description": "Paramètres du cycle de cotisation, communs à tous les niveaux",
+        "cycleDurationMonths": "Durée du cycle (mois)",
+        "contributionDay": "Jour de prélèvement mensuel",
+        "reminderDaysBefore": "Rappel avant échéance (jours)"
+      },
+      "security": {
+        "title": "Sécurité",
+        "description": "Authentification et sessions administrateur",
+        "twoFactorEnabled": "Authentification à deux facteurs",
+        "twoFactorHint": "Demande un code supplémentaire à la connexion des administrateurs",
+        "sessionTimeout": "Expiration de session",
+        "passwordPolicy": "Politique de mot de passe",
+        "sessionTimeoutOptions": {
+          "15": "15 minutes",
+          "30": "30 minutes",
+          "60": "1 heure",
+          "240": "4 heures",
+          "480": "8 heures"
+        },
+        "passwordPolicyOptions": {
+          "standard": "Standard (8 caractères minimum)",
+          "renforcee": "Renforcée (12 caractères, majuscule, chiffre, symbole)"
+        }
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Choisissez qui reçoit quelle notification, et à quel sujet",
+        "masterToggle": "Activer les notifications",
+        "audiences": {
+          "membres": "Membres",
+          "directeurs": "Directeurs",
+          "leaders": "Leaders d'antennes",
+          "admins": "Administrateurs"
+        },
+        "types": {
+          "cotisationRecue": "Nouvelle cotisation reçue",
+          "rappelEcheance": "Rappel d'échéance de cotisation",
+          "tourAttribue": "Tour de tontine attribué",
+          "nouveauMembre": "Nouveau membre inscrit",
+          "nouvelleFormation": "Nouvelle formation disponible",
+          "rappelFormation": "Rappel de progression de formation",
+          "changementNiveau": "Changement de niveau",
+          "annonceGouvernance": "Annonce de gouvernance"
+        }
+      },
+      "backup": {
+        "title": "Sauvegarde & export",
+        "description": "Export automatique des données de la plateforme",
+        "autoExportEnabled": "Export automatique",
+        "exportFrequency": "Fréquence d'export",
+        "exportNow": "Exporter les paramètres",
+        "exportFrequencyOptions": {
+          "daily": "Quotidienne",
+          "weekly": "Hebdomadaire",
+          "monthly": "Mensuelle"
+        }
+      }
     }
   }
 }

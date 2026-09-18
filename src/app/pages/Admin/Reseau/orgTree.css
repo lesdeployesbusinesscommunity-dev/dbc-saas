@@ -1,0 +1,108 @@
+/*
+ * Lignes de connexion de l'arbre généalogique de "Gestion du réseau".
+ * Technique CSS classique pour un arbre organisationnel : chaque <li>
+ * dessine sa propre demi-ligne horizontale (::before/::after) vers le
+ * centre de son parent, et chaque <ul> imbriqué dessine la ligne
+ * verticale qui descend vers sa rangée d'enfants. Fonctionne quel que
+ * soit le nombre d'enfants, sans mesure JS.
+ *
+ * Le bouton rond "+" (ajouter une branche) n'est pas dessiné en CSS : ce
+ * sont de vrais <button> positionnés en absolu au milieu du tronçon
+ * vertical qui descend d'un nœud vers ses enfants (voir .dbc-tree-stem
+ * dans OrgTree.jsx) — comme ça il reste cliquable et fonctionne même
+ * quand un nœud n'a encore aucun enfant.
+ */
+
+.dbc-tree,
+.dbc-tree ul {
+  display: flex;
+  justify-content: center;
+}
+
+.dbc-tree {
+  padding: 8px 24px 40px;
+}
+
+.dbc-tree ul {
+  position: relative;
+  padding-top: 40px;
+  list-style: none;
+  margin: 0;
+}
+
+.dbc-tree li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  list-style: none;
+  padding: 0 20px;
+}
+
+.dbc-tree li::before,
+.dbc-tree li::after {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: 50%;
+  width: 50%;
+  height: 40px;
+  border-top: 2px solid #52a2df66;
+  box-sizing: border-box;
+}
+
+.dbc-tree li::after {
+  right: auto;
+  left: 50%;
+  border-left: 2px solid #52a2df66;
+}
+
+.dbc-tree li:only-child::before,
+.dbc-tree li:only-child::after {
+  border-top: none;
+}
+
+.dbc-tree li:only-child::after {
+  border-left: 2px solid #52a2df66;
+}
+
+.dbc-tree li:first-child::before {
+  border: none;
+}
+
+.dbc-tree li:last-child::after {
+  border-left: none;
+}
+
+.dbc-tree li:last-child::before {
+  border-right: 2px solid #52a2df66;
+  border-radius: 0 10px 0 0;
+}
+
+.dbc-tree li:first-child::after {
+  border-radius: 10px 0 0 0;
+}
+
+/* Ligne verticale qui descend du nœud parent jusqu'à la rangée de ses
+   enfants (au-dessus du <ul>). Sa hauteur (40px) est aussi la référence
+   utilisée par .dbc-tree-add-btn pour se centrer dessus. */
+.dbc-tree-stem {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.dbc-tree-stem::before {
+  content: "";
+  width: 2px;
+  height: 40px;
+  background: #52a2df66;
+}
+
+.dbc-tree-add-btn {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
