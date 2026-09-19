@@ -3,6 +3,7 @@ import { Outlet } from "react-router";
 
 // Local Imports
 import { AdminSidebar } from "./AdminSidebar";
+import { NetworkDataProvider } from "../context/NetworkDataContext";
 
 // ----------------------------------------------------------------------
 
@@ -25,11 +26,13 @@ import { AdminSidebar } from "./AdminSidebar";
 // fois l'authentification intégrée.
 export default function AdminLayout() {
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FCE3D1]">
-      <AdminSidebar />
-      <div className="h-full min-w-0 flex-1 overflow-y-auto">
-        <Outlet />
+    <NetworkDataProvider>
+      <div className="flex h-screen overflow-hidden bg-[#FCE3D1]">
+        <AdminSidebar />
+        <div className="h-full min-w-0 flex-1 overflow-y-auto">
+          <Outlet />
+        </div>
       </div>
-    </div>
+    </NetworkDataProvider>
   );
 }

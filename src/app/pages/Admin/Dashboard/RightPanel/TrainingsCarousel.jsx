@@ -5,17 +5,22 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
-import { trainingsByLevel } from "../mockData";
+import { levels } from "app/pages/Simulateur/data";
+import { initialTrainingsByLevel } from "app/pages/Admin/Formation/mockData";
 import { LevelSelector } from "./LevelSelector";
 
 // ----------------------------------------------------------------------
 
 // Formations en cours du niveau choisi, en carrousel horizontal (flèches
-// gauche/droite qui font défiler la liste). Chaque carte est cliquable —
-// en attendant une page de détail par formation, elle renvoie vers la
-// section "Formation" de la sidebar. Les affiches réutilisent pour
-// l'instant des visuels déjà présents dans /public, à remplacer dès que
-// de vraies affiches de formation seront fournies.
+// gauche/droite qui font défiler la liste). Utilise le même catalogue que
+// "Gestion des formations" (voir Admin/Formation/mockData.js) plutôt
+// qu'une copie locale, pour que le clic sur une carte ouvre la vraie
+// fiche détaillée de cette formation (objectifs, chapitres...) au lieu de
+// simplement renvoyer vers la page Formation en général. Le sélecteur de
+// niveau ici reste numérique (1-8, voir LevelSelector) comme pour les
+// bénéficiaires de tontine juste au-dessus — on ne convertit vers la
+// "key" de niveau (starter, batisseur...) qu'au moment de lire les
+// données, avec `levels[level - 1]`.
 export function TrainingsCarousel() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -24,9 +29,9 @@ export function TrainingsCarousel() {
   const scrollRef = useRef(null);
 
   const list = useMemo(() => {
-    return showAll
-      ? Object.values(trainingsByLevel).flat()
-      : (trainingsByLevel[level] ?? []);
+    if (showAll) return Object.values(initialTrainingsByLevel).flat();
+    const levelKey = levels[level - 1]?.key;
+    return levelKey ? (initialTrainingsByLevel[levelKey] ?? []) : [];
   }, [level, showAll]);
 
   const scrollBy = (amount) => {
@@ -68,7 +73,7 @@ export function TrainingsCarousel() {
                 <button
                   key={training.id}
                   type="button"
-                  onClick={() => navigate("/admin/formation")}
+                  onClick={() => navigate("/admin/formation", { state: { openTrainingId: training.id } })}
                   aria-label={t("admin.dashboard.trainings.viewAria", {
                     name: training.name,
                     trainer: training.trainer,
@@ -91,7 +96,7 @@ export function TrainingsCarousel() {
                       {training.trainer}
                     </p>
                     <p className="truncate text-[10px] text-gray-500">
-                      {training.country}
+                      {training.duration}
                     </p>
                   </div>
                 </button>
