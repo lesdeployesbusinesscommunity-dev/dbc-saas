@@ -420,6 +420,7 @@
       "message": "This section is under construction and coming soon."
     },
     "topbar": {
+      "eyebrow": "Admin workspace",
       "searchPlaceholder": "Search",
       "notifications": "Notifications"
     },
@@ -648,6 +649,7 @@
     },
     "reseau": {
       "title": "Network management",
+      "searchPlaceholder": "Search a branch or a leader…",
       "levels": {
         "national": "National",
         "region": "Region",
@@ -656,6 +658,19 @@
       },
       "vacant": "Vacant position",
       "addBranch": "Add a branch",
+      "countrySwitcher": {
+        "addPlaceholder": "Add a country…",
+        "addButton": "Add this country",
+        "addHint": "Available for this session — will need backend support to survive a page reload.",
+        "alreadyExists": "“{{country}}” is already in the list — selected."
+      },
+      "map": {
+        "title": "DBC presence",
+        "hint": "Regions where DBC is already represented (branch created in the tree alongside)."
+      },
+      "search": {
+        "noResults": "No branch or leader matches “{{query}}”."
+      },
       "hasNetwork": "Active network",
       "noNetworkYet": "No network yet",
       "empty": {
@@ -670,6 +685,7 @@
         "assignTitle": "Assign a lead",
         "branchName": "Branch name",
         "branchNamePlaceholder": "E.g.: Littoral, Yaoundé…",
+        "duplicateWarning": "A branch named \"{{name}}\" already exists here — you can continue if that's intended.",
         "searchPlaceholder": "Search a member (name, ID)",
         "allCountries": "All countries",
         "allLevels": "All levels",
@@ -696,6 +712,7 @@
     },
     "gouvernance": {
       "title": "Governance management",
+      "searchPlaceholder": "Search a seat, pole, or person…",
       "quote": {
         "label": "Founding quote"
       },
@@ -783,6 +800,8 @@
       "progress": "Progress",
       "completed": "Completed",
       "empty": "No training scheduled for this level yet.",
+      "searchPlaceholder": "Search a training or a trainer…",
+      "noSearchResults": "No training matches “{{query}}”.",
       "modal": {
         "close": "Close",
         "globalObjectives": "Overall objectives",

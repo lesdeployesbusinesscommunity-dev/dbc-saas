@@ -129,11 +129,20 @@ export function PoleSection({
   canMoveDown,
   onEdit,
   onDelete,
+  dimmed = false,
 }) {
   const { t } = useTranslation();
 
   return (
-    <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-7">
+    <section
+      className={clsx(
+        "rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 transition-opacity sm:p-7",
+        // Recherche en cours dans l'en-tête (voir Gouvernance/index.jsx,
+        // poleMatchesSearch) et ce pôle n'a rien qui y correspond -> estompé
+        // plutôt que masqué, pour garder la page entière comme repère.
+        dimmed && "opacity-30",
+      )}
+    >
       <PoleHeader
         number={number}
         Icon={Icon}

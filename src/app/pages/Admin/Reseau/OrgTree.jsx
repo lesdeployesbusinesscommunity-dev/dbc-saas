@@ -15,7 +15,16 @@ import "./orgTree.css";
 // qu'il veut (voir le popover "Ajouter une branche", qui permet aussi
 // d'insérer une nouvelle branche au-dessus d'une branche existante plutôt
 // que juste en dessous).
-function TreeNode({ node, depth, levelTitles, onAssign, onAddChild, onRenameLevel, onViewMember }) {
+function TreeNode({
+  node,
+  depth,
+  levelTitles,
+  onAssign,
+  onAddChild,
+  onRenameLevel,
+  onViewMember,
+  searchMatches,
+}) {
   const { t } = useTranslation();
   // Le badge affiche le TITRE DE RÔLE de cet échelon (ex: "Le Visionnaire",
   // "Responsable Régional"), pas le nom propre de la branche — celui-ci
@@ -26,6 +35,20 @@ function TreeNode({ node, depth, levelTitles, onAssign, onAddChild, onRenameLeve
   // libellé générique (resolveLevelLabel, dans mockData.js).
   const levelLabel = resolveLevelLabel(depth, levelTitles, t);
 
+  // "searchMatches" (voir getTreeSearchMatches dans mockData.js) est null
+  // quand aucune recherche n'est en cours -> rendu normal. Sinon, un nœud
+  // est soit un résultat direct ("match", mis en évidence), soit gardé
+  // visible normalement parce qu'il mène à un résultat ou en descend
+  // ("keepIds" sans être dans "matchIds"), soit estompé (ni l'un ni
+  // l'autre) pour que les résultats ressortent.
+  const matchState = !searchMatches
+    ? undefined
+    : searchMatches.matchIds.has(node.id)
+      ? "match"
+      : searchMatches.keepIds.has(node.id)
+        ? undefined
+        : "dim";
+
   return (
     <li>
       <NodeCard
@@ -35,6 +58,7 @@ function TreeNode({ node, depth, levelTitles, onAssign, onAddChild, onRenameLeve
         onAssign={() => onAssign(node, depth)}
         onRenameLevel={(title) => onRenameLevel(depth, title)}
         onViewMember={() => onViewMember(node, depth)}
+        matchState={matchState}
       />
 
       <div className="dbc-tree-stem">
@@ -61,6 +85,7 @@ function TreeNode({ node, depth, levelTitles, onAssign, onAddChild, onRenameLeve
               onAddChild={onAddChild}
               onRenameLevel={onRenameLevel}
               onViewMember={onViewMember}
+              searchMatches={searchMatches}
             />
           ))}
         </ul>
@@ -77,8 +102,19 @@ function TreeNode({ node, depth, levelTitles, onAssign, onAddChild, onRenameLeve
 // "onRenameLevel(depth, title)" quand on clique sur le badge d'une carte
 // pour renommer le titre de rôle de tout un échelon ; "onViewMember(node,
 // depth)" quand on clique sur un poste déjà pourvu, pour ouvrir la fiche
-// complète de son responsable.
-export function OrgTree({ root, levelTitles, onAssign, onAddChild, onRenameLevel, onViewMember }) {
+// complète de son responsable. "searchMatches" (voir getTreeSearchMatches
+// dans mockData.js, calculé par Reseau/index.jsx) met en évidence/estompe
+// les cartes selon la recherche en cours dans AdminTopBar — null quand il
+// n'y a pas de recherche, l'arbre reste alors identique à avant.
+export function OrgTree({
+  root,
+  levelTitles,
+  onAssign,
+  onAddChild,
+  onRenameLevel,
+  onViewMember,
+  searchMatches = null,
+}) {
   return (
     <div className="dbc-tree">
       <ul>
@@ -90,6 +126,7 @@ export function OrgTree({ root, levelTitles, onAssign, onAddChild, onRenameLevel
           onAddChild={onAddChild}
           onRenameLevel={onRenameLevel}
           onViewMember={onViewMember}
+          searchMatches={searchMatches}
         />
       </ul>
     </div>

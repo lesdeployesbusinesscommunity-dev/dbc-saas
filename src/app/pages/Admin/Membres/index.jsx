@@ -15,6 +15,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { MemberDetailsCard } from "./MemberDetailsCard";
 import { TopMembers } from "./TopMembers";
 import { initialMembersByLevel, levelNumbers } from "./mockData";
+import { normalizeSearchText } from "../searchUtils";
 
 // ----------------------------------------------------------------------
 
@@ -98,11 +99,14 @@ export default function Membres() {
           }));
 
     if (search.trim()) {
-      const query = search.trim().toLowerCase();
+      // normalizeSearchText tolère accents/casse/tirets des deux côtés
+      // (voir searchUtils.js) — un clavier réglé en anglais retrouve
+      // "Aïcha" en tapant "aicha".
+      const query = normalizeSearchText(search);
       arr = arr.filter(
         (member) =>
-          member.name.toLowerCase().includes(query) ||
-          member.matricule.toLowerCase().includes(query),
+          normalizeSearchText(member.name).includes(query) ||
+          normalizeSearchText(member.matricule).includes(query),
       );
     }
 
@@ -230,10 +234,28 @@ export default function Membres() {
 
   const activeLevelName = activeLevel === "all" ? null : t(`simulateur.levels.${activeLevel}.name`);
 
+  // Recherche déclenchée depuis l'en-tête partagé (voir AdminTopBar) : même
+  // état "search" que la barre d'outils du tableau ci-dessous (une seule
+  // recherche, pas deux qui s'ignorent), mais on bascule aussi sur "Tous
+  // les niveaux" si un dossier précis était ouvert — sinon un membre trouvé
+  // dans un autre niveau resterait invisible, on aurait l'air de dire
+  // "aucun résultat" à tort. La recherche depuis la barre d'outils elle-
+  // même (déjà dans le dossier voulu) ne change pas de dossier, comme
+  // avant.
+  const handleTopBarSearch = (value) => {
+    setSearch(value);
+    if (value.trim() && activeLevel !== "all") setActiveLevel("all");
+  };
+
   return (
     <Page title={`Admin – ${t("admin.membres.title")}`}>
       <div className="p-6 lg:p-8">
-        <AdminTopBar title={t("admin.membres.title")} />
+        <AdminTopBar
+          title={t("admin.membres.title")}
+          searchValue={search}
+          onSearchChange={handleTopBarSearch}
+          searchPlaceholder={t("admin.membres.searchPlaceholder")}
+        />
 
         <LevelTabs
           activeLevel={activeLevel}

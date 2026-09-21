@@ -420,6 +420,7 @@
       "message": "Cette section est en cours de construction et arrive bientôt."
     },
     "topbar": {
+      "eyebrow": "Espace administration",
       "searchPlaceholder": "Recherche",
       "notifications": "Notifications"
     },
@@ -648,6 +649,7 @@
     },
     "reseau": {
       "title": "Gestion du réseau",
+      "searchPlaceholder": "Rechercher une branche ou un responsable…",
       "levels": {
         "national": "National",
         "region": "Région",
@@ -656,6 +658,19 @@
       },
       "vacant": "Poste à pourvoir",
       "addBranch": "Ajouter une branche",
+      "countrySwitcher": {
+        "addPlaceholder": "Ajouter un pays…",
+        "addButton": "Ajouter ce pays",
+        "addHint": "Disponible pour cette session — à reconfigurer côté backend pour survivre à un rechargement.",
+        "alreadyExists": "« {{country}} » est déjà dans la liste — sélectionné."
+      },
+      "map": {
+        "title": "Présence DBC",
+        "hint": "Régions où la DBC est déjà représentée (branche créée dans l'arbre ci-contre)."
+      },
+      "search": {
+        "noResults": "Aucune branche ni responsable ne correspond à « {{query}} »."
+      },
       "hasNetwork": "Réseau actif",
       "noNetworkYet": "Pas encore de réseau",
       "empty": {
@@ -670,6 +685,7 @@
         "assignTitle": "Assigner un responsable",
         "branchName": "Nom de la branche",
         "branchNamePlaceholder": "Ex : Littoral, Yaoundé…",
+        "duplicateWarning": "Une branche « {{name}} » existe déjà ici — vous pouvez continuer si c'est voulu.",
         "searchPlaceholder": "Rechercher un membre (nom, matricule)",
         "allCountries": "Tous les pays",
         "allLevels": "Tous les niveaux",
@@ -696,6 +712,7 @@
     },
     "gouvernance": {
       "title": "Gestion de la gouvernance",
+      "searchPlaceholder": "Rechercher un poste, un pôle ou une personne…",
       "quote": {
         "label": "Citation fondatrice"
       },
@@ -783,6 +800,8 @@
       "progress": "Avancement",
       "completed": "Terminée",
       "empty": "Aucune formation programmée pour ce niveau pour l'instant.",
+      "searchPlaceholder": "Rechercher une formation ou un formateur…",
+      "noSearchResults": "Aucune formation ne correspond à « {{query}} ».",
       "modal": {
         "close": "Fermer",
         "globalObjectives": "Objectifs globaux",
