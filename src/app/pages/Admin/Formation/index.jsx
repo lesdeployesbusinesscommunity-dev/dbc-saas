@@ -13,6 +13,7 @@ import { TrainingCard } from "./TrainingCard";
 import { TrainingDetailsModal } from "./TrainingDetailsModal";
 import { AddTrainingModal } from "./AddTrainingModal";
 import { initialTrainingsByLevel } from "./mockData";
+import { normalizeSearchText } from "../searchUtils";
 
 // ----------------------------------------------------------------------
 
@@ -35,6 +36,11 @@ export default function Formation() {
   const navigate = useNavigate();
   const [trainingsByLevel, setTrainingsByLevel] = useState(initialTrainingsByLevel);
   const [activeKey, setActiveKey] = useState("all");
+  // Recherche pilotée depuis l'en-tête partagé (voir AdminTopBar) : filtre
+  // les cartes déjà retenues par l'onglet de niveau (ci-dessous), par nom
+  // de formation OU nom du formateur — les deux filtres se cumulent plutôt
+  // que de s'exclure.
+  const [search, setSearch] = useState("");
   const [viewing, setViewing] = useState(null); // { training, level } | null
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -63,14 +69,27 @@ export default function Formation() {
   }, [location.state]);
 
   const cards = useMemo(() => {
-    if (activeKey === "all") {
-      return levels.flatMap((level) =>
-        (trainingsByLevel[level.key] ?? []).map((training) => ({ training, level })),
-      );
-    }
-    const level = levels.find((candidate) => candidate.key === activeKey);
-    return (trainingsByLevel[activeKey] ?? []).map((training) => ({ training, level }));
-  }, [trainingsByLevel, activeKey]);
+    const byLevel =
+      activeKey === "all"
+        ? levels.flatMap((level) =>
+            (trainingsByLevel[level.key] ?? []).map((training) => ({ training, level })),
+          )
+        : (() => {
+            const level = levels.find((candidate) => candidate.key === activeKey);
+            return (trainingsByLevel[activeKey] ?? []).map((training) => ({ training, level }));
+          })();
+
+    // normalizeSearchText tolère accents/casse/tirets des deux côtés (voir
+    // searchUtils.js) — un clavier réglé en anglais retrouve "Aïcha Konaté"
+    // en tapant "aicha konate".
+    const query = normalizeSearchText(search);
+    if (!query) return byLevel;
+    return byLevel.filter(
+      ({ training }) =>
+        normalizeSearchText(training.name).includes(query) ||
+        normalizeSearchText(training.trainer).includes(query),
+    );
+  }, [trainingsByLevel, activeKey, search]);
 
   const handleAddTraining = (levelKey, payload) => {
     setTrainingsByLevel((prev) => {
@@ -84,7 +103,12 @@ export default function Formation() {
   return (
     <Page title={`Admin – ${t("admin.formation.title")}`}>
       <div className="p-6 lg:p-8">
-        <AdminTopBar title={t("admin.formation.title")} />
+        <AdminTopBar
+          title={t("admin.formation.title")}
+          searchValue={search}
+          onSearchChange={setSearch}
+          searchPlaceholder={t("admin.formation.searchPlaceholder")}
+        />
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <LevelFilter levels={levels} activeKey={activeKey} onSelect={setActiveKey} />
@@ -101,7 +125,9 @@ export default function Formation() {
 
         {cards.length === 0 ? (
           <p className="mt-8 rounded-2xl bg-gray-50 px-4 py-10 text-center text-sm text-gray-400">
-            {t("admin.formation.empty")}
+            {search.trim()
+              ? t("admin.formation.noSearchResults", { query: search.trim() })
+              : t("admin.formation.empty")}
           </p>
         ) : (
           <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

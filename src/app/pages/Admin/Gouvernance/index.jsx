@@ -13,6 +13,7 @@ import { PoleSection } from "./PoleSection";
 import { PoleFormModal } from "./PoleFormModal";
 import { MemberSearchModal } from "./MemberSearchModal";
 import { POLE_ICON_MAP } from "./poleIcons";
+import { normalizeSearchText } from "../searchUtils";
 import {
   allMembers,
   founderQuote,
@@ -44,6 +45,13 @@ export default function Gouvernance() {
   const { t, i18n } = useTranslation();
   const { networksByCountry } = useNetworkData();
   const [structure, setStructure] = useState(initialGovernanceStructure);
+  // Recherche pilotée depuis l'en-tête partagé (voir AdminTopBar) : compare
+  // au titre du pôle, aux titres/titulaires de ses postes, et — pour le
+  // pôle "Réseau des Leaders d'Antennes" — aux noms de chapitres et de
+  // leurs responsables (voir poleMatchesSearch ci-dessous). Un pôle qui ne
+  // correspond pas est estompé plutôt que masqué (voir "dimmed" passé à
+  // PoleSection) : on garde le contexte de la page entière visible.
+  const [search, setSearch] = useState("");
   // Le "Leader Légende" de chaque chapitre vient directement de Gestion du
   // réseau (voir NetworkDataContext) — seul le "Coordinateur", propre à la
   // gouvernance, se gère ici, par id de branche.
@@ -170,12 +178,64 @@ export default function Gouvernance() {
     ? allMembers.filter((member) => member.levelKey === legendesPole.levelKey)
     : [];
 
+  // Vrai si "pole" a quelque chose qui correspond à la recherche en cours —
+  // son propre titre, ou selon son type : les titres/titulaires de ses
+  // postes ("fixed"/"assignable"), les chapitres du réseau et leurs
+  // responsables/sous-branches ("networkChapters"), ou ses membres
+  // ("autoLevel", le Conseil des Légendes). Toujours vrai quand la
+  // recherche est vide (rien n'est alors estompé).
+  const poleMatchesSearch = (pole) => {
+    // normalizeSearchText tolère accents/casse/tirets des deux côtés (voir
+    // searchUtils.js) — un clavier réglé en anglais retrouve "Légendes" en
+    // tapant "legendes".
+    const query = normalizeSearchText(search);
+    if (!query) return true;
+
+    if (normalizeSearchText(getPoleTitle(pole, t)).includes(query)) return true;
+
+    if (pole.kind === "fixed" || pole.kind === "assignable") {
+      return pole.seats.some((seat) => {
+        if (normalizeSearchText(getSeatTitle(seat, t)).includes(query)) return true;
+        const member = seat.memberId ? getMember(seat.memberId) : null;
+        return Boolean(member && normalizeSearchText(member.name).includes(query));
+      });
+    }
+
+    if (pole.kind === "networkChapters") {
+      return chapters.some((chapter) => {
+        if (normalizeSearchText(chapter.name).includes(query)) return true;
+        const leader = chapter.leaderMemberId ? getMember(chapter.leaderMemberId) : null;
+        const coordinator = chapter.coordinatorMemberId
+          ? getMember(chapter.coordinatorMemberId)
+          : null;
+        if (leader && normalizeSearchText(leader.name).includes(query)) return true;
+        if (coordinator && normalizeSearchText(coordinator.name).includes(query)) return true;
+        return chapter.subBranches.some((branch) => {
+          if (normalizeSearchText(branch.name).includes(query)) return true;
+          const branchMember = branch.memberId ? getMember(branch.memberId) : null;
+          return Boolean(branchMember && normalizeSearchText(branchMember.name).includes(query));
+        });
+      });
+    }
+
+    if (pole.kind === "autoLevel") {
+      return legendesMembers.some((member) => normalizeSearchText(member.name).includes(query));
+    }
+
+    return false;
+  };
+
   const quote = i18n.language?.startsWith("en") ? founderQuote.en : founderQuote.fr;
 
   return (
     <Page title={`Admin – ${t("admin.gouvernance.title")}`}>
       <div className="p-6 lg:p-8">
-        <AdminTopBar title={t("admin.gouvernance.title")} />
+        <AdminTopBar
+          title={t("admin.gouvernance.title")}
+          searchValue={search}
+          onSearchChange={setSearch}
+          searchPlaceholder={t("admin.gouvernance.searchPlaceholder")}
+        />
 
         {/* Citation fondatrice — bannière hero, façon page "Leadership" des
             sites d'admin/entreprise reconnus : grande citation centrée sur
@@ -225,6 +285,7 @@ export default function Gouvernance() {
               canMoveDown={index < structure.length - 1}
               onEdit={() => openEditPole(pole)}
               onDelete={() => setDeletingPole(pole)}
+              dimmed={!poleMatchesSearch(pole)}
             />
           ))}
         </div>

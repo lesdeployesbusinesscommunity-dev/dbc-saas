@@ -11,14 +11,15 @@ import { OrgTree } from "./OrgTree";
 import { MemberPickerModal } from "./MemberPickerModal";
 import { MemberDetailsCard } from "../Membres/MemberDetailsCard";
 import { useNetworkData } from "../context/NetworkDataContext";
+import { COUNTRY_MAPS, getPresenceRegions } from "./countryMaps";
 import {
   countSubtreeStats,
   createNetworkNode,
   flattenTree,
   getMember,
+  getTreeSearchMatches,
   initialLevelTitlesByCountry,
   insertNodeAbove,
-  networkCountries,
   resolveLevelLabel,
   updateNodeInTree,
 } from "./mockData";
@@ -37,14 +38,28 @@ export default function Reseau() {
   const { t } = useTranslation();
   // Partagé avec "Gestion de la gouvernance" (voir NetworkDataContext) :
   // "Réseau des Leaders d'Antennes" y reflète les vraies branches créées
-  // ici, avec leur vrai responsable — pas une liste séparée.
-  const { networksByCountry, setNetworksByCountry } = useNetworkData();
+  // ici, avec leur vrai responsable — pas une liste séparée. "allCountries"
+  // et "addCountry" viennent du même contexte : la liste de pays figée
+  // (mockData.networkCountries) complétée par ceux ajoutés à la volée
+  // depuis le sélecteur (voir CountrySwitcher.jsx) — un pays qui n'est pas
+  // dans les 22 options de départ peut être tapé directement là.
+  const { networksByCountry, setNetworksByCountry, allCountries, addCountry } = useNetworkData();
   // Titre de rôle de chaque échelon (ex: "Le Visionnaire", "Responsable
   // Régional"), par pays et par profondeur — distinct du nom propre de
   // chaque branche (voir mockData.resolveLevelLabel). Renommable en
   // cliquant sur le badge d'une carte (voir NodeCard.jsx).
   const [levelTitlesByCountry, setLevelTitlesByCountry] = useState(initialLevelTitlesByCountry);
   const [activeCountry, setActiveCountry] = useState(DEFAULT_COUNTRY);
+  // Recherche pilotée depuis l'en-tête partagé (voir AdminTopBar) : compare
+  // au nom de branche ET au nom du responsable, dans l'arbre du pays actif
+  // uniquement (voir getTreeSearchMatches, mockData.js) — changer de pays
+  // vide la recherche, une requête qui datait d'un autre pays n'aurait plus
+  // de sens ici.
+  const [searchQuery, setSearchQuery] = useState("");
+  const changeCountry = (country) => {
+    setActiveCountry(country);
+    setSearchQuery("");
+  };
   // picker = { mode: "assign" | "create" | "createRoot", nodeId?, depth?, referenceNodeId?, insertMode? } | null
   // - "assign" : nodeId pointe vers un poste vacant existant -> on choisit
   //   juste son responsable.
@@ -73,6 +88,29 @@ export default function Reseau() {
   // que soit leur profondeur (voir insertMode ci-dessus).
   const flatNodes = useMemo(() => (root ? flattenTree(root) : []), [root]);
 
+  // Carte régionale du pays actif (voir countryMaps.js) : absente pour la
+  // plupart des pays (l'arbre reste alors en pleine largeur, comme avant).
+  // "presenceRegions" repère les régions où la DBC a réellement quelqu'un
+  // en poste (pas juste une branche créée mais vacante — voir
+  // getPresenceRegions, qui vérifie tout le sous-arbre de la branche, pas
+  // seulement elle-même) — c'est ce qui détermine où poser un pin sur la
+  // carte (voir CameroonMap.jsx). Entièrement dérivé de l'arbre à chaque
+  // rendu (comparaison tolérante aux accents/majuscules/tirets) : jamais
+  // codé en dur, assigner un responsable ou ajouter une branche met la
+  // carte à jour sans aucun changement de code.
+  const countryMap = COUNTRY_MAPS[activeCountry];
+  const presenceRegions = useMemo(
+    () => getPresenceRegions(countryMap, root),
+    [countryMap, root],
+  );
+
+  // Résultats de la recherche en cours dans l'arbre affiché (voir OrgTree/
+  // NodeCard pour la mise en évidence) — null tant que le champ est vide,
+  // donc aucun changement visuel par défaut.
+  const searchMatches = useMemo(() => getTreeSearchMatches(root, searchQuery), [root, searchQuery]);
+  const isSearching = searchQuery.trim().length > 0;
+  const hasNoSearchResults = isSearching && searchMatches?.matchIds.size === 0;
+
   const describeNode = ({ node, depth }) => {
     const member = node.memberId ? getMember(node.memberId) : null;
     const memberLabel = member ? member.name : t("admin.reseau.vacant");
@@ -93,6 +131,35 @@ export default function Reseau() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [flatNodes, levelTitles],
   );
+
+  // Libellés des branches déjà présentes juste à l'endroit où la nouvelle
+  // branche va atterrir (voir "insertMode" plus haut) — sert uniquement à
+  // avertir l'admin d'un doublon probable dans le popover (voir
+  // MemberPickerModal.jsx, "existingSiblingLabels"), jamais à bloquer :
+  // "en dessous" -> les enfants actuels de la branche de référence ; "au-
+  // dessus" -> les AUTRES enfants du parent de la référence (la nouvelle
+  // branche prend la place exacte de la référence parmi eux).
+  const siblingLabelsForPicker = useMemo(() => {
+    if (!picker || picker.mode !== "create" || !root) return [];
+
+    if (picker.insertMode === "above") {
+      let parentOfReference = null;
+      const findParent = (node) => {
+        node.children.forEach((child) => {
+          if (child.id === picker.referenceNodeId) parentOfReference = node;
+          else findParent(child);
+        });
+      };
+      findParent(root);
+      return (parentOfReference?.children ?? [])
+        .filter((child) => child.id !== picker.referenceNodeId)
+        .map((child) => child.label)
+        .filter(Boolean);
+    }
+
+    const referenceNode = flatNodes.find((entry) => entry.node.id === picker.referenceNodeId)?.node;
+    return (referenceNode?.children ?? []).map((child) => child.label).filter(Boolean);
+  }, [picker, root, flatNodes]);
 
   const openAssign = (node, depth) => setPicker({ mode: "assign", nodeId: node.id, depth });
   const openMemberDetails = (node, depth) => setViewingNode({ node, depth });
@@ -174,15 +241,21 @@ export default function Reseau() {
   return (
     <Page title={`Admin – ${t("admin.reseau.title")}`}>
       <div className="p-6 lg:p-8">
-        <AdminTopBar title={t("admin.reseau.title")} />
+        <AdminTopBar
+          title={t("admin.reseau.title")}
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder={t("admin.reseau.searchPlaceholder")}
+        />
 
         <div className="mt-6 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 p-5 sm:p-6">
             <CountrySwitcher
-              countries={networkCountries}
+              countries={allCountries}
               value={activeCountry}
-              onChange={setActiveCountry}
+              onChange={changeCountry}
               hasNetwork={(country) => Boolean(networksByCountry[country])}
+              onAddCountry={addCountry}
             />
 
             {root && (
@@ -197,40 +270,57 @@ export default function Reseau() {
             )}
           </div>
 
-          <div className="overflow-x-auto">
-            {root ? (
-              <OrgTree
-                root={root}
-                levelTitles={levelTitles}
-                onAssign={openAssign}
-                onAddChild={(node) => openAddChild(node)}
-                onRenameLevel={renameLevel}
-                onViewMember={openMemberDetails}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-4 px-6 py-20 text-center">
-                <span className="flex size-16 items-center justify-center rounded-full bg-[#52A2DF]/[0.1] text-[#52A2DF]">
-                  <ShareIcon aria-hidden="true" className="size-8" />
-                </span>
-                <div>
-                  <p className="text-base font-bold text-gray-900">
-                    {t("admin.reseau.empty.title")}
+          {root ? (
+            <div className="flex flex-col lg:flex-row">
+              {countryMap && (
+                <div className="shrink-0 border-b border-gray-100 p-5 sm:p-6 lg:w-72 lg:border-b-0 lg:border-r">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    {t("admin.reseau.map.title")}
                   </p>
-                  <p className="mt-1 max-w-sm text-sm text-gray-500">
-                    {t("admin.reseau.empty.description", { country: activeCountry })}
-                  </p>
+                  <countryMap.Component presenceRegions={presenceRegions} className="mt-3 w-full" />
+                  <p className="mt-3 text-xs text-gray-500">{t("admin.reseau.map.hint")}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={openCreateRoot}
-                  className="mt-2 flex items-center gap-2 rounded-xl bg-[#EE7115] px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
-                >
-                  <PlusIcon aria-hidden="true" className="size-4" />
-                  {t("admin.reseau.empty.cta")}
-                </button>
+              )}
+              <div className="min-w-0 flex-1 overflow-x-auto">
+                {hasNoSearchResults && (
+                  <p className="px-5 pt-5 text-sm text-gray-500 sm:px-6">
+                    {t("admin.reseau.search.noResults", { query: searchQuery.trim() })}
+                  </p>
+                )}
+                <OrgTree
+                  root={root}
+                  levelTitles={levelTitles}
+                  onAssign={openAssign}
+                  onAddChild={(node) => openAddChild(node)}
+                  onRenameLevel={renameLevel}
+                  onViewMember={openMemberDetails}
+                  searchMatches={searchMatches}
+                />
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-4 px-6 py-20 text-center">
+              <span className="flex size-16 items-center justify-center rounded-full bg-[#52A2DF]/[0.1] text-[#52A2DF]">
+                <ShareIcon aria-hidden="true" className="size-8" />
+              </span>
+              <div>
+                <p className="text-base font-bold text-gray-900">
+                  {t("admin.reseau.empty.title")}
+                </p>
+                <p className="mt-1 max-w-sm text-sm text-gray-500">
+                  {t("admin.reseau.empty.description", { country: activeCountry })}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={openCreateRoot}
+                className="mt-2 flex items-center gap-2 rounded-xl bg-[#EE7115] px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+              >
+                <PlusIcon aria-hidden="true" className="size-4" />
+                {t("admin.reseau.empty.cta")}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -244,6 +334,7 @@ export default function Reseau() {
         insertMode={picker?.insertMode ?? "child"}
         onInsertModeChange={setInsertMode}
         canInsertAbove={picker?.referenceNodeId !== root?.id}
+        existingSiblingLabels={siblingLabelsForPicker}
         onClose={closePicker}
         onConfirm={handleConfirmPicker}
       />
