@@ -81,14 +81,33 @@ function LevelBadge({ label, isNational, onRename }) {
 // soit un poste vacant — un rond en pointillés sur lequel on peut cliquer
 // directement pour l'assigner à un membre existant (voir MemberPickerModal,
 // ouvert par Reseau/index.jsx).
-export function NodeCard({ node, depth, levelLabel, onAssign, onRenameLevel, onViewMember }) {
+export function NodeCard({
+  node,
+  depth,
+  levelLabel,
+  onAssign,
+  onRenameLevel,
+  onViewMember,
+  matchState,
+}) {
   const { t } = useTranslation();
   const member = node.memberId ? getMember(node.memberId) : null;
   const avatarSize = AVATAR_SIZES[Math.min(depth, AVATAR_SIZES.length - 1)];
   const isNational = depth === 0;
 
   return (
-    <div className="flex w-44 flex-col items-center px-1 text-center">
+    <div
+      className={clsx(
+        "flex w-44 flex-col items-center rounded-2xl px-1 py-2 text-center transition-all",
+        // "match" : résultat direct de la recherche en cours (voir
+        // OrgTree.jsx) -> ressort avec un halo orange. "dim" : ni un
+        // résultat ni sur son chemin -> estompé pour laisser ressortir les
+        // résultats. Ni l'un ni l'autre (recherche inactive, ou nœud sur le
+        // chemin d'un résultat) -> rendu inchangé.
+        matchState === "match" && "bg-[#EE7115]/[0.06] ring-2 ring-[#EE7115]/60",
+        matchState === "dim" && "opacity-30",
+      )}
+    >
       <LevelBadge label={levelLabel} isNational={isNational} onRename={onRenameLevel} />
 
       {member ? (

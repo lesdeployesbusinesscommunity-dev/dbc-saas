@@ -1,5 +1,6 @@
 // Local Imports
 import { initialMembersByLevel } from "app/pages/Admin/Membres/mockData";
+import { normalizeSearchText } from "../searchUtils";
 
 // ----------------------------------------------------------------------
 // Données de démonstration pour "Gestion du réseau". Comme pour les
@@ -195,7 +196,12 @@ export const initialNetworksByCountry = {
   Nigéria: makeNode({
     memberId: "m3", // Samuel Okafor, Lagos
     children: [
-      makeNode({ memberId: "m8", label: "Abuja (FCT)", children: [] }), // Chidi Eze
+      // Libellé "Federal Capital Territory" (et non "Abuja (FCT)") : c'est
+      // le nom de la région tel qu'utilisé par la carte de présence (voir
+      // countryMaps.js) — un admin qui recrée cette branche verra la liste
+      // de suggestions du champ "Nom de la branche" (voir MemberPickerModal)
+      // et n'a pas besoin de connaître ce nom officiel par cœur.
+      makeNode({ memberId: "m8", label: "Federal Capital Territory", children: [] }), // Chidi Eze
       makeNode({ memberId: null, label: "Lagos", children: [] }),
     ],
   }),
@@ -212,5 +218,58 @@ export const initialNetworksByCountry = {
     children: [makeNode({ memberId: "m9", label: "Bamako", children: [] })], // Awa Traoré
   }),
 };
+
+// Recherche dans l'arbre du pays actif (voir la barre de recherche
+// partagée dans AdminTopBar, pilotée par Reseau/index.jsx) : "query" est
+// comparé (insensible à la casse ET aux accents, voir normalizeSearchText —
+// un clavier réglé en anglais retrouve "Extrême-Nord" en tapant "extreme
+// nord") au nom de la branche (node.label) ET au nom de son responsable
+// s'il en a un. Renvoie null si "query" est vide (pas de recherche en
+// cours, l'arbre s'affiche normalement) ; sinon { matchIds, keepIds } —
+// "matchIds" les nœuds qui correspondent directement (à mettre en
+// évidence), "keepIds" ces mêmes nœuds PLUS leurs ancêtres (pour garder le
+// fil qui y mène visible) et leurs descendants (une branche trouvée reste
+// normalement visible en dessous) : tout nœud hors de "keepIds" doit être
+// estompé par l'appelant (voir OrgTree.jsx / NodeCard.jsx) pour que les
+// résultats ressortent dans un arbre qui peut être profond.
+export function getTreeSearchMatches(root, query) {
+  const trimmed = normalizeSearchText(query);
+  if (!trimmed) return null;
+
+  const allNodes = new Map();
+  const parentOf = new Map();
+  const indexNode = (node, parent) => {
+    allNodes.set(node.id, node);
+    if (parent) parentOf.set(node.id, parent);
+    node.children.forEach((child) => indexNode(child, node));
+  };
+  indexNode(root, null);
+
+  const matchIds = new Set();
+  allNodes.forEach((node) => {
+    const member = node.memberId ? getMember(node.memberId) : null;
+    const labelMatches = node.label && normalizeSearchText(node.label).includes(trimmed);
+    const memberMatches = member && normalizeSearchText(member.name).includes(trimmed);
+    if (labelMatches || memberMatches) matchIds.add(node.id);
+  });
+
+  const keepIds = new Set(matchIds);
+  matchIds.forEach((id) => {
+    let ancestor = parentOf.get(id);
+    while (ancestor) {
+      keepIds.add(ancestor.id);
+      ancestor = parentOf.get(ancestor.id);
+    }
+  });
+  const addDescendants = (node) => {
+    node.children.forEach((child) => {
+      keepIds.add(child.id);
+      addDescendants(child);
+    });
+  };
+  matchIds.forEach((id) => addDescendants(allNodes.get(id)));
+
+  return { matchIds, keepIds };
+}
 
 export { getMember };

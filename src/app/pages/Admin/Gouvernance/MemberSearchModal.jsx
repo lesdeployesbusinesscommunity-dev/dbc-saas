@@ -9,6 +9,7 @@ import clsx from "clsx";
 import { Avatar } from "../components/Avatar";
 import { levels } from "app/pages/Simulateur/data";
 import { allMembers } from "./mockData";
+import { normalizeSearchText } from "../searchUtils";
 
 // ----------------------------------------------------------------------
 
@@ -42,15 +43,18 @@ export function MemberSearchModal({ open, seatTitle, onClose, onConfirm }) {
   );
 
   const results = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    // normalizeSearchText tolère accents/casse/tirets des deux côtés (voir
+    // searchUtils.js) — un clavier réglé en anglais retrouve "Aïcha" en
+    // tapant "aicha".
+    const query = normalizeSearchText(search);
     return allMembers.filter((member) => {
       if (countryFilter !== "all" && member.country !== countryFilter) return false;
       if (levelFilter !== "all" && member.levelKey !== levelFilter) return false;
       if (
         query &&
         !(
-          member.name.toLowerCase().includes(query) ||
-          member.matricule.toLowerCase().includes(query)
+          normalizeSearchText(member.name).includes(query) ||
+          normalizeSearchText(member.matricule).includes(query)
         )
       ) {
         return false;

@@ -45,30 +45,42 @@ function NavItem({ item }) {
 // reste par "mt-auto"). Visible à partir de "lg" ; sur petit écran, la
 // priorité a été donnée à la fidélité de la maquette (desktop) — un mode
 // mobile dédié (sidebar en tiroir) pourra être ajouté dans un second temps.
+//
+// Le liseré dégradé orange → or tout en haut, et le trait doré sous le
+// bloc logo, sont la touche d'identité : discrets, en une seule teinte
+// continue plutôt qu'un motif à motifs multiples (un vrai motif textile a
+// besoin de plus d'espace pour se lire correctement — réservé à une
+// bannière plus large, voir PatternStrip.jsx, plutôt qu'à une bordure de
+// quelques pixels de haut).
 export function AdminSidebar() {
   return (
-    <aside className="hidden h-full w-72 shrink-0 flex-col border-r border-black/5 bg-white px-5 py-6 lg:flex">
-      <div className="flex items-center gap-3 px-2">
-        <img
-          src="/logo-icon.jpg"
-          alt="Logo DBC"
-          className="h-11 w-auto shrink-0 object-contain"
-        />
-        <p className="text-sm font-bold leading-tight text-[#EE7115]">
-          Les Déployés
-          <br />
-          Business Community
-        </p>
-      </div>
+    <aside className="hidden h-full w-72 shrink-0 flex-col border-r border-black/5 bg-white lg:flex">
+      <div className="h-1 w-full shrink-0 bg-gradient-to-r from-[#EE7115] via-dbc-gold to-[#EE7115]" />
 
-      <nav className="mt-10 flex flex-1 flex-col gap-1.5">
-        {adminNavItems.map((item) => (
-          <NavItem key={item.key} item={item} />
-        ))}
-      </nav>
+      <div className="flex flex-1 flex-col px-5 py-6">
+        <div className="flex items-center gap-3 px-2">
+          <img
+            src="/logo-icon.jpg"
+            alt="Logo DBC"
+            className="h-11 w-auto shrink-0 object-contain"
+          />
+          <p className="text-sm font-bold leading-tight text-[#EE7115]">
+            Les Déployés
+            <br />
+            Business Community
+          </p>
+        </div>
+        <div className="mt-4 h-px w-full bg-gradient-to-r from-dbc-gold/60 via-dbc-gold/10 to-transparent" />
 
-      <div className="mt-auto pt-4">
-        <NavItem item={adminSettingsItem} />
+        <nav className="mt-8 flex flex-1 flex-col gap-1.5">
+          {adminNavItems.map((item) => (
+            <NavItem key={item.key} item={item} />
+          ))}
+        </nav>
+
+        <div className="mt-auto pt-4">
+          <NavItem item={adminSettingsItem} />
+        </div>
       </div>
     </aside>
   );

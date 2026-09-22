@@ -1,7 +1,13 @@
 // Import Dependencies
 import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { ArrowRightIcon, CheckIcon, MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  ExclamationTriangleIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 
@@ -9,6 +15,8 @@ import clsx from "clsx";
 import { Avatar } from "../components/Avatar";
 import { levels } from "app/pages/Simulateur/data";
 import { allMembers } from "./mockData";
+import { COUNTRY_MAPS, normalizeRegionKey } from "./countryMaps";
+import { normalizeSearchText } from "../searchUtils";
 
 // ----------------------------------------------------------------------
 
@@ -37,6 +45,7 @@ export function MemberPickerModal({
   insertMode,
   onInsertModeChange,
   canInsertAbove,
+  existingSiblingLabels = [],
   onClose,
   onConfirm,
 }) {
@@ -65,15 +74,18 @@ export function MemberPickerModal({
   );
 
   const results = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    // normalizeSearchText tolère accents/casse/tirets des deux côtés (voir
+    // searchUtils.js) — un clavier réglé en anglais retrouve "Aïcha" en
+    // tapant "aicha".
+    const query = normalizeSearchText(search);
     return allMembers.filter((member) => {
       if (countryFilter !== "all" && member.country !== countryFilter) return false;
       if (levelFilter !== "all" && member.levelKey !== levelFilter) return false;
       if (
         query &&
         !(
-          member.name.toLowerCase().includes(query) ||
-          member.matricule.toLowerCase().includes(query)
+          normalizeSearchText(member.name).includes(query) ||
+          normalizeSearchText(member.matricule).includes(query)
         )
       ) {
         return false;
@@ -85,6 +97,21 @@ export function MemberPickerModal({
   const needsBranchLabel = mode === "create";
   const canConfirm = Boolean(selectedId) && (!needsBranchLabel || branchLabel.trim());
   const referenceDescription = parentOptions?.find((option) => option.id === parentId)?.description ?? "";
+
+  // Suggestions de nom de branche : les régions connues du pays actif (si
+  // sa carte existe, voir countryMaps.js) — un texte libre reste toujours
+  // possible (ville, regroupement personnalisé...), ces noms n'apparaissent
+  // qu'en suggestion, jamais en choix imposé. "isDuplicateLabel" avertit
+  // (sans jamais bloquer, voir "canConfirm" ci-dessus, qui ne dépend pas de
+  // ce calcul) si une branche du même nom existe déjà juste à cet endroit
+  // de l'arbre (voir "existingSiblingLabels", calculé dans Reseau/index.jsx).
+  const regionSuggestions = COUNTRY_MAPS[country]?.regionNames ?? [];
+  const trimmedBranchLabel = branchLabel.trim();
+  const isDuplicateLabel =
+    trimmedBranchLabel.length > 0 &&
+    existingSiblingLabels.some(
+      (label) => normalizeRegionKey(label) === normalizeRegionKey(trimmedBranchLabel),
+    );
 
   const title =
     mode === "createRoot"
@@ -195,11 +222,25 @@ export function MemberPickerModal({
                 {t("admin.reseau.picker.branchName")}
                 <input
                   type="text"
+                  list={regionSuggestions.length > 0 ? "reseau-region-suggestions" : undefined}
                   value={branchLabel}
                   onChange={(event) => setBranchLabel(event.target.value)}
                   placeholder={t("admin.reseau.picker.branchNamePlaceholder")}
                   className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#52A2DF]"
                 />
+                {regionSuggestions.length > 0 && (
+                  <datalist id="reseau-region-suggestions">
+                    {regionSuggestions.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
+                )}
+                {isDuplicateLabel && (
+                  <span className="mt-1.5 flex items-start gap-1.5 text-xs font-normal text-amber-600">
+                    <ExclamationTriangleIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+                    {t("admin.reseau.picker.duplicateWarning", { name: trimmedBranchLabel })}
+                  </span>
+                )}
               </label>
             )}
 

@@ -44,7 +44,25 @@ const config = {
       },
       colors: {
         ...variantsVars,
-        ...surfaceColors
+        ...surfaceColors,
+        // Palette étendue pour l'espace admin : les couleurs de marque
+        // (orange/bleu) restent premières, complétées par 4 teintes terre
+        // inspirées des textiles et poteries traditionnels d'Afrique de
+        // l'Ouest — clay (terracotta), gold (fils dorés du kente), forest
+        // (bogolan/feuillage), indigo (teinture adire) — utilisées en
+        // accents ponctuels (PatternStrip, bordures, détails), jamais en
+        // remplacement du bleu/orange de marque. Déclarées ici comme
+        // tokens nommés (plutôt que `bg-[#...]` en dur comme le reste de
+        // l'admin aujourd'hui) pour que ces nouvelles couleurs restent
+        // faciles à réutiliser et à ajuster depuis un seul endroit.
+        dbc: {
+          orange: "#EE7115",
+          blue: "#52A2DF",
+          clay: "#B2461D",
+          gold: "#D8A22C",
+          forest: "#1B4332",
+          indigo: "#2E1F5E",
+        },
       },
       borderWidth: {
         3: '3px'
