@@ -1,11 +1,9 @@
 // Import Dependencies
 import { useEffect, useReducer } from "react";
-import isObject from "lodash/isObject";
 import PropTypes from "prop-types";
-import isString from "lodash/isString";
 
 // Local Imports
-import axios from "utils/axios";
+import { httpClient } from "api/httpClient";
 import { isTokenValid, setSession } from "utils/jwt";
 import { AuthContext } from "./context";
 
@@ -17,6 +15,10 @@ const initialState = {
   isInitialized: false,
   errorMessage: null,
   user: null,
+  // Connexion en 2 temps si la double authentification (OTP WhatsApp) est
+  // active pour le compte — voir POST /auth/login et POST /auth/verify-otp.
+  otpRequired: false,
+  otpChallengeId: null,
 };
 
 const reducerHandlers = {
@@ -34,6 +36,17 @@ const reducerHandlers = {
     return {
       ...state,
       isLoading: true,
+      errorMessage: null,
+    };
+  },
+
+  LOGIN_OTP_REQUIRED: (state, action) => {
+    const { otpChallengeId } = action.payload;
+    return {
+      ...state,
+      isLoading: false,
+      otpRequired: true,
+      otpChallengeId,
     };
   },
 
@@ -43,6 +56,8 @@ const reducerHandlers = {
       ...state,
       isAuthenticated: true,
       isLoading: false,
+      otpRequired: false,
+      otpChallengeId: null,
       user,
     };
   },
@@ -57,10 +72,20 @@ const reducerHandlers = {
     };
   },
 
+  LOGIN_RESET: (state) => ({
+    ...state,
+    isLoading: false,
+    errorMessage: null,
+    otpRequired: false,
+    otpChallengeId: null,
+  }),
+
   LOGOUT: (state) => ({
     ...state,
     isAuthenticated: false,
     user: null,
+    otpRequired: false,
+    otpChallengeId: null,
   }),
 };
 
@@ -83,8 +108,7 @@ export function AuthProvider({ children }) {
         if (authToken && isTokenValid(authToken)) {
           setSession(authToken);
 
-          const response = await axios.get("/user/profile");
-          const { user } = response.data;
+          const { data: user } = await httpClient.get("/auth/me");
 
           dispatch({
             type: "INITIALIZE",
@@ -94,6 +118,7 @@ export function AuthProvider({ children }) {
             },
           });
         } else {
+          setSession(null);
           dispatch({
             type: "INITIALIZE",
             payload: {
@@ -102,8 +127,8 @@ export function AuthProvider({ children }) {
             },
           });
         }
-      } catch (err) {
-        console.error(err);
+      } catch {
+        setSession(null);
         dispatch({
           type: "INITIALIZE",
           payload: {
@@ -117,40 +142,61 @@ export function AuthProvider({ children }) {
     init();
   }, []);
 
-  const login = async ({ username, password }) => {
-    dispatch({
-      type: "LOGIN_REQUEST",
-    });
+  // Etape 1 : telephone + mot de passe. Si le compte a la double
+  // authentification active, le backend renvoie { otpRequired: true,
+  // otpChallengeId } au lieu d'un jeton — voir verifyOtp ci-dessous.
+  const login = async ({ phoneNumber, password }) => {
+    dispatch({ type: "LOGIN_REQUEST" });
 
     try {
-      const response = await axios.post("/login", {
-        username,
-        password,
-      });
+      const { data } = await httpClient.post("/auth/login", { phoneNumber, password });
 
-      const { authToken, user } = response.data;
-
-      if (!isString(authToken) && !isObject(user)) {
-        throw new Error("Response is not vallid");
+      if (data.otpRequired) {
+        dispatch({
+          type: "LOGIN_OTP_REQUIRED",
+          payload: { otpChallengeId: data.otpChallengeId },
+        });
+        return;
       }
 
-      setSession(authToken);
-
+      setSession(data.accessToken);
       dispatch({
         type: "LOGIN_SUCCESS",
-        payload: {
-          user,
-        },
+        payload: { user: data.utilisateur },
       });
     } catch (err) {
       dispatch({
         type: "LOGIN_ERROR",
-        payload: {
-          errorMessage: err,
-        },
+        payload: { errorMessage: err },
       });
     }
   };
+
+  // Etape 2 (uniquement si otpRequired) : code recu par WhatsApp.
+  const verifyOtp = async (code) => {
+    dispatch({ type: "LOGIN_REQUEST" });
+
+    try {
+      const { data } = await httpClient.post("/auth/verify-otp", {
+        otpChallengeId: state.otpChallengeId,
+        code,
+      });
+
+      setSession(data.accessToken);
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: { user: data.utilisateur },
+      });
+    } catch (err) {
+      dispatch({
+        type: "LOGIN_ERROR",
+        payload: { errorMessage: err },
+      });
+    }
+  };
+
+  // Revenir a l'etape 1 (ex. bouton "Retour" sur l'ecran OTP).
+  const resetLogin = () => dispatch({ type: "LOGIN_RESET" });
 
   const logout = async () => {
     setSession(null);
@@ -166,6 +212,8 @@ export function AuthProvider({ children }) {
       value={{
         ...state,
         login,
+        verifyOtp,
+        resetLogin,
         logout,
       }}
     >

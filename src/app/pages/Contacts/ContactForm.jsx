@@ -8,6 +8,7 @@ import {
   UserPlusIcon,
   AcademicCapIcon,
   QuestionMarkCircleIcon,
+  ExclamationCircleIcon,
 } from "@heroicons/react/24/solid";
 import { FaHandshake } from "react-icons/fa";
 
@@ -15,6 +16,7 @@ import { FaHandshake } from "react-icons/fa";
 import { useInView } from "hooks";
 import { Reveal } from "components/shared/Reveal";
 import { JoinDbcButton } from "components/shared/JoinDbcButton";
+import { envoyerMessage } from "api/contact";
 
 // ----------------------------------------------------------------------
 
@@ -30,13 +32,12 @@ const reasons = [
 const inputClass =
   "mt-1.5 block w-full rounded-lg border border-[#52A2DF]/[0.32] bg-white px-4 py-2.5 text-sm text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-[#52A2DF]";
 
-// Formulaire de contact : simule l'envoi côté client (délai + état
-// "envoyé") en attendant que l'endpoint /contact de l'API (NestJS) soit
-// disponible — remplacer handleSubmit par un vrai appel à ce moment-là.
+// Formulaire de contact : POST /contact (voir api/contact.js).
 export function ContactForm() {
   const { t } = useTranslation();
   const [ref, isInView] = useInView({ threshold: 0.1 });
   const [status, setStatus] = useState("idle"); // idle | sending | sent
+  const [submitError, setSubmitError] = useState("");
 
   // "contacts.form.subjects" est une liste (returnObjects: true, même
   // convention que "simulateur.levels.<key>.advantages").
@@ -53,15 +54,24 @@ export function ContactForm() {
   const updateField = (field) => (event) =>
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus("sending");
-    setTimeout(() => setStatus("sent"), 900);
+    setSubmitError("");
+
+    try {
+      await envoyerMessage(form);
+      setStatus("sent");
+    } catch (err) {
+      setStatus("idle");
+      setSubmitError(t(err.message));
+    }
   };
 
   const resetForm = () => {
     setForm({ name: "", email: "", phone: "", subject: subjects[0], message: "" });
     setStatus("idle");
+    setSubmitError("");
   };
 
   return (
@@ -161,6 +171,13 @@ export function ContactForm() {
                     className={clsx(inputClass, "resize-none")}
                   />
                 </label>
+
+                {submitError && (
+                  <span className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                    <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+                    {submitError}
+                  </span>
+                )}
 
                 <button
                   type="submit"

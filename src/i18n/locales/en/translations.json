@@ -1,4 +1,13 @@
 {
+  "api": {
+    "errors": {
+      "network": "Could not reach the server. Check your connection and try again.",
+      "server": "A server error occurred. Please try again shortly.",
+      "unauthorized": "Incorrect credentials or expired session.",
+      "notFound": "Resource not found.",
+      "validation": "Some of the information you entered is invalid."
+    }
+  },
   "nav": {
     "dashboards": {
       "dashboards": "Dashboards",

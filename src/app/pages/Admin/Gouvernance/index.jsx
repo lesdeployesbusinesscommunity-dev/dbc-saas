@@ -1,266 +1,219 @@
 // Import Dependencies
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { PlusIcon, SparklesIcon } from "@heroicons/react/24/solid";
+import { useCallback, useEffect, useState } from "react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
+import {
+  ArrowPathIcon,
+  ExclamationCircleIcon,
+  UserIcon,
+  MapPinIcon,
+} from "@heroicons/react/24/solid";
 
 // Local Imports
 import { Page } from "components/shared/Page";
 import { AdminTopBar } from "../components/AdminTopBar";
-import { MemberDetailsCard } from "../Membres/MemberDetailsCard";
-import { ConfirmDialog } from "../Membres/ConfirmDialog";
-import { useNetworkData } from "../context/NetworkDataContext";
-import { PoleSection } from "./PoleSection";
-import { PoleFormModal } from "./PoleFormModal";
-import { MemberSearchModal } from "./MemberSearchModal";
-import { POLE_ICON_MAP } from "./poleIcons";
-import {
-  allMembers,
-  founderQuote,
-  getMember,
-  getNetworkChapters,
-  getPoleTitle,
-  getSeatTitle,
-  initialGovernanceStructure,
-} from "./mockData";
+import { listerPoles, assignerSiege } from "api/gouvernance";
+import { listerMembres } from "api/membres";
+import { listerAntennes } from "api/communaute";
 
 // ----------------------------------------------------------------------
 
-// Page "Gestion de la gouvernance" (/admin/gouvernance) : les pôles qui
-// dirigent la DBC dans son ensemble, chacun avec ses postes et qui les
-// occupe — pas juste une liste statique, on peut cliquer un poste pourvu
-// pour voir la fiche complète de son titulaire (même fiche que "Gestion
-// des membres"/"Gestion du réseau"), ou un poste vacant pour l'assigner à
-// un membre existant (sauf le Conseil des Légendes, qui se peuple tout
-// seul par niveau — voir PoleSection.jsx).
-//
-// La page ne se limite plus aux 4 pôles fournis avec le site : "Ajouter
-// un pôle" crée une nouvelle carte "à postes nommés" (le seul type qu'on
-// peut créer soi-même — les 3 autres viennent avec un fonctionnement qui
-// leur est propre, voir mockData.js), et chaque carte peut ensuite être
-// modifiée, supprimée, ou déplacée (monter/descendre — voir PoleSection/
-// PoleHeader) pour changer sa position dans la page. Tout est géré en
-// local pour l'instant (voir mockData.js), comme le reste de l'admin.
-export default function Gouvernance() {
-  const { t, i18n } = useTranslation();
-  const { networksByCountry } = useNetworkData();
-  const [structure, setStructure] = useState(initialGovernanceStructure);
-  // Le "Leader Légende" de chaque chapitre vient directement de Gestion du
-  // réseau (voir NetworkDataContext) — seul le "Coordinateur", propre à la
-  // gouvernance, se gère ici, par id de branche.
-  const [coordinatorsByNodeId, setCoordinatorsByNodeId] = useState({});
-  const [viewingMemberId, setViewingMemberId] = useState(null);
-  // assigning = { poleId, chapterId, seatId, seatLabel } | null
-  const [assigning, setAssigning] = useState(null);
-  // poleForm = { mode: "add" } | { mode: "edit", pole } | null
-  const [poleForm, setPoleForm] = useState(null);
-  const [deletingPole, setDeletingPole] = useState(null);
+// Page "Gestion de la gouvernance" (/admin/gouvernance) : pôles réels
+// (GET /gouvernance/poles, nouveau module backend — il n'existait aucune
+// notion de "pôle"/"siège" avant) + réseau des antennes (GET
+// /communaute/antennes, qui a déjà leader/coordinateur). Plus simple que
+// l'ancienne maquette (pas de création/suppression de pôle, pas de fiche
+// détaillée par titulaire) : l'objectif ici est des données réelles.
 
-  const chapters = getNetworkChapters(networksByCountry).map((chapter) => ({
-    ...chapter,
-    coordinatorMemberId: coordinatorsByNodeId[chapter.nodeId] ?? null,
-  }));
-
-  const openView = (memberId) => {
-    if (memberId) setViewingMemberId(memberId);
-  };
-  const closeView = () => setViewingMemberId(null);
-
-  const openAssign = (poleId, chapterId, seatId, seatLabel) =>
-    setAssigning({ poleId, chapterId, seatId, seatLabel });
-  const closeAssign = () => setAssigning(null);
-
-  const handleConfirmAssign = (memberId) => {
-    if (!assigning) return;
-    const { poleId, chapterId, seatId } = assigning;
-
-    if (poleId === "antennes") {
-      // "chapterId" est ici l'id du nœud de branche (voir
-      // getNetworkChapters dans mockData.js) — seul le "Coordinateur" se
-      // gère depuis cette page ; le "Leader Légende" se change dans
-      // Gestion du réseau.
-      setCoordinatorsByNodeId((prev) => ({ ...prev, [chapterId]: memberId }));
-      closeAssign();
-      return;
-    }
-
-    setStructure((prev) =>
-      prev.map((pole) => {
-        if (pole.id !== poleId) return pole;
-        if (pole.kind === "assignable") {
-          return {
-            ...pole,
-            seats: pole.seats.map((seat) => (seat.id === seatId ? { ...seat, memberId } : seat)),
-          };
-        }
-        return pole;
-      }),
-    );
-
-    closeAssign();
-  };
-
-  // Échange le pôle à "index" avec son voisin ("direction" = -1 pour
-  // monter, +1 pour descendre) — pas d'effet si déjà en haut/en bas.
-  const movePole = (index, direction) => {
-    setStructure((prev) => {
-      const target = index + direction;
-      if (target < 0 || target >= prev.length) return prev;
-      const next = [...prev];
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
-  };
-
-  const openAddPole = () => setPoleForm({ mode: "add" });
-  const openEditPole = (pole) => setPoleForm({ mode: "edit", pole });
-  const closePoleForm = () => setPoleForm(null);
-
-  const handlePoleSubmit = (payload) => {
-    if (poleForm?.mode === "edit") {
-      const targetId = poleForm.pole.id;
-      setStructure((prev) => prev.map((p) => (p.id === targetId ? { ...p, ...payload } : p)));
-    } else {
-      setStructure((prev) => [...prev, { id: `pole-${Date.now()}`, ...payload }]);
-    }
-    closePoleForm();
-  };
-
-  const confirmDeletePole = () => {
-    if (!deletingPole) return;
-    setStructure((prev) => prev.filter((p) => p.id !== deletingPole.id));
-    setDeletingPole(null);
-  };
-
-  const viewingMember = viewingMemberId ? getMember(viewingMemberId) : null;
-
-  // Le titre du poste + son pôle, affiché en pastille dans la fiche
-  // (ex: "Directeur Marketing Digital · Comité Exécutif") — recherché
-  // dans toute la structure plutôt que suivi à côté, pour rester juste
-  // même après une réassignation.
-  const viewingSeatBadge = (() => {
-    if (!viewingMemberId) return null;
-    for (const pole of structure) {
-      const poleTitle = getPoleTitle(pole, t);
-      if (pole.kind === "fixed" || pole.kind === "assignable") {
-        const seat = pole.seats.find((s) => s.memberId === viewingMemberId);
-        if (seat) return `${getSeatTitle(seat, t)} · ${poleTitle}`;
-      }
-      if (pole.kind === "networkChapters") {
-        for (const chapter of chapters) {
-          if (chapter.leaderMemberId === viewingMemberId) {
-            return `${t("admin.gouvernance.seats.leaderLegende")} · ${chapter.name}`;
-          }
-          if (chapter.coordinatorMemberId === viewingMemberId) {
-            return `${t("admin.gouvernance.seats.coordinateur")} · ${chapter.name}`;
-          }
-          const subBranch = chapter.subBranches.find((b) => b.memberId === viewingMemberId);
-          if (subBranch) return `${subBranch.name} · ${chapter.name}`;
-        }
-      }
-      if (pole.kind === "autoLevel") {
-        const member = getMember(viewingMemberId);
-        if (member?.levelKey === pole.levelKey) return poleTitle;
-      }
-    }
-    return null;
-  })();
-
-  const legendesPole = structure.find((pole) => pole.kind === "autoLevel");
-  const legendesMembers = legendesPole
-    ? allMembers.filter((member) => member.levelKey === legendesPole.levelKey)
-    : [];
-
-  const quote = i18n.language?.startsWith("en") ? founderQuote.en : founderQuote.fr;
-
+function SeatRow({ seat, onAssignClick }) {
   return (
-    <Page title={`Admin – ${t("admin.gouvernance.title")}`}>
-      <div className="p-6 lg:p-8">
-        <AdminTopBar title={t("admin.gouvernance.title")} />
-
-        {/* Citation fondatrice — bannière hero, façon page "Leadership" des
-            sites d'admin/entreprise reconnus : grande citation centrée sur
-            fond dégradé aux couleurs de la marque, guillemet décoratif en
-            filigrane. */}
-        <div className="relative mt-6 overflow-hidden rounded-3xl bg-gradient-to-br from-[#52A2DF] to-[#3d6fb0] p-8 text-center sm:p-12">
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -left-4 -top-10 select-none text-[220px] font-black leading-none text-white/10"
-          >
-            &ldquo;
-          </span>
-          <p className="text-xs font-bold uppercase tracking-widest text-white/70">
-            📌 {t("admin.gouvernance.quote.label")}
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-black/5 px-4 py-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#52A2DF]/[0.1] text-[#52A2DF]">
+          <UserIcon aria-hidden="true" className="size-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-gray-800">{seat.title}</p>
+          <p className="truncate text-xs text-gray-500">
+            {seat.membershipNumber ?? "Poste vacant"}
           </p>
-          <blockquote className="relative mx-auto mt-4 max-w-2xl text-lg font-bold italic leading-snug text-white sm:text-xl">
-            {quote}
-          </blockquote>
-          <p className="relative mt-5 text-sm font-semibold text-white/80">— {founderQuote.author}</p>
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <button
-            type="button"
-            onClick={openAddPole}
-            className="flex shrink-0 items-center gap-2 rounded-lg bg-[#52A2DF] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            <PlusIcon aria-hidden="true" className="size-4" />
-            {t("admin.gouvernance.addPole")}
-          </button>
-        </div>
-
-        <div className="mt-4 space-y-6">
-          {structure.map((pole, index) => (
-            <PoleSection
-              key={pole.id}
-              pole={pole}
-              number={index + 1}
-              Icon={POLE_ICON_MAP[pole.iconKey] ?? SparklesIcon}
-              onView={openView}
-              onAssign={openAssign}
-              autoLevelMembers={pole.kind === "autoLevel" ? legendesMembers : undefined}
-              chapters={pole.kind === "networkChapters" ? chapters : undefined}
-              onMoveUp={() => movePole(index, -1)}
-              onMoveDown={() => movePole(index, 1)}
-              canMoveUp={index > 0}
-              canMoveDown={index < structure.length - 1}
-              onEdit={() => openEditPole(pole)}
-              onDelete={() => setDeletingPole(pole)}
-            />
-          ))}
         </div>
       </div>
+      <button
+        type="button"
+        onClick={() => onAssignClick(seat)}
+        className="shrink-0 rounded-lg border border-[#52A2DF]/[0.32] px-3 py-1.5 text-xs font-semibold text-[#52A2DF] transition-colors hover:bg-[#52A2DF]/[0.1]"
+      >
+        {seat.memberId ? "Changer" : "Assigner"}
+      </button>
+    </div>
+  );
+}
 
-      <MemberSearchModal
-        open={!!assigning}
-        seatTitle={assigning?.seatLabel ?? ""}
-        onClose={closeAssign}
+function AssignSeatDialog({ seat, membres, onClose, onConfirm, isSubmitting }) {
+  const [selectedMemberId, setSelectedMemberId] = useState("");
+
+  useEffect(() => {
+    if (seat) setSelectedMemberId(seat.memberId ?? "");
+  }, [seat]);
+
+  if (!seat) return null;
+
+  return (
+    <Dialog open={Boolean(seat)} onClose={onClose} className="relative z-50">
+      <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
+      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+        <DialogPanel className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+          <DialogTitle className="text-sm font-bold text-gray-900">{seat.title}</DialogTitle>
+          <p className="mt-1 text-sm text-gray-500">
+            Choisis un membre pour ce siège, ou laisse vide pour le libérer.
+          </p>
+
+          <label className="mt-4 block text-sm font-semibold text-gray-700">
+            Membre
+            <select
+              value={selectedMemberId}
+              onChange={(event) => setSelectedMemberId(event.target.value)}
+              className="mt-1.5 w-full rounded-lg border border-[#52A2DF]/[0.32] bg-white px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-[#52A2DF]"
+            >
+              <option value="">— Poste vacant —</option>
+              {membres.map((membre) => (
+                <option key={membre.id} value={membre.id}>
+                  {membre.membershipNumber}
+                  {membre.firstName ? ` — ${membre.firstName} ${membre.lastName}` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => onConfirm(selectedMemberId)}
+              className="flex items-center gap-2 rounded-lg bg-[#EE7115] px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            >
+              {isSubmitting && <ArrowPathIcon aria-hidden="true" className="size-4 animate-spin" />}
+              Confirmer
+            </button>
+          </div>
+        </DialogPanel>
+      </div>
+    </Dialog>
+  );
+}
+
+export default function Gouvernance() {
+  const [poles, setPoles] = useState([]);
+  const [membres, setMembres] = useState([]);
+  const [antennes, setAntennes] = useState([]);
+  const [status, setStatus] = useState("loading"); // loading | ready | error
+  const [seatToAssign, setSeatToAssign] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const charger = useCallback(async () => {
+    setStatus("loading");
+    try {
+      const [polesData, membresData, antennesData] = await Promise.all([
+        listerPoles(),
+        listerMembres(),
+        listerAntennes(),
+      ]);
+      setPoles(polesData);
+      setMembres(membresData);
+      setAntennes(antennesData);
+      setStatus("ready");
+    } catch {
+      setStatus("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    charger();
+  }, [charger]);
+
+  const handleConfirmAssign = async (memberId) => {
+    setIsSubmitting(true);
+    try {
+      await assignerSiege(seatToAssign.id, memberId);
+      setSeatToAssign(null);
+      await charger();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Page title="Admin – Gouvernance">
+      <div className="p-6 lg:p-8">
+        <AdminTopBar title="Gouvernance" />
+
+        {status === "loading" && (
+          <div className="mt-10 flex items-center justify-center text-gray-400">
+            <ArrowPathIcon aria-hidden="true" className="size-6 animate-spin" />
+          </div>
+        )}
+
+        {status === "error" && (
+          <div className="mt-6 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+            Impossible de charger la gouvernance pour le moment.
+          </div>
+        )}
+
+        {status === "ready" && (
+          <div className="mt-6 space-y-6">
+            {poles.map((pole) => (
+              <div key={pole.id} className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+                <p className="text-base font-bold text-gray-900">{pole.name}</p>
+                <p className="mt-1 text-sm text-gray-500">{pole.description}</p>
+                <div className="mt-4 space-y-2.5">
+                  {pole.seats.map((seat) => (
+                    <SeatRow key={seat.id} seat={seat} onAssignClick={setSeatToAssign} />
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+              <p className="text-base font-bold text-gray-900">Chapter Leaders Network</p>
+              <p className="mt-1 text-sm text-gray-500">
+                Legend Leader + Coordinator par antenne locale (lecture seule
+                pour l&apos;instant — assignation à venir).
+              </p>
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {antennes.map((antenne) => (
+                  <div key={antenne.id} className="rounded-xl border border-black/5 px-4 py-3">
+                    <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-800">
+                      <MapPinIcon aria-hidden="true" className="size-3.5 text-[#EE7115]" />
+                      {antenne.city}
+                    </div>
+                    <p className="mt-1.5 text-xs text-gray-500">
+                      Leader : {antenne.leaderMembreId ?? "vacant"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Coordinateur : {antenne.coordinatorMembreId ?? "vacant"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <AssignSeatDialog
+        seat={seatToAssign}
+        membres={membres}
+        isSubmitting={isSubmitting}
+        onClose={() => setSeatToAssign(null)}
         onConfirm={handleConfirmAssign}
-      />
-
-      <MemberDetailsCard
-        member={viewingMember}
-        open={!!viewingMemberId}
-        onClose={closeView}
-        extraBadge={viewingSeatBadge}
-      />
-
-      <PoleFormModal
-        open={!!poleForm}
-        pole={poleForm?.mode === "edit" ? poleForm.pole : null}
-        onClose={closePoleForm}
-        onSubmit={handlePoleSubmit}
-      />
-
-      <ConfirmDialog
-        open={!!deletingPole}
-        title={t("admin.gouvernance.confirmDelete.title")}
-        description={t("admin.gouvernance.confirmDelete.description", {
-          title: deletingPole ? getPoleTitle(deletingPole, t) : "",
-        })}
-        confirmLabel={t("admin.gouvernance.confirmDelete.confirmLabel")}
-        tone="danger"
-        onConfirm={confirmDeletePole}
-        onCancel={() => setDeletingPole(null)}
       />
     </Page>
   );

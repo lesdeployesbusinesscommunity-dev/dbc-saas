@@ -24,6 +24,8 @@ import {
 // Local Imports
 import { Page } from "components/shared/Page";
 import { levels, formatMoney } from "app/pages/Simulateur/data";
+import { creerDemande } from "api/demandesInscription";
+import { normalizePhoneNumber } from "utils/phone";
 
 // ----------------------------------------------------------------------
 
@@ -65,6 +67,33 @@ const REQUIRED_FIELDS_BY_STEP = {
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Le "key" utilisé côté frontend (Simulateur/data.js) ne correspond pas
+// toujours au "code" attendu par le backend (GET /adhesion/niveaux) : deux
+// niveaux sur 8 diffèrent (casse snake_case côté backend).
+const DESIRED_LEVEL_CODE_BY_KEY = {
+  starter: "starter",
+  batisseur: "batisseur",
+  batisseurPro: "batisseur_pro",
+  performer: "performer",
+  performerPro: "performer_pro",
+  stratege: "stratege",
+  elite: "elite",
+  legende: "legende",
+};
+
+// Age en années révolues à partir d'une date de naissance ("YYYY-MM-DD",
+// format natif d'un <input type="date">).
+function calculerAge(dateNaissance) {
+  const naissance = new Date(dateNaissance);
+  const aujourdHui = new Date();
+  let age = aujourdHui.getFullYear() - naissance.getFullYear();
+  const moisDiff = aujourdHui.getMonth() - naissance.getMonth();
+  if (moisDiff < 0 || (moisDiff === 0 && aujourdHui.getDate() < naissance.getDate())) {
+    age -= 1;
+  }
+  return age;
+}
 
 // Champ texte/email/date/tel avec icône intégrée, même style visuel que
 // le reste du site (bordure bleue à 32%, focus bleu plein). "error" :
@@ -186,10 +215,10 @@ function Stepper({ currentStep }) {
 // bien visible cette fois, au milieu de l'espace libre du panneau) et le
 // formulaire d'inscription à droite, en 3 étapes.
 //
-// Simule l'envoi côté client pour l'instant (pas d'API branchée) — à
-// remplacer par un vrai appel à l'endpoint d'inscription (NestJS) plus
-// tard : "status" passerait alors par "sending" pendant l'appel réseau
-// réel plutôt qu'un simple setTimeout.
+// Soumet un vrai POST /demandes-inscription (voir api/demandesInscription.js) :
+// "status" passe par "sending" pendant l'appel réseau, "sent" une fois la
+// demande enregistrée côté backend (en attente de validation par un admin —
+// pas d'auto-inscription en libre-service).
 export default function Inscription() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -197,6 +226,7 @@ export default function Inscription() {
   const [status, setStatus] = useState("idle"); // idle | sending | sent
   const [showSent, setShowSent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
   const [form, setForm] = useState({
     nom: "",
     prenom: "",
@@ -231,6 +261,11 @@ export default function Inscription() {
     if (step === 1 && form.email.trim() && !EMAIL_PATTERN.test(form.email.trim())) {
       errors.email = "Adresse email invalide";
     }
+    if (step === 1 && form.dateNaissance && !errors.dateNaissance) {
+      if (calculerAge(form.dateNaissance) < 18) {
+        errors.dateNaissance = "Tu dois avoir au moins 18 ans";
+      }
+    }
     return errors;
   };
 
@@ -252,23 +287,42 @@ export default function Inscription() {
       return;
     }
     setFieldErrors({});
+    setSubmitError("");
     setCurrentStep((step) => Math.min(step + 1, STEP_COUNT));
   };
 
   const goBack = () => {
     setFieldErrors({});
+    setSubmitError("");
     setCurrentStep((step) => Math.max(step - 1, 1));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const errors = validateStep(currentStep);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
     }
+
     setStatus("sending");
-    setTimeout(() => setStatus("sent"), 1400);
+    setSubmitError("");
+
+    try {
+      await creerDemande({
+        lastName: form.nom.trim(),
+        firstName: form.prenom.trim(),
+        age: calculerAge(form.dateNaissance),
+        country: form.pays,
+        phoneNumber: normalizePhoneNumber(form.whatsapp),
+        sponsorCode: form.parrain.trim() || undefined,
+        desiredLevelCode: DESIRED_LEVEL_CODE_BY_KEY[form.tontine] ?? form.tontine,
+      });
+      setStatus("sent");
+    } catch (err) {
+      setStatus("idle");
+      setSubmitError(t(err.message));
+    }
   };
 
   return (
@@ -519,6 +573,22 @@ export default function Inscription() {
                     </>
                   )}
 
+                  {currentStep === STEP_COUNT && (
+                    <span
+                      className={clsx(
+                        "grid transition-all duration-200 ease-out",
+                        submitError ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                      )}
+                    >
+                      <span className="overflow-hidden">
+                        <span className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                          <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+                          {submitError}
+                        </span>
+                      </span>
+                    </span>
+                  )}
+
                   <div className="flex items-center gap-3 pt-2">
                     {currentStep > 1 && (
                       <button
@@ -543,7 +613,8 @@ export default function Inscription() {
                     ) : (
                       <button
                         type="submit"
-                        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#EE7115] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                        disabled={status === "sending"}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#EE7115] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
                       >
                         Rejoindre la DBC
                         <ArrowRightIcon aria-hidden="true" className="size-4" />

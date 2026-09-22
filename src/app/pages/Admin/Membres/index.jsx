@@ -1,326 +1,248 @@
 // Import Dependencies
-import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useCallback, useEffect, useState } from "react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
+import {
+  ArrowPathIcon,
+  CheckIcon,
+  ExclamationCircleIcon,
+  UserGroupIcon,
+  ClockIcon,
+} from "@heroicons/react/24/solid";
 
 // Local Imports
 import { Page } from "components/shared/Page";
-import { AdminTopBar } from "../components/AdminTopBar";
-import { LevelTabs } from "./LevelTabs";
-import { MembersFolder } from "./MembersFolder";
-import { MembersToolbar } from "./MembersToolbar";
-import { MembersTable } from "./MembersTable";
-import { Pagination } from "./Pagination";
-import { AddMemberModal } from "./AddMemberModal";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { MemberDetailsCard } from "./MemberDetailsCard";
-import { TopMembers } from "./TopMembers";
-import { initialMembersByLevel, levelNumbers } from "./mockData";
+import { listerEnAttente, valider } from "api/demandesInscription";
+import { listerMembres } from "api/membres";
 
 // ----------------------------------------------------------------------
 
-const PAGE_SIZE = 6;
+// Espace admin "Membres" : demandes d'adhésion en attente de validation
+// (POST /demandes-inscription, soumises via /inscription) + liste des
+// membres déjà validés. Remplace l'ancienne version en mockData.js — voir
+// le plan d'intégration API pour le détail des endpoints utilisés.
+// Version volontairement simple (pas encore de recherche/filtre/pagination
+// comme l'ancienne maquette) : l'objectif ici est des données réelles
+// plutôt qu'une UI complète, qui pourra être enrichie ensuite.
 
-function nextMatricule(levelKey, countForLevel) {
-  return `DBC-${levelNumbers[levelKey]}-${String(countForLevel + 1).padStart(4, "0")}`;
-}
-
-// Exporte la liste affichée en CSV, tout en local (pas d'appel réseau) —
-// à remplacer par un vrai export serveur si le volume de membres grandit.
-// Le niveau est repris par ligne (member.levelKey) plutôt que fixé une
-// fois pour toutes, pour rester correct aussi bien pour un dossier que
-// pour la vue "Tous les niveaux". "t" est passé par l'appelant pour que
-// les en-têtes et les noms de niveau restent dans la langue active.
-function exportToCsv(members, fileLabel, t) {
-  const headers = [
-    t("admin.membres.table.columns.matricule"),
-    t("admin.membres.table.columns.name"),
-    t("admin.membres.table.columns.role"),
-    t("admin.membres.table.columns.domain"),
-    t("admin.membres.table.columns.level"),
-    t("admin.membres.table.columns.city"),
-    t("admin.membres.table.columns.country"),
-    t("admin.membres.table.columns.sponsor"),
-    t("admin.membres.modal.sponsorMatricule"),
-    t("admin.membres.table.columns.coins"),
-    t("admin.membres.table.columns.status"),
-  ];
-  const rows = members.map((m) => [
-    m.matricule, m.name, m.role, m.domain,
-    m.levelKey ? t(`simulateur.levels.${m.levelKey}.name`) : "",
-    m.city, m.country, m.sponsorName ?? "", m.sponsorMatricule ?? "", m.coins, m.status,
-  ]);
-  const csv = [headers, ...rows]
-    .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
-    .join("\n");
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `membres-${fileLabel.replace(/\s+/g, "-").toLowerCase()}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-// Page "Gestion des membres" (/admin/membres) : un dossier par niveau DBC
-// (étiquettes en haut, comme des onglets de classeur), chacun contenant le
-// tableau des membres de ce niveau. Tout est géré en local pour l'instant
-// (ajout / mise à jour / désactivation) — voir mockData.js pour le détail
-// de ce qui reste à brancher au backend.
-export default function Membres() {
-  const { t } = useTranslation();
-  const [membersByLevel, setMembersByLevel] = useState(initialMembersByLevel);
-  // "all" affiche tous les niveaux combinés ; sinon c'est une clé de
-  // "levels" (app/pages/Simulateur/data). On démarre sur "all" — c'est la
-  // vue la plus utile par défaut sur un tableau d'administration standard.
-  const [activeLevel, setActiveLevel] = useState("all");
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("aucun");
-  const [page, setPage] = useState(1);
-
-  const [modal, setModal] = useState(null); // { mode, member, lockLevel, defaultLevel } | null
-  const [viewMember, setViewMember] = useState(null); // membre affiché dans la fiche "Voir"
-  const [confirmAction, setConfirmAction] = useState(null); // { type: "update"|"toggle"|"delete", member } | null
-
-  const list = useMemo(() => {
-    // "levelKey" est rattaché ici (plutôt que stocké sur chaque membre) car
-    // la liste vient du dictionnaire "membersByLevel" indexé par niveau —
-    // utile pour pré-remplir le formulaire de modification, et pour
-    // afficher le bon niveau par ligne dans la vue "Tous les niveaux".
-    let arr =
-      activeLevel === "all"
-        ? Object.entries(membersByLevel).flatMap(([levelKey, entries]) =>
-            entries.map((member) => ({ ...member, levelKey })),
-          )
-        : (membersByLevel[activeLevel] ?? []).map((member) => ({
-            ...member,
-            levelKey: activeLevel,
-          }));
-
-    if (search.trim()) {
-      const query = search.trim().toLowerCase();
-      arr = arr.filter(
-        (member) =>
-          member.name.toLowerCase().includes(query) ||
-          member.matricule.toLowerCase().includes(query),
-      );
-    }
-
-    switch (filter) {
-      case "aucun":
-        break;
-      case "recent":
-        arr.sort((a, b) => new Date(b.joinedAt) - new Date(a.joinedAt));
-        break;
-      case "ville":
-        arr.sort((a, b) => a.city.localeCompare(b.city));
-        break;
-      case "pays":
-        arr.sort((a, b) => a.country.localeCompare(b.country));
-        break;
-      default:
-        arr.sort((a, b) => new Date(a.joinedAt) - new Date(b.joinedAt));
-    }
-
-    return arr;
-  }, [membersByLevel, activeLevel, search, filter]);
-
-  // Tous les membres, tous niveaux confondus, indépendamment du filtre/
-  // niveau ouvert dans le tableau — sert au "Top des membres" affiché en
-  // dessous, qui doit rester stable même quand on change de dossier.
-  const allMembers = useMemo(
-    () =>
-      Object.entries(membersByLevel).flatMap(([levelKey, entries]) =>
-        entries.map((member) => ({ ...member, levelKey })),
-      ),
-    [membersByLevel],
+function SectionCard({ title, icon: Icon, count, children }) {
+  return (
+    <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-2.5">
+        <span className="flex size-9 items-center justify-center rounded-full bg-[#EE7115]/[0.1] text-[#EE7115]">
+          <Icon aria-hidden="true" className="size-4.5" />
+        </span>
+        <p className="text-base font-bold text-gray-900">
+          {title} <span className="font-normal text-gray-400">({count})</span>
+        </p>
+      </div>
+      <div className="mt-5">{children}</div>
+    </div>
   );
+}
 
-  // Revenir à la première page dès que le contenu affiché change (niveau,
-  // recherche ou filtre) pour ne pas rester bloqué sur une page vide.
-  useEffect(() => {
-    setPage(1);
-  }, [activeLevel, search, filter]);
+function ValiderDialog({ demande, onCancel, onConfirm, isSubmitting, error }) {
+  const [temporaryPassword, setTemporaryPassword] = useState("");
 
-  const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-  const paginatedList = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  // "Ajouter un membre" (dans la barre d'outils) se verrouille sur le
-  // niveau du dossier ouvert — sauf en vue "Tous les niveaux", où il se
-  // comporte comme le bouton global (niveau libre).
-  const openAddForLevel = () =>
-    setModal(
-      activeLevel === "all" ? { mode: "add" } : { mode: "add", lockLevel: activeLevel },
-    );
-  const openAddAnyLevel = () =>
-    setModal({ mode: "add", defaultLevel: activeLevel === "all" ? undefined : activeLevel });
-  const closeModal = () => setModal(null);
-
-  // "Voir" ouvre directement la fiche détaillée du membre — pas besoin de
-  // confirmation puisque c'est juste de la lecture (voir MemberDetailsCard).
-  const openView = (member) => setViewMember(member);
-  const closeView = () => setViewMember(null);
-
-  // "Mettre à jour", "Désactiver"/"Réactiver" et "Supprimer" passent tous
-  // par une confirmation avant de s'exécuter (voir ConfirmDialog ci-dessous
-  // et son rendu dans le JSX) — demandé explicitement par l'utilisateur.
-  const askUpdate = (member) => setConfirmAction({ type: "update", member });
-  const askToggleStatus = (member) => setConfirmAction({ type: "toggle", member });
-  const askDelete = (member) => setConfirmAction({ type: "delete", member });
-  const cancelConfirm = () => setConfirmAction(null);
-
-  const runConfirmedAction = () => {
-    if (!confirmAction) return;
-    const { type, member } = confirmAction;
-
-    if (type === "update") {
-      setModal({ mode: "edit", member, defaultLevel: member.levelKey });
-    } else if (type === "toggle") {
-      setMembersByLevel((prev) => ({
-        ...prev,
-        [member.levelKey]: prev[member.levelKey].map((entry) =>
-          entry.id === member.id
-            ? { ...entry, status: entry.status === "desactive" ? "actif" : "desactive" }
-            : entry,
-        ),
-      }));
-    } else if (type === "delete") {
-      setMembersByLevel((prev) => ({
-        ...prev,
-        [member.levelKey]: prev[member.levelKey].filter((entry) => entry.id !== member.id),
-      }));
-    }
-
-    setConfirmAction(null);
-  };
-
-  const handleSubmit = (levelKey, form) => {
-    if (modal?.mode === "edit" && modal.member) {
-      const memberId = modal.member.id;
-      // Le niveau a pu changer dans le formulaire : on retire le membre de
-      // son ancien niveau si besoin, puis on le place dans le nouveau.
-      setMembersByLevel((prev) => {
-        const withoutMember = Object.fromEntries(
-          Object.entries(prev).map(([key, entries]) => [
-            key,
-            entries.filter((entry) => entry.id !== memberId),
-          ]),
-        );
-        const updated = { ...modal.member, ...form, levelKey };
-        return {
-          ...withoutMember,
-          [levelKey]: [...(withoutMember[levelKey] ?? []), updated],
-        };
-      });
-    } else {
-      setMembersByLevel((prev) => {
-        const existing = prev[levelKey] ?? [];
-        const newMember = {
-          id: `m-${Date.now()}`,
-          matricule: nextMatricule(levelKey, existing.length),
-          levelKey,
-          ...form,
-          joinedAt: new Date().toISOString().slice(0, 10),
-        };
-        return { ...prev, [levelKey]: [...existing, newMember] };
-      });
-    }
-    closeModal();
-  };
-
-  const activeLevelName = activeLevel === "all" ? null : t(`simulateur.levels.${activeLevel}.name`);
+  if (!demande) return null;
 
   return (
-    <Page title={`Admin – ${t("admin.membres.title")}`}>
-      <div className="p-6 lg:p-8">
-        <AdminTopBar title={t("admin.membres.title")} />
+    <Dialog open={Boolean(demande)} onClose={onCancel} className="relative z-50">
+      <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
+      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+        <DialogPanel className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+          <DialogTitle className="text-sm font-bold text-gray-900">
+            Valider la demande de {demande.firstName} {demande.lastName}
+          </DialogTitle>
+          <p className="mt-1 text-sm text-gray-500">
+            Choisis un mot de passe temporaire : le compte sera créé
+            immédiatement avec ce mot de passe.
+          </p>
 
-        <LevelTabs
-          activeLevel={activeLevel}
-          onSelect={setActiveLevel}
-          onAddAnyLevel={openAddAnyLevel}
-        />
+          <label className="mt-4 block text-sm font-semibold text-gray-700">
+            Mot de passe temporaire
+            <input
+              type="text"
+              autoFocus
+              value={temporaryPassword}
+              onChange={(event) => setTemporaryPassword(event.target.value)}
+              className="mt-1.5 w-full rounded-lg border border-[#52A2DF]/[0.32] bg-white px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-[#52A2DF]"
+            />
+            <span className="mt-1 block text-xs font-normal text-gray-400">
+              8 caractères minimum.
+            </span>
+          </label>
 
-        <MembersFolder
-          label={
-            activeLevel === "all"
-              ? t("admin.membres.allLevels")
-              : `${t("admin.membres.level", { n: levelNumbers[activeLevel] })} : ${activeLevelName}`
-          }
-        >
-          <MembersToolbar
-            search={search}
-            onSearchChange={setSearch}
-            filter={filter}
-            onFilterChange={setFilter}
-            onAddMember={openAddForLevel}
-            onExport={() =>
-              exportToCsv(
-                list,
-                activeLevel === "all" ? t("admin.membres.allLevels") : activeLevelName,
-                t,
-              )
-            }
-          />
+          {error && (
+            <span className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+              {error}
+            </span>
+          )}
 
-          <MembersTable
-            members={paginatedList}
-            onUpdate={askUpdate}
-            onView={openView}
-            onToggleStatus={askToggleStatus}
-            onDelete={askDelete}
-          />
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              disabled={isSubmitting || temporaryPassword.trim().length < 8}
+              onClick={() => onConfirm(temporaryPassword.trim())}
+              className="flex items-center gap-2 rounded-lg bg-[#EE7115] px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            >
+              {isSubmitting && <ArrowPathIcon aria-hidden="true" className="size-4 animate-spin" />}
+              Valider
+            </button>
+          </div>
+        </DialogPanel>
+      </div>
+    </Dialog>
+  );
+}
 
-          <Pagination page={page} pageCount={pageCount} onChange={setPage} />
-        </MembersFolder>
+export default function Membres() {
+  const [demandes, setDemandes] = useState([]);
+  const [membres, setMembres] = useState([]);
+  const [status, setStatus] = useState("loading"); // loading | ready | error
+  const [demandeAValider, setDemandeAValider] = useState(null);
+  const [validationError, setValidationError] = useState("");
+  const [isValidating, setIsValidating] = useState(false);
 
-        <TopMembers members={allMembers} />
+  const charger = useCallback(async () => {
+    setStatus("loading");
+    try {
+      const [demandesData, membresData] = await Promise.all([listerEnAttente(), listerMembres()]);
+      setDemandes(demandesData);
+      setMembres(membresData);
+      setStatus("ready");
+    } catch {
+      setStatus("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    charger();
+  }, [charger]);
+
+  const handleConfirmValider = async (temporaryPassword) => {
+    setIsValidating(true);
+    setValidationError("");
+    try {
+      await valider(demandeAValider.id, { temporaryPassword });
+      setDemandeAValider(null);
+      await charger();
+    } catch (err) {
+      setValidationError(
+        err.message === "api.errors.validation"
+          ? "Mot de passe temporaire invalide"
+          : "Impossible de valider cette demande pour le moment",
+      );
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  return (
+    <Page title="Membres">
+      <div className="p-4 sm:p-6">
+        <p className="text-xl font-extrabold text-gray-900">Membres</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Demandes d&apos;adhésion en attente et membres déjà validés.
+        </p>
+
+        {status === "loading" && (
+          <div className="mt-10 flex items-center justify-center text-gray-400">
+            <ArrowPathIcon aria-hidden="true" className="size-6 animate-spin" />
+          </div>
+        )}
+
+        {status === "error" && (
+          <div className="mt-6 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+            Impossible de charger les données. Vérifie que le secret admin est
+            correct et que le backend tourne.
+          </div>
+        )}
+
+        {status === "ready" && (
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <SectionCard title="En attente de validation" icon={ClockIcon} count={demandes.length}>
+              {demandes.length === 0 ? (
+                <p className="text-sm text-gray-400">Aucune demande en attente.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {demandes.map((demande) => (
+                    <li
+                      key={demande.id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-black/5 px-4 py-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-gray-800">
+                          {demande.firstName} {demande.lastName}
+                        </p>
+                        <p className="truncate text-xs text-gray-500">
+                          {demande.phoneNumber} · {demande.country} · niveau {demande.desiredLevelCode}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setValidationError("");
+                          setDemandeAValider(demande);
+                        }}
+                        className="flex shrink-0 items-center gap-1.5 rounded-lg bg-[#EE7115] px-3.5 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                      >
+                        <CheckIcon aria-hidden="true" className="size-3.5" />
+                        Valider
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </SectionCard>
+
+            <SectionCard title="Membres validés" icon={UserGroupIcon} count={membres.length}>
+              {membres.length === 0 ? (
+                <p className="text-sm text-gray-400">Aucun membre validé pour l&apos;instant.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {membres.map((membre) => (
+                    <li
+                      key={membre.id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-black/5 px-4 py-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-gray-800">
+                          {membre.firstName} {membre.lastName}
+                          {!membre.firstName && !membre.lastName && membre.membershipNumber}
+                        </p>
+                        <p className="truncate text-xs text-gray-500">
+                          {membre.membershipNumber} · {membre.phoneNumber}
+                          {membre.level ? ` · ${membre.level.name}` : ""}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                        {membre.status}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </SectionCard>
+          </div>
+        )}
       </div>
 
-      <AddMemberModal
-        open={!!modal}
-        mode={modal?.mode ?? "add"}
-        member={modal?.member}
-        lockLevel={modal?.lockLevel}
-        defaultLevel={modal?.defaultLevel}
-        onClose={closeModal}
-        onSubmit={handleSubmit}
+      <ValiderDialog
+        demande={demandeAValider}
+        isSubmitting={isValidating}
+        error={validationError}
+        onCancel={() => setDemandeAValider(null)}
+        onConfirm={handleConfirmValider}
       />
-
-      <MemberDetailsCard member={viewMember} open={!!viewMember} onClose={closeView} />
-
-      {confirmAction &&
-        (() => {
-          // Clé de traduction (admin.membres.confirm.*) selon le type
-          // d'action et, pour "toggle", l'état actuel du membre.
-          const confirmKey =
-            confirmAction.type === "update"
-              ? "update"
-              : confirmAction.type === "delete"
-                ? "delete"
-                : confirmAction.member.status === "desactive"
-                  ? "reactivate"
-                  : "deactivate";
-
-          return (
-            <ConfirmDialog
-              open={!!confirmAction}
-              title={t(`admin.membres.confirm.${confirmKey}.title`)}
-              description={t(`admin.membres.confirm.${confirmKey}.description`, {
-                name: confirmAction.member.name,
-              })}
-              confirmLabel={t(`admin.membres.confirm.${confirmKey}.confirmLabel`)}
-              tone={
-                confirmAction.type === "delete" ||
-                (confirmAction.type === "toggle" && confirmAction.member.status !== "desactive")
-                  ? "danger"
-                  : "default"
-              }
-              onConfirm={runConfirmedAction}
-              onCancel={cancelConfirm}
-            />
-          );
-        })()}
     </Page>
   );
 }

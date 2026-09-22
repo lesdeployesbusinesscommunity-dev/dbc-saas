@@ -1,0 +1,24 @@
+// Local Imports
+import { httpClient } from "./httpClient";
+import { adminHeaders } from "./adminHeaders";
+
+// ----------------------------------------------------------------------
+
+// GET /formations — public, catalogue des formations.
+export async function listerFormations() {
+  const { data } = await httpClient.get("/formations");
+  return data;
+}
+
+// POST /formations (admin). Les noms de champs attendus par le backend
+// (titre, niveauRequisId, pilierCode) sont en français ici, contrairement
+// au reste de la surface d'API — incohérence existante côté backend, pas
+// introduite ici.
+export async function creerFormation({ code, title, requiredLevelId, pillarCode }) {
+  const { data } = await httpClient.post(
+    "/formations",
+    { code, titre: title, niveauRequisId: requiredLevelId, pilierCode: pillarCode },
+    { headers: adminHeaders() },
+  );
+  return data;
+}

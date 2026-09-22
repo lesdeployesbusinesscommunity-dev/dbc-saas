@@ -5,6 +5,7 @@ export const APP_KEY = "tailux";
 export const REDIRECT_URL_KEY = "redirect";
 export const HOME_PATH = "/"
 export const GHOST_ENTRY_PATH = "/login"
+export const ADMIN_ENTRY_PATH = "/admin/connexion"
 
 // Navigation Types
 export const NAV_TYPE_ROOT = 'root'
