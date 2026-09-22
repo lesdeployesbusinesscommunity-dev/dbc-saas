@@ -81,7 +81,16 @@ function normalizeError(error) {
   return { status, message: "api.errors.validation" };
 }
 
+// Le backend enveloppe toute reponse de succes dans { data: ... } (contrat
+// convenu avec le backend, voir NestJS ReponseInterceptor). On deballe ici,
+// une seule fois, pour que le reste du frontend (src/api/*.js) traite
+// directement la charge utile plutot que de repeter `.data.data` partout.
 httpClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.data && typeof response.data === "object" && "data" in response.data) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
   (error) => Promise.reject(normalizeError(error)),
 );

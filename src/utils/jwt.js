@@ -1,5 +1,5 @@
 import { jwtDecode } from "jwt-decode";
-import axios from "./axios";
+import { httpClient } from "api/httpClient";
 
 /**
  * Checks if the provided JWT token is valid (not expired).
@@ -31,13 +31,13 @@ const isTokenValid = (authToken) => {
  */
 const setSession = (authToken) => {
   if (typeof authToken === "string" && authToken.trim() !== "") {
-    // Store token in local storage and set authorization header for axios
+    // Store token in local storage and set authorization header for httpClient
     localStorage.setItem("authToken", authToken);
-    axios.defaults.headers.common.Authorization = `Bearer ${authToken}`;
+    httpClient.defaults.headers.common.Authorization = `Bearer ${authToken}`;
   } else {
-    // Remove token from local storage and delete authorization header from axios
+    // Remove token from local storage and delete authorization header from httpClient
     localStorage.removeItem("authToken");
-    delete axios.defaults.headers.common.Authorization;
+    delete httpClient.defaults.headers.common.Authorization;
   }
 };
 

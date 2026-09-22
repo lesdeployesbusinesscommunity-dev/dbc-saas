@@ -1,4 +1,13 @@
 {
+  "api": {
+    "errors": {
+      "network": "Impossible de contacter le serveur. Vérifie ta connexion et réessaie.",
+      "server": "Une erreur est survenue côté serveur. Réessaie dans quelques instants.",
+      "unauthorized": "Identifiants incorrects ou session expirée.",
+      "notFound": "Ressource introuvable.",
+      "validation": "Certaines informations saisies sont invalides."
+    }
+  },
   "nav": {
     "dashboards": {
       "dashboards": "Dashboards",
