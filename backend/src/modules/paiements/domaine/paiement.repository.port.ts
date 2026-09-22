@@ -7,4 +7,5 @@ import { Paiement } from './paiement';
 export abstract class PaiementRepositoryPort {
   abstract sauvegarder(paiement: Paiement): Promise<Paiement>;
   abstract trouverParCleIdempotence(cleIdempotence: string): Promise<Paiement | null>;
+  abstract listerTous(): Promise<Paiement[]>;
 }

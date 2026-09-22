@@ -5,11 +5,13 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './interface/auth.controller';
 import { DemandesInscriptionController } from './interface/demandes-inscription.controller';
+import { MembresAdminController } from './interface/membres-admin.controller';
 import { ConnecterUtilisateurUseCase } from './application/connecter-utilisateur.use-case';
 import { VerifierOtpConnexionUseCase } from './application/verifier-otp-connexion.use-case';
 import { BasculerDoubleAuthentificationUseCase } from './application/basculer-double-authentification.use-case';
 import { CreerDemandeInscriptionUseCase } from './application/creer-demande-inscription.use-case';
 import { ValiderDemandeInscriptionUseCase } from './application/valider-demande-inscription.use-case';
+import { ListerMembresAdminUseCase } from './application/lister-membres-admin.use-case';
 import { UtilisateurRepositoryPort } from './domaine/utilisateur.repository.port';
 import { DemandeInscriptionRepositoryPort } from './domaine/demande-inscription.repository.port';
 import { CodeOtpRepositoryPort } from './domaine/code-otp.repository.port';
@@ -54,13 +56,14 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
       }),
     }),
   ],
-  controllers: [AuthController, DemandesInscriptionController],
+  controllers: [AuthController, DemandesInscriptionController, MembresAdminController],
   providers: [
     ConnecterUtilisateurUseCase,
     VerifierOtpConnexionUseCase,
     BasculerDoubleAuthentificationUseCase,
     CreerDemandeInscriptionUseCase,
     ValiderDemandeInscriptionUseCase,
+    ListerMembresAdminUseCase,
     JwtStrategy,
     // Le domaine/application dépend des PORTS (abstraits), jamais des implémentations.
     // Remplacer ces lignes suffira à changer de base de données / d'algo de hachage / de

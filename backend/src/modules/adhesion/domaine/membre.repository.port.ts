@@ -8,4 +8,5 @@ export abstract class MembreRepositoryPort {
   abstract ajouterHistorique(entree: HistoriqueNiveauMembre): Promise<void>;
   /** Numéro séquentiel unique pour le matricule (séquence Postgres — voir AdhesionBootstrap). */
   abstract prochainNumeroSequenceMatricule(): Promise<number>;
+  abstract listerTous(): Promise<Membre[]>;
 }

@@ -76,6 +76,13 @@ export class ParrainageMlmPostgresRepository implements ParrainageMlmRepositoryP
     return lignes.map((ligne) => this.versDomaine(ligne));
   }
 
+  async listerTous(): Promise<ParrainageMlm[]> {
+    const lignes: LigneBrute[] = await this.repository.manager.query(
+      `SELECT id, membre_id, chemin::text AS chemin, profondeur FROM parrainages_mlm`,
+    );
+    return lignes.map((ligne) => this.versDomaine(ligne));
+  }
+
   private versDomaine(ligne: LigneBrute): ParrainageMlm {
     return ParrainageMlm.depuisPersistance({
       id: ligne.id,

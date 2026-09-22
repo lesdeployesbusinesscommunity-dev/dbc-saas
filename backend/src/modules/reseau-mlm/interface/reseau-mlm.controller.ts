@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AcheterPackUseCase } from '../application/acheter-pack.use-case';
 import { ConfirmerAchatPackUseCase } from '../application/confirmer-achat-pack.use-case';
+import { ConsulterReseauGlobalUseCase } from '../application/consulter-reseau-global.use-case';
 import { PackMlmRepositoryPort } from '../domaine/pack-mlm.repository.port';
 import { ParrainageMlmRepositoryPort } from '../domaine/parrainage-mlm.repository.port';
 import { CommissionMlmRepositoryPort } from '../domaine/commission-mlm.repository.port';
@@ -29,6 +30,7 @@ export class ReseauMlmController {
   constructor(
     private readonly acheterPack: AcheterPackUseCase,
     private readonly confirmerAchat: ConfirmerAchatPackUseCase,
+    private readonly consulterReseauGlobal: ConsulterReseauGlobalUseCase,
     private readonly packs: PackMlmRepositoryPort,
     private readonly parrainages: ParrainageMlmRepositoryPort,
     private readonly commissions: CommissionMlmRepositoryPort,
@@ -70,7 +72,23 @@ export class ReseauMlmController {
       })),
     };
   }
-  // pour la premiere 
+
+  @Get('reseau-global')
+  @UseGuards(AdminSecretGuard)
+  @ApiHeader({ name: 'x-admin-secret', required: true })
+  @ApiOperation({ summary: "Arbre de parrainage complet, tous membres confondus (admin)" })
+  async reseauGlobal() {
+    const noeuds = await this.consulterReseauGlobal.executer();
+    return noeuds.map((n) => ({
+      memberId: n.membreId,
+      membershipNumber: n.matricule,
+      levelId: n.niveauId,
+      levelName: n.niveauNom,
+      parentMemberId: n.parentMembreId,
+      depth: n.profondeur,
+    }));
+  }
+
   @Get('mon-reseau')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

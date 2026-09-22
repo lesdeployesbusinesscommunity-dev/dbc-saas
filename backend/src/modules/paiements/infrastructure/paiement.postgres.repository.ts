@@ -28,6 +28,11 @@ export class PaiementPostgresRepository implements PaiementRepositoryPort {
     return ligne ? this.versDomaine(ligne) : null;
   }
 
+  async listerTous(): Promise<Paiement[]> {
+    const lignes = await this.repository.find();
+    return lignes.map((l) => this.versDomaine(l));
+  }
+
   private versDomaine(ligne: PaiementOrmEntity): Paiement {
     return Paiement.depuisPersistance({
       id: ligne.id,
@@ -36,6 +41,7 @@ export class PaiementPostgresRepository implements PaiementRepositoryPort {
       objet: ligne.objet,
       cleIdempotence: ligne.cleIdempotence,
       statut: ligne.statut,
+      creeLe: ligne.creeLe,
     });
   }
 }

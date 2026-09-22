@@ -10,6 +10,7 @@ import { Membre } from '../domaine/membre';
 
 function versReponseNiveau(niveau: NiveauAdhesion) {
   return {
+    id: niveau.id,
     code: niveau.code,
     name: niveau.nom,
     monthlyDue: niveau.cotisationMensuelle,

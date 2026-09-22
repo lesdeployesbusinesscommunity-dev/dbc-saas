@@ -22,6 +22,6 @@ import { ProgrammesBootstrap } from './infrastructure/programmes.bootstrap';
     { provide: PilierRepositoryPort, useClass: PilierPostgresRepository },
     { provide: ProgrammeRepositoryPort, useClass: ProgrammePostgresRepository },
   ],
-  exports: [PilierRepositoryPort],
+  exports: [PilierRepositoryPort, ProgrammeRepositoryPort],
 })
 export class ProgrammesModule {}

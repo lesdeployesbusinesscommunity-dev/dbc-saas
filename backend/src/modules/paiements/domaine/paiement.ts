@@ -14,6 +14,8 @@ export class Paiement {
     public readonly objet: string,
     public readonly cleIdempotence: string,
     public statut: StatutPaiement,
+    /** Absent tant que le paiement n'a pas encore été persisté (horodatage généré en base). */
+    public readonly creeLe: Date | undefined,
   ) {}
 
   static creer(params: {
@@ -25,7 +27,7 @@ export class Paiement {
       return ResultatOperation.echec('Le montant doit être strictement positif');
     }
     return ResultatOperation.ok(
-      new Paiement(undefined, params.montant, params.objet, params.cleIdempotence, 'en_attente'),
+      new Paiement(undefined, params.montant, params.objet, params.cleIdempotence, 'en_attente', undefined),
     );
   }
 
@@ -35,8 +37,9 @@ export class Paiement {
     objet: string;
     cleIdempotence: string;
     statut: StatutPaiement;
+    creeLe: Date;
   }): Paiement {
-    return new Paiement(donnees.id, donnees.montant, donnees.objet, donnees.cleIdempotence, donnees.statut);
+    return new Paiement(donnees.id, donnees.montant, donnees.objet, donnees.cleIdempotence, donnees.statut, donnees.creeLe);
   }
 
   marquerComplete(): ResultatOperation<void> {

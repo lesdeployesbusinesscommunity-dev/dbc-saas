@@ -43,6 +43,11 @@ export class DemandeInscriptionPostgresRepository implements DemandeInscriptionR
     return lignes.map((ligne) => this.versDomaine(ligne));
   }
 
+  async listerToutes(): Promise<DemandeInscription[]> {
+    const lignes = await this.repository.find({ order: { creeLe: 'ASC' } });
+    return lignes.map((ligne) => this.versDomaine(ligne));
+  }
+
   private versDomaine(ligne: DemandeInscriptionOrmEntity): DemandeInscription {
     return DemandeInscription.depuisPersistance({
       id: ligne.id,

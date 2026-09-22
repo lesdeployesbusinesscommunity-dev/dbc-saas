@@ -12,6 +12,7 @@ import { ProgrammesModule } from './modules/programmes/programmes.module';
 import { CommunauteDiasporaModule } from './modules/communaute-diaspora/communaute-diaspora.module';
 import { GouvernanceModule } from './modules/gouvernance/gouvernance.module';
 import { FormationModule } from './modules/formation/formation.module';
+import { ContactModule } from './modules/contact/contact.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { FormationModule } from './modules/formation/formation.module';
     CommunauteDiasporaModule,
     GouvernanceModule,
     FormationModule,
+    ContactModule,
     // TontineModule reste à construire (voir mémoire "Tontine : ambiguïté cycles").
   ],
 })

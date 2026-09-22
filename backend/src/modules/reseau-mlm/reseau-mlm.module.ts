@@ -4,6 +4,7 @@ import { ReseauMlmController } from './interface/reseau-mlm.controller';
 import { AcheterPackUseCase } from './application/acheter-pack.use-case';
 import { ConfirmerAchatPackUseCase } from './application/confirmer-achat-pack.use-case';
 import { EnregistrerParrainageUseCase } from './application/enregistrer-parrainage.use-case';
+import { ConsulterReseauGlobalUseCase } from './application/consulter-reseau-global.use-case';
 import { PackMlmRepositoryPort } from './domaine/pack-mlm.repository.port';
 import { AchatPackMlmRepositoryPort } from './domaine/achat-pack-mlm.repository.port';
 import { CommissionMlmRepositoryPort } from './domaine/commission-mlm.repository.port';
@@ -26,7 +27,7 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
  * Module 5 — Réseau MLM. Dépend d'Adhésion (niveaux, membres) et de Paiements
  * (socle partagé) — voir cahier de conception, synthèse des relations
  * inter-modules. EnregistrerParrainageUseCase est exporté pour être appelé
- * par Identité & accès lors de la validation d'une demande d'inscription.
+ * par Identité & accès lors de la validation d'une demande d'inscription. Quelques cas d'usage sont exposes via le controller ReseauMlmController pour permettre de tester le module en isolation.
  */
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
     AcheterPackUseCase,
     ConfirmerAchatPackUseCase,
     EnregistrerParrainageUseCase,
+    ConsulterReseauGlobalUseCase,
     ReseauMlmBootstrap,
     { provide: PackMlmRepositoryPort, useClass: PackMlmPostgresRepository },
     { provide: AchatPackMlmRepositoryPort, useClass: AchatPackMlmPostgresRepository },
@@ -50,5 +52,3 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
   exports: [EnregistrerParrainageUseCase],
 })
 export class ReseauMlmModule {}
-
-

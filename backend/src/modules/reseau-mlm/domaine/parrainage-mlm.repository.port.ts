@@ -7,4 +7,5 @@ export abstract class ParrainageMlmRepositoryPort {
   abstract listerAncetres(membreId: string): Promise<ParrainageMlm[]>;
   /** Filleuls directs (profondeur + 1 uniquement). */
   abstract listerDescendantsDirects(membreId: string): Promise<ParrainageMlm[]>;
+  abstract listerTous(): Promise<ParrainageMlm[]>;
 }

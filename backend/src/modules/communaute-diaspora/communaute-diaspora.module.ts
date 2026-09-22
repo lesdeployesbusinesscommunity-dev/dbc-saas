@@ -26,5 +26,6 @@ import { CommunauteBootstrap } from './infrastructure/communaute.bootstrap';
     { provide: AntenneRepositoryPort, useClass: AntennePostgresRepository },
     { provide: MembreAntenneRepositoryPort, useClass: MembreAntennePostgresRepository },
   ],
+  exports: [AntenneRepositoryPort],
 })
 export class CommunauteDiasporaModule {}

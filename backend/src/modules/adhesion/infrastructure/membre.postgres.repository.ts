@@ -53,6 +53,11 @@ export class MembrePostgresRepository implements MembreRepositoryPort {
     return Number(resultat[0].nextval);
   }
 
+  async listerTous(): Promise<Membre[]> {
+    const lignes = await this.repository.find();
+    return lignes.map((l) => this.versDomaine(l));
+  }
+
   private versDomaine(ligne: MembreOrmEntity): Membre {
     return Membre.depuisPersistance({
       id: ligne.id,
