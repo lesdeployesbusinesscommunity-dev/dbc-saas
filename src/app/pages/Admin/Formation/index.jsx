@@ -23,13 +23,17 @@ import { normalizeSearchText } from "../searchUtils";
 // niveaux" pour tout voir d'un coup), et chaque carte se termine par une
 // barre qui mesure l'avancement de cette formation (voir TrainingCard.jsx).
 // Cliquer une carte ouvre sa fiche détaillée (objectifs généraux, un
-// chapitre par carte, puis ce que le membre saura faire à l'issue de la
-// formation — voir TrainingDetailsModal.jsx). "Ajouter une formation"
-// (voir AddTrainingModal.jsx) construit une nouvelle formation avec
-// exactement cette même structure, pour qu'elle s'affiche et s'ouvre
-// ensuite comme les autres. Tout est en local pour l'instant (voir
-// mockData.js), comme le reste de l'admin, en attendant les vrais
-// endpoints.
+// chapitre par carte — chacun avec ses vidéos —, puis ce que le membre
+// saura faire à l'issue de la formation — voir TrainingDetailsModal.jsx).
+// "Ajouter une formation" (voir AddTrainingModal.jsx) construit une
+// nouvelle formation avec exactement cette même structure, pour qu'elle
+// s'affiche et s'ouvre ensuite comme les autres. handleAddVideo /
+// handleToggleVideoWatched ci-dessous gèrent l'import de vidéos dans un
+// chapitre et leur statut "vue" — c'est ce qui fait évoluer l'avancement
+// affiché sur chaque carte (voir mockData.getTrainingProgress). Tout est
+// en local pour l'instant (voir mockData.js), comme le reste de l'admin,
+// en attendant les vrais endpoints — les vidéos importées ne survivent
+// donc qu'à la session en cours (voir le commentaire de handleAddVideo).
 export default function Formation() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -41,7 +45,11 @@ export default function Formation() {
   // de formation OU nom du formateur — les deux filtres se cumulent plutôt
   // que de s'exclure.
   const [search, setSearch] = useState("");
-  const [viewing, setViewing] = useState(null); // { training, level } | null
+  // { trainingId, levelKey } | null — on ne garde que les identifiants
+  // (plutôt qu'une copie de la formation/du niveau) pour que la fiche
+  // ouverte reste à jour automatiquement après l'ajout d'une vidéo (voir
+  // handleAddVideo) sans avoir à la refermer/rouvrir.
+  const [viewing, setViewing] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
   // Arrivée depuis le carrousel "Formations" du Dashboard (voir
@@ -60,13 +68,30 @@ export default function Formation() {
         (candidate) => candidate.id === openTrainingId,
       );
       if (training) {
-        setViewing({ training, level });
+        setViewing({ trainingId: training.id, levelKey: level.key });
         break;
       }
     }
     navigate(location.pathname, { replace: true, state: null });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state]);
+
+  // Recalculées à chaque rendu à partir de trainingsByLevel (plutôt qu'une
+  // copie figée au clic) : la fiche ouverte reflète donc immédiatement une
+  // vidéo tout juste ajoutée ou marquée comme vue.
+  const viewingTraining = useMemo(() => {
+    if (!viewing) return null;
+    return (
+      (trainingsByLevel[viewing.levelKey] ?? []).find(
+        (candidate) => candidate.id === viewing.trainingId,
+      ) ?? null
+    );
+  }, [trainingsByLevel, viewing]);
+
+  const viewingLevel = useMemo(() => {
+    if (!viewing) return null;
+    return levels.find((candidate) => candidate.key === viewing.levelKey) ?? null;
+  }, [viewing]);
 
   const cards = useMemo(() => {
     const byLevel =
@@ -98,6 +123,49 @@ export default function Formation() {
       return { ...prev, [levelKey]: [...existing, newTraining] };
     });
     setShowAddModal(false);
+  };
+
+  // Ajoute une vidéo importée à un chapitre, à la position choisie par
+  // l'admin (voir TrainingDetailsModal.jsx) — mise à jour immutable, comme
+  // handleAddTraining ci-dessus. "position" est l'index d'insertion dans le
+  // tableau "videos" du chapitre (0 = au début, videos.length = à la fin).
+  const handleAddVideo = (levelKey, trainingId, chapterIndex, position, video) => {
+    setTrainingsByLevel((prev) => {
+      const list = prev[levelKey] ?? [];
+      const updatedList = list.map((training) => {
+        if (training.id !== trainingId) return training;
+        const chapters = training.objectives.chapters.map((chapter, index) => {
+          if (index !== chapterIndex) return chapter;
+          const videos = [...(chapter.videos ?? [])];
+          videos.splice(position, 0, video);
+          return { ...chapter, videos };
+        });
+        return { ...training, objectives: { ...training.objectives, chapters } };
+      });
+      return { ...prev, [levelKey]: updatedList };
+    });
+  };
+
+  // Bascule l'état "vue"/"non vue" d'une vidéo — appelé automatiquement à
+  // la fin de sa lecture, ou manuellement via le bouton dédié (voir
+  // TrainingDetailsModal.jsx). C'est ce qui fait évoluer l'avancement
+  // affiché (voir mockData.getTrainingProgress).
+  const handleToggleVideoWatched = (levelKey, trainingId, chapterIndex, videoId) => {
+    setTrainingsByLevel((prev) => {
+      const list = prev[levelKey] ?? [];
+      const updatedList = list.map((training) => {
+        if (training.id !== trainingId) return training;
+        const chapters = training.objectives.chapters.map((chapter, index) => {
+          if (index !== chapterIndex) return chapter;
+          const videos = (chapter.videos ?? []).map((video) =>
+            video.id === videoId ? { ...video, watched: !video.watched } : video,
+          );
+          return { ...chapter, videos };
+        });
+        return { ...training, objectives: { ...training.objectives, chapters } };
+      });
+      return { ...prev, [levelKey]: updatedList };
+    });
   };
 
   return (
@@ -136,7 +204,7 @@ export default function Formation() {
                 key={training.id}
                 training={training}
                 level={level}
-                onClick={() => setViewing({ training, level })}
+                onClick={() => setViewing({ trainingId: training.id, levelKey: level.key })}
               />
             ))}
           </div>
@@ -144,10 +212,16 @@ export default function Formation() {
       </div>
 
       <TrainingDetailsModal
-        training={viewing?.training}
-        level={viewing?.level}
+        training={viewingTraining}
+        level={viewingLevel}
         open={!!viewing}
         onClose={() => setViewing(null)}
+        onAddVideo={(chapterIndex, position, video) =>
+          handleAddVideo(viewing.levelKey, viewing.trainingId, chapterIndex, position, video)
+        }
+        onToggleWatched={(chapterIndex, videoId) =>
+          handleToggleVideoWatched(viewing.levelKey, viewing.trainingId, chapterIndex, videoId)
+        }
       />
 
       <AddTrainingModal

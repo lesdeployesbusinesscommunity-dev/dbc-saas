@@ -51,7 +51,7 @@ function StatTile({ Icon, tone, value, label }) {
 // désordre").
 function InfoSection({ Icon, title, children }) {
   return (
-    <section className="rounded-xl border border-gray-100 p-4">
+    <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
       <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-400">
         <Icon aria-hidden="true" className="size-3.5" />
         {title}
@@ -118,7 +118,7 @@ export function MemberDetailsCard({ member, open, onClose, networkContext, extra
 
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
         <DialogPanel className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
-          <div className="flex items-start justify-between gap-4 border-b border-gray-100 bg-orange-50 p-6">
+          <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-6">
             <div className="flex items-center gap-4">
               <Avatar name={member.name} size="size-16" />
               <div>

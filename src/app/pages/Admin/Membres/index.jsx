@@ -21,8 +21,21 @@ import { normalizeSearchText } from "../searchUtils";
 
 const PAGE_SIZE = 6;
 
-function nextMatricule(levelKey, countForLevel) {
-  return `DBC-${levelNumbers[levelKey]}-${String(countForLevel + 1).padStart(4, "0")}`;
+// Prochain matricule libre d'un niveau : le plus grand numéro déjà utilisé
+// à ce niveau + 1 (et non "nombre de membres + 1", qui retomberait sur un
+// matricule déjà pris après une suppression). Sert de PROPOSITION dans le
+// formulaire d'ajout (voir AddMemberModal.jsx), que l'admin peut modifier,
+// et de valeur de secours si aucun matricule n'est fourni.
+function suggestMatricule(levelKey, membersByLevel) {
+  const prefix = `DBC-${levelNumbers[levelKey]}-`;
+  const used = Object.values(membersByLevel)
+    .flat()
+    .map((member) => member.matricule)
+    .filter((matricule) => matricule?.startsWith(prefix))
+    .map((matricule) => parseInt(matricule.slice(prefix.length), 10))
+    .filter(Number.isFinite);
+  const next = (used.length ? Math.max(...used) : 0) + 1;
+  return `${prefix}${String(next).padStart(4, "0")}`;
 }
 
 // Exporte la liste affichée en CSV, tout en local (pas d'appel réseau) —
@@ -221,7 +234,7 @@ export default function Membres() {
         const existing = prev[levelKey] ?? [];
         const newMember = {
           id: `m-${Date.now()}`,
-          matricule: nextMatricule(levelKey, existing.length),
+          matricule: suggestMatricule(levelKey, prev),
           levelKey,
           ...form,
           joinedAt: new Date().toISOString().slice(0, 10),
@@ -307,6 +320,8 @@ export default function Membres() {
         defaultLevel={modal?.defaultLevel}
         onClose={closeModal}
         onSubmit={handleSubmit}
+        suggestMatricule={(levelKey) => suggestMatricule(levelKey, membersByLevel)}
+        existingMatricules={allMembers.map((member) => member.matricule)}
       />
 
       <MemberDetailsCard member={viewMember} open={!!viewMember} onClose={closeView} />
