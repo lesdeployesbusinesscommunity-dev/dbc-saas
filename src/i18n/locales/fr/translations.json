@@ -414,7 +414,8 @@
       "gouvernance": "Gouvernance",
       "finance": "Finance",
       "formation": "Formation",
-      "parametres": "Paramètres"
+      "parametres": "Paramètres",
+      "piliers": "Piliers"
     },
     "comingSoon": {
       "message": "Cette section est en cours de construction et arrive bientôt."
@@ -563,7 +564,10 @@
         "sponsorNamePlaceholder": "Aucun",
         "sponsorMatricule": "Parrain (matricule)",
         "sponsorMatriculePlaceholder": "Ex : DBC-1-0001",
-        "status": "Etat"
+        "status": "Etat",
+        "matriculePlaceholder": "Ex : DBC-1-0001",
+        "matriculeHint": "Proposé automatiquement : tu peux le remplacer. C'est ce que le membre donnera pour parrainer.",
+        "matriculeTaken": "Ce matricule est déjà attribué à un autre membre."
       },
       "details": {
         "coordinates": "Coordonnées",
@@ -822,6 +826,18 @@
         "addObjective": "Ajouter un objectif",
         "removeObjective": "Supprimer",
         "objectivePlaceholder": "ex : Comprendre les fondamentaux...",
+        "videosSection": "Vidéos",
+        "noVideos": "Aucune vidéo pour l'instant dans ce chapitre.",
+        "playVideo": "Lire la vidéo",
+        "pauseVideo": "Mettre en pause",
+        "watched": "Vue",
+        "notWatched": "Non vue",
+        "addVideo": "Ajouter une vidéo",
+        "videoTitlePlaceholder": "Titre de la vidéo (optionnel)",
+        "videoPositionStart": "Au début du chapitre",
+        "videoPositionAfter": "Après « {{title}} »",
+        "videoSessionOnlyHint": "Vidéo importée pour cette session seulement (aucun serveur d'envoi pour l'instant) — elle disparaîtra à la fermeture de l'onglet.",
+        "confirmAddVideo": "Ajouter",
         "cancel": "Annuler",
         "add": "Ajouter",
         "durationUnits": {
@@ -930,6 +946,989 @@
           "weekly": "Hebdomadaire",
           "monthly": "Mensuelle"
         }
+      }
+    },
+    "piliers": {
+      "title": "Piliers",
+      "searchPlaceholder": "Rechercher un pilier...",
+      "intro": "Les 4 piliers de la DBC — Financer, Former, Réseauter, Investir — et leurs programmes, tels que les membres les voient. Ouvre un pilier pour régler le statut de chaque programme, choisir s'il est visible des membres et modifier son texte.",
+      "groups": {
+        "financer": "Financer — Mécanismes détaillés",
+        "former": "Former — Catalogue complet",
+        "reseauter": "Réseauter — Rencontres et opportunités",
+        "investir": "Investir — Programmes"
+      },
+      "stats": {
+        "groups": "Piliers",
+        "programs": "Programmes",
+        "visible": "Programmes visibles",
+        "notActive": "Bientôt ou en projet"
+      },
+      "noResults": "Aucun pilier ne correspond à « {{query}} ».",
+      "customized": "Texte modifié",
+      "visibleOn": "Visible",
+      "visibleOff": "Masqué",
+      "edit": "Modifier",
+      "modal": {
+        "close": "Fermer",
+        "status": "Statut",
+        "visible": "Visible des membres",
+        "visibleHint": "Masqué, le pilier disparaît de la page des membres.",
+        "summary": "Résumé (affiché sur le bouton)",
+        "overview": "Explication (page du pilier)",
+        "textHint": "Un texte modifié remplace la version française ET anglaise : il n'est pas traduit automatiquement.",
+        "resetTexts": "Rétablir les textes d'origine",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "createTitle": "Nouveau programme",
+        "group": "Pilier",
+        "name": "Nom du programme",
+        "namePlaceholder": "Ex : DBC Women Circle",
+        "customHint": "Facultatif : si l'explication est remplie, le programme ouvre sa propre page. Ces textes s'affichent tels quels, ils ne sont pas traduits.",
+        "create": "Ajouter",
+        "delete": "Supprimer ce programme",
+        "deleteConfirm": "Oui, supprimer"
+      },
+      "programsCount_one": "{{count}} programme",
+      "programsCount_other": "{{count}} programmes",
+      "visibleCount": "{{visible}} sur {{total}} visibles",
+      "add": "Ajouter un programme",
+      "added": "Ajouté"
+    }
+  },
+  "membre": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "tontine": "Ma Tontine",
+      "mlm": "Mon MLM",
+      "coins": "DBC Coins",
+      "reseau": "Mon Réseau",
+      "formation": "Formation",
+      "parametres": "Paramètres",
+      "piliers": "Piliers"
+    },
+    "comingSoon": {
+      "message": "Cette section est en cours de construction et arrive bientôt."
+    },
+    "topbar": {
+      "notifications": "Notifications",
+      "searchPlaceholder": "Recherche"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "actualite": "Actualité de ce mois",
+      "welcome": {
+        "greeting": "Bonjour",
+        "subtitle": "Bienvenue sur votre session, vous pouvez y consulter l'avancement de votre tontine."
+      },
+      "profile": {
+        "coins": "DBC Coins",
+        "cagnotte": "Cagnotte",
+        "grade": "Grade DBC",
+        "levelFraction": "Niv.{{n}}/{{total}}",
+        "switchLevel": "Changer de niveau de tontine",
+        "perMonth": "{{amount}}/mois",
+        "matricule": "Matricule : {{matricule}}"
+      },
+      "stats": {
+        "coins": "DBC Coins",
+        "filleuls": "Filleuls",
+        "formations": "Formations en cours",
+        "cotisation": "Cotisations à jour",
+        "commission": "Commission de parrainage"
+      },
+      "tontine": {
+        "title": "Cotisation du mois",
+        "residesIn": "Réside à {{city}}",
+        "statusPaid": "{{name}} a cotisé ce mois-ci",
+        "statusUnpaid": "{{name}} n'a pas encore cotisé ce mois-ci"
+      },
+      "trainings": {
+        "title": "Mes Formation en cours",
+        "empty": "Aucune formation en cours pour le moment.",
+        "teacher": "Formateur : {{name}}",
+        "startDate": "Débutée le {{date}}"
+      },
+      "activity": {
+        "title": "Activités récentes",
+        "items": {
+          "cotisation": "Cotisation Tontine Juillet",
+          "formation": "Formation École des Affaires Niv.3",
+          "coins": "+75 Coins — Challenge mensuel",
+          "parrainage": "Parrainage de Patrick Essono"
+        },
+        "time": {
+          "days_one": "Il y a {{count}} jour",
+          "days_other": "Il y a {{count}} jours",
+          "weeks_one": "Il y a {{count}} semaine",
+          "weeks_other": "Il y a {{count}} semaines"
+        },
+        "chartTitle": "Ce que vous avez fait le plus ce mois-ci",
+        "chartTotal": "Total",
+        "coinsValue_one": "{{count}} coin",
+        "coinsValue_other": "{{count}} coins",
+        "categories": {
+          "tontine": "Tontine",
+          "parrainage": "Parrainage",
+          "formations": "Formations",
+          "challenges": "Challenges"
+        },
+        "breakdown": {
+          "sectionTitle": "Détail",
+          "items": {
+            "tontine": [
+              "Cotisation Tontine Juillet"
+            ],
+            "parrainage": [
+              "Parrainage de Patrick Essono"
+            ],
+            "formations": [
+              "Techniques de vente",
+              "École des Affaires Niv.3"
+            ],
+            "challenges": [
+              "Challenge mensuel"
+            ]
+          }
+        },
+        "badges": {
+          "title": "Badges obtenus",
+          "why": "Pourquoi : {{description}}"
+        }
+      },
+      "comparison": {
+        "requestColumn": "Solliciter",
+        "requestButton": "Solliciter",
+        "alreadyMember": "Déjà membre",
+        "requestQuestion": "Voulez-vous solliciter le niveau {{level}} ? Une nouvelle tontine sera ouverte pour vous à ce niveau."
+      }
+    },
+    "common": {
+      "months": [
+        "Janvier",
+        "Février",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juillet",
+        "Août",
+        "Septembre",
+        "Octobre",
+        "Novembre",
+        "Décembre"
+      ],
+      "cancel": "Annuler",
+      "yes": "Oui",
+      "requestConfirmation": "Merci ! Nous vous contacterons par email concernant votre demande.",
+      "close": "Fermer"
+    },
+    "tontine": {
+      "hero": {
+        "label": "Cagnotte du mois — Tour {{tour}}",
+        "beneficiary": "Bénéficiaire : {{name}}",
+        "paidProgress": "{{paid}}/{{total}} membres ont cotisé ce mois",
+        "cycleCompleteLabel": "Cycle terminé",
+        "cycleCompleteMessage": "Tous les tours de ce cycle ont été distribués.",
+        "cycleCompleteLastBeneficiary": "Dernier tour : {{name}} ({{amount}})"
+      },
+      "legend": {
+        "title": "Comprendre les statuts",
+        "closed": {
+          "label": "Clôturé",
+          "description": "Le tour est passé : la cagnotte a déjà été versée à son bénéficiaire."
+        },
+        "current": {
+          "label": "En cours",
+          "description": "C'est le tour de ce mois-ci : la cagnotte est versée à ce bénéficiaire."
+        },
+        "upcoming": {
+          "label": "À venir",
+          "description": "Ce tour aura lieu dans un mois à venir, rien à faire pour l'instant."
+        }
+      },
+      "cycle": {
+        "title": "Cycle de l'année (12 mois)"
+      },
+      "tracking": {
+        "title": "Suivi des cotisations — Tour {{tour}} ({{month}})",
+        "perMonth": "{{amount}}/mois",
+        "toursCount": "{{paid}}/{{total}} tours",
+        "tourPaid": "Tour {{tour}} : cotisé",
+        "tourUnpaid": "Tour {{tour}} : pas encore cotisé",
+        "upToDate": "Payé",
+        "pending": "Attente"
+      },
+      "nextStep": {
+        "button": "Choisir la suite",
+        "disabledHint": "Disponible une fois le cycle actuel terminé",
+        "title": "Que voulez-vous faire ?",
+        "restart": "Recommencer cette tontine",
+        "levelUp": "Passer au niveau supérieur",
+        "restartQuestion": "Voulez-vous recommencer un nouveau cycle de tontine à ce niveau ?",
+        "levelUpQuestion": "Voulez-vous passer au niveau {{level}} ?"
+      },
+      "myStatus": {
+        "title": "Mon suivi",
+        "payment": {
+          "title": "Mon prochain versement",
+          "dueLabel": "Prochaine échéance : le {{date}}",
+          "late": "En retard",
+          "onTime": "À jour",
+          "downloadReceipt": "Télécharger mon reçu",
+          "receiptNote": "Document généré automatiquement à titre indicatif — en attendant l'intégration des reçus officiels."
+        },
+        "turn": {
+          "title": "Mon tour",
+          "thisMonth": "C'est votre tour ce mois-ci !",
+          "nextMonth": "C'est votre tour le mois prochain !",
+          "inMonths": "Dans {{count}} mois",
+          "past": "Vous avez déjà reçu la cagnotte au tour {{tour}}"
+        }
+      },
+      "history": {
+        "title": "Historique des cycles précédents",
+        "empty": "C'est votre première tontine à ce niveau — aucun cycle précédent pour l'instant.",
+        "entry": "Cycle {{year}} — clôturé, vous avez reçu la cagnotte au tour {{tour}} ({{amount}})."
+      },
+      "faq": {
+        "title": "Comment fonctionne la tontine ?",
+        "items": [
+          {
+            "question": "Comment la cagnotte est-elle calculée ?",
+            "answer": "Chaque membre du groupe cotise le même montant chaque mois, selon son niveau DBC. La somme de toutes les cotisations du mois forme la cagnotte versée au bénéficiaire de ce tour."
+          },
+          {
+            "question": "Comment l'ordre de passage est-il déterminé ?",
+            "answer": "L'ordre est fixé au démarrage du cycle pour les 12 tours de l'année : chaque membre reçoit la cagnotte une seule fois par cycle, à son tour."
+          },
+          {
+            "question": "Que se passe-t-il si je ne cotise pas un mois ?",
+            "answer": "Votre tour n'est pas affecté, mais votre retard reste visible de tout le groupe (voir le suivi des cotisations ci-dessous) jusqu'à régularisation."
+          },
+          {
+            "question": "Que se passe-t-il une fois les 12 tours terminés ?",
+            "answer": "Le cycle est clôturé : vous pouvez alors recommencer une nouvelle tontine à ce niveau ou demander à passer au niveau supérieur, depuis le bouton en bas de cette page."
+          }
+        ]
+      }
+    },
+    "mlm": {
+      "overviewTitle": "Business MLM Longrich, Mon arbre",
+      "stats": {
+        "directReferrals": "Filleuls directs",
+        "totalNetwork": "Total réseau ({{levels}} niveaux)",
+        "personalVolume": "Volume personnel",
+        "monthlyCommissions": "Commissions ce mois"
+      },
+      "pack": {
+        "title": "Mon pack Longrich",
+        "summary": "{{name}} — {{price}} ({{pv}} PV)",
+        "accessLabel": "Accès aux paliers de commission complets",
+        "eligible": "Éligible {{level}} (Niv.{{n}})"
+      },
+      "packs": {
+        "title": "Les 6 packs Longrich",
+        "currentBadge": "Mon pack actuel",
+        "name": {
+          "batisseurPro": "Bâtisseur Pro",
+          "performer": "Performer",
+          "performerPro": "Performer Pro",
+          "stratege": "Stratège",
+          "elite": "Elite",
+          "legende": "Légende"
+        },
+        "gainType": {
+          "referral": "Parrainage uniquement",
+          "performance": "Gains de performance"
+        }
+      },
+      "network": {
+        "title": "Mon réseau (Niv.1 → Niv.{{levels}})",
+        "directGroup": "Filleuls directs (Niv.1)",
+        "indirectGroup": "Filleuls indirects (Niv.2+)",
+        "type": {
+          "direct": "Filleul direct",
+          "indirect": "Filleul indirect"
+        },
+        "levelBadge": "Niv.{{n}}"
+      },
+      "ineligible": {
+        "title": "Pas encore éligible au MLM Longrich",
+        "message": "Le niveau {{currentLevel}} n'y donne pas accès. Passez au moins au niveau {{requiredLevel}} pour débloquer votre arbre et vos commissions Longrich."
+      }
+    },
+    "coins": {
+      "hero": {
+        "title": "Mes DBC Coins",
+        "communityRank": "Rang communauté : #{{rank}}"
+      },
+      "earn": {
+        "title": "Comment gagner des Coins",
+        "cotisationLabel": "Cotisation à jour — {{level}}",
+        "parrainageLabel": "Parrainer un nouveau membre",
+        "formationsLabel": "Terminer une formation",
+        "challengesLabel": "Challenge mensuel",
+        "noCoins": "Pas de Coins à ce niveau",
+        "perMonth": "+{{amount}} Coins/mois",
+        "amount": "+{{amount}} Coins",
+        "amountRange": "+{{min}} à +{{max}} Coins"
+      },
+      "history": {
+        "title": "Comment tu as obtenu tes {{total}} Coins",
+        "monthTotal": "{{month}} · +{{total}} Coins"
+      },
+      "leaderboard": {
+        "title": "Classement DBC Coins",
+        "cv": {
+          "coinsLabel": "Coins DBC",
+          "rankTile": "Rang communautaire",
+          "city": "Ville",
+          "memberSince": "Membre depuis",
+          "sector": "Domaine"
+        },
+        "levelModal": {
+          "advantagesTitle": "Avantages inclus"
+        },
+        "periodLabel": "Période du classement",
+        "period": {
+          "all": "Depuis le début",
+          "month": "Ce mois"
+        },
+        "levelFilter": {
+          "label": "Filtrer par niveau",
+          "all": "Tous les niveaux"
+        },
+        "me": "Toi",
+        "empty": "Personne à ce niveau pour le moment."
+      },
+      "progress": {
+        "title": "Prochain objectif",
+        "rank": "#{{rank}} sur {{total}}",
+        "missing": "Plus que {{missing}} Coins pour dépasser {{name}}",
+        "you": "Toi · {{coins}}",
+        "target": "{{name}} · {{coins}}",
+        "hint": "Environ {{count}} challenge(s) mensuel(s) à +{{amount}} Coins suffisent.",
+        "top": "Tu es en tête du classement. Bravo, continue comme ça !"
+      },
+      "chart": {
+        "title": "Mes Coins mois par mois",
+        "cumulative": "{{total}} Coins cumulés",
+        "tooltip": "{{month}} : +{{total}} Coins (cumul {{cumulative}})",
+        "thisMonth": "Ce mois"
+      },
+      "rewards": {
+        "title": "Utiliser mes Coins",
+        "subtitle": "Tu as {{balance}} Coins à échanger contre des avantages.",
+        "cost": "{{cost}} Coins",
+        "exchange": "Échanger",
+        "question": "Échanger {{cost}} Coins contre « {{reward}} » ?",
+        "missing": "Il te manque {{missing}} Coins",
+        "items": {
+          "goodies": {
+            "title": "Goodies DBC",
+            "description": "Un article aux couleurs de la communauté."
+          },
+          "discount": {
+            "title": "Réduction événement",
+            "description": "Une remise sur ta prochaine place d'événement DBC."
+          },
+          "training": {
+            "title": "Formation offerte",
+            "description": "Accès gratuit à une formation de ton choix."
+          },
+          "club": {
+            "title": "Soirée Club DBC",
+            "description": "Une invitation à la prochaine rencontre du Club."
+          },
+          "coaching": {
+            "title": "Séance de coaching",
+            "description": "Un échange individuel avec un coach de la communauté."
+          }
+        }
+      }
+    },
+    "reseau": {
+      "title": "Ma lignée de parrainage",
+      "hint": "Touche une personne pour voir sa fiche.",
+      "me": "Moi",
+      "relation": {
+        "sponsor": "Mon parrain",
+        "sponsorOfSponsor": "Parrain de mon parrain",
+        "direct": "Filleul direct",
+        "indirect": "Filleul indirect"
+      },
+      "relationDetail": {
+        "indirect": "Filleul indirect · parrainé par {{name}}"
+      },
+      "stats": {
+        "sponsor": "Mon parrain",
+        "direct": "Filleuls directs",
+        "total": "Réseau total"
+      },
+      "preview": "Aperçu : {{shown}} des {{total}} membres de ton réseau",
+      "status": {
+        "active": "Actif",
+        "pending": "En attente"
+      },
+      "view": {
+        "label": "Affichage du réseau",
+        "tree": "Arbre",
+        "list": "Liste"
+      },
+      "list": {
+        "search": "Rechercher un membre",
+        "filterLabel": "Filtrer par lien",
+        "group": {
+          "all": "Tous",
+          "sponsors": "Parrains",
+          "direct": "Mes filleuls",
+          "indirect": "Leurs filleuls"
+        },
+        "empty": "Aucun membre ne correspond à ta recherche."
+      },
+      "contact": {
+        "call": "Appeler",
+        "whatsapp": "WhatsApp",
+        "message": "Bonjour {{name}}, "
+      },
+      "invite": {
+        "title": "Parrainer quelqu'un",
+        "subtitle": "Donne ton matricule à la personne que tu parraines : elle l'indiquera comme parrain à son inscription.",
+        "linkLabel": "Ton lien de parrainage",
+        "copy": "Copier le lien",
+        "copied": "Lien copié",
+        "whatsapp": "Partager sur WhatsApp",
+        "message": "Rejoins-moi dans la communauté DBC ! Inscris-toi et indique mon matricule {{matricule}} comme parrain : {{link}}",
+        "matriculeLabel": "Ton matricule",
+        "copyMatricule": "Copier le matricule",
+        "copiedMatricule": "Matricule copié"
+      },
+      "activity": {
+        "title": "Activité de mon réseau",
+        "toRemind": "À relancer : {{count}}",
+        "upToDate": "{{ok}} filleuls sur {{total}} sont à jour.",
+        "latePayment": "Cotisation du mois en retard depuis {{days}} jours",
+        "pending": "Inscription en attente depuis {{days}} jours",
+        "remind": "Relancer",
+        "remindMessage": {
+          "latePayment": "Bonjour {{name}}, un petit rappel pour ta cotisation du mois. Dis-moi si tu as besoin d'aide !",
+          "pending": "Bonjour {{name}}, ton inscription est encore en attente. Je peux t'aider à la finaliser ?"
+        },
+        "none": "Tout ton réseau est à jour. Rien à relancer !"
+      },
+      "earnings": {
+        "title": "Ce que mon réseau me rapporte",
+        "referral": "Gains de parrainage DBC",
+        "mlm": "Commissions Longrich du mois",
+        "top": "Les filleuls qui rapportent le plus (Longrich)",
+        "seeMlm": "Voir le détail dans Mon MLM"
+      }
+    },
+    "formation": {
+      "domains": {
+        "fondamentaux": "Fondamentaux DBC",
+        "vente": "Vente & Commerce",
+        "leadership": "Leadership",
+        "gouvernance": "Gouvernance",
+        "marketing": "Marketing & Digital",
+        "finance": "Finance & Investissement",
+        "coaching": "Développement personnel & coaching",
+        "diaspora": "Stratégie & Diaspora"
+      },
+      "continue": {
+        "title": "Reprends où tu t'es arrêté",
+        "resume": "Reprendre la formation",
+        "next": "Prochaine leçon : {{title}}",
+        "none": "Commence ta première formation",
+        "noneHint": "Choisis une formation ci-dessous et clique sur « Commencer la formation ».",
+        "allDone": "Bravo, tu as terminé toutes les formations de ce niveau !",
+        "allDoneHint": "Change de niveau pour découvrir d'autres formations."
+      },
+      "stats": {
+        "total": "Formations",
+        "inProgress": "En cours",
+        "completed": "Terminées"
+      },
+      "filters": {
+        "domainLabel": "Filtrer par domaine",
+        "allDomains": "Tous les domaines",
+        "statusLabel": "Filtrer par statut",
+        "status": {
+          "all": "Toutes",
+          "notStarted": "À commencer",
+          "inProgress": "En cours",
+          "completed": "Terminées"
+        }
+      },
+      "card": {
+        "trainer": "Formateur : {{name}}",
+        "progress": "Avancement",
+        "start": "Commencer la formation",
+        "continue": "Continuer",
+        "review": "Revoir la formation",
+        "status": {
+          "notStarted": "À commencer",
+          "inProgress": "En cours",
+          "completed": "Terminée"
+        },
+        "chapters_one": "{{count}} chapitre",
+        "chapters_other": "{{count}} chapitres",
+        "lessons_one": "{{count}} leçon",
+        "lessons_other": "{{count}} leçons",
+        "coinsToEarn": "{{coins}} Coins à gagner",
+        "coinsEarned": "{{coins}} Coins gagnés"
+      },
+      "empty": "Aucune formation pour ce niveau pour l'instant.",
+      "emptyFilter": "Aucune formation ne correspond à ces filtres.",
+      "course": {
+        "back": "Retour aux formations",
+        "chapterCount": "{{done}}/{{total}}",
+        "lessonOf": "Leçon {{n}} sur {{total}}",
+        "prev": "Leçon précédente",
+        "next": "Leçon suivante",
+        "markDone": "Marquer comme terminée",
+        "done": "Leçon terminée",
+        "noVideo": "Vidéo bientôt disponible.",
+        "about": "À propos de cette formation",
+        "objectives": "Objectifs",
+        "outcomes": "À l'issue de cette formation, tu seras capable de",
+        "contentTitle": "Contenu de la formation",
+        "lessonWatched": "Leçon terminée",
+        "lessonCurrent": "Leçon en cours",
+        "completedTitle": "Formation terminée, bravo !",
+        "completedText": "Tu as suivi toutes les leçons de « {{name}} ».",
+        "restart": "Recommencer la formation",
+        "notFound": {
+          "title": "Formation introuvable",
+          "text": "Cette formation n'existe pas ou a été retirée."
+        },
+        "locked": {
+          "title": "Formation indisponible",
+          "text": "Cette formation appartient à un niveau auquel tu ne cotises pas encore."
+        },
+        "progressDetail_one": "{{count}} leçon terminée sur {{total}}",
+        "progressDetail_other": "{{count}} leçons terminées sur {{total}}",
+        "coinsToEarn": "Termine la formation pour gagner {{coins}} Coins",
+        "coinsEarned": "{{coins}} Coins gagnés avec cette formation",
+        "seeCoins": "Voir mes Coins"
+      },
+      "lockedSection": {
+        "title": "Débloque d'autres formations",
+        "subtitle": "Ces formations s'ouvrent quand tu rejoins le niveau indiqué.",
+        "requires": "Niveau requis : {{level}}",
+        "discover": "Découvrir ce niveau"
+      }
+    },
+    "parametres": {
+      "saved": "Enregistré",
+      "profile": {
+        "title": "Mon profil",
+        "description": "Tes informations personnelles, telles que les autres membres et l'équipe DBC te voient.",
+        "changePhoto": "Changer la photo",
+        "removePhoto": "Retirer",
+        "photoHint": "Image carrée de préférence, 5 Mo maximum.",
+        "photoNotImage": "Ce fichier n'est pas une image.",
+        "photoTooBig": "Cette image dépasse 5 Mo.",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "email": "Email",
+        "whatsapp": "Numéro WhatsApp",
+        "town": "Ville",
+        "country": "Pays",
+        "profession": "Travail / Profession",
+        "matricule": "Matricule : {{matricule}}",
+        "matriculeHint": "Ton matricule est unique et ne se modifie pas : c'est lui que tes filleuls indiquent à l'inscription. Pour corriger ton nom légal ou ta pièce d'identité, contacte l'équipe DBC.",
+        "save": "Enregistrer",
+        "errors": {
+          "required": "Ce champ est obligatoire.",
+          "email": "Entre une adresse email valide.",
+          "phone": "Entre un numéro valide, avec l'indicatif (ex : +237…)."
+        }
+      },
+      "security": {
+        "title": "Sécurité",
+        "description": "Change ton mot de passe pour protéger ton compte.",
+        "current": "Mot de passe actuel",
+        "new": "Nouveau mot de passe",
+        "confirm": "Confirme le nouveau mot de passe",
+        "rule": "{{min}} caractères minimum, avec au moins une lettre et un chiffre.",
+        "show": "Afficher les mots de passe",
+        "hide": "Masquer les mots de passe",
+        "submit": "Changer le mot de passe",
+        "done": "Ton mot de passe a été modifié.",
+        "errors": {
+          "currentRequired": "Entre ton mot de passe actuel.",
+          "weak": "Au moins {{min}} caractères, avec une lettre et un chiffre.",
+          "same": "Le nouveau mot de passe doit être différent de l'actuel.",
+          "mismatch": "Les deux mots de passe ne sont pas identiques."
+        }
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Choisis ce dont tu veux être prévenu, et par quel canal.",
+        "master": "Recevoir des notifications",
+        "channels": {
+          "email": "Email",
+          "whatsapp": "WhatsApp"
+        },
+        "types": {
+          "cotisation": {
+            "label": "Rappel de cotisation",
+            "hint": "Quelques jours avant l'échéance de ta cotisation tontine."
+          },
+          "tontineTurn": {
+            "label": "Mon tour de tontine",
+            "hint": "Quand ton tour de cagnotte approche ou est attribué."
+          },
+          "referral": {
+            "label": "Nouveau filleul",
+            "hint": "Quand quelqu'un s'inscrit avec ton matricule."
+          },
+          "coins": {
+            "label": "Coins gagnés",
+            "hint": "À chaque Coin gagné : formation, parrainage, challenge."
+          },
+          "formation": {
+            "label": "Formations",
+            "hint": "Nouvelles formations de ton niveau et rappels de progression."
+          },
+          "community": {
+            "label": "Actualités de la communauté",
+            "hint": "Challenges du mois, événements et annonces DBC."
+          }
+        }
+      },
+      "privacy": {
+        "title": "Confidentialité",
+        "description": "Ce que les autres membres voient de toi.",
+        "items": {
+          "showInLeaderboard": {
+            "label": "Apparaître dans le classement",
+            "hint": "Ton nom et tes Coins dans le classement DBC Coins."
+          },
+          "showCv": {
+            "label": "Fiche « CV » visible",
+            "hint": "Les autres membres peuvent ouvrir ta fiche depuis le classement et Mon Réseau."
+          },
+          "showWhatsapp": {
+            "label": "Afficher mon numéro WhatsApp",
+            "hint": "Sur ta fiche, pour qu'on puisse te contacter directement."
+          },
+          "showCity": {
+            "label": "Afficher ma ville",
+            "hint": "Ta ville sur ta fiche."
+          }
+        }
+      },
+      "language": {
+        "title": "Langue",
+        "description": "La langue de l'espace membre.",
+        "options": {
+          "fr": "Français",
+          "en": "English"
+        }
+      },
+      "account": {
+        "title": "Mon compte",
+        "description": "Déconnexion et suppression du compte.",
+        "logout": "Se déconnecter",
+        "logoutHint": "Tu pourras te reconnecter à tout moment.",
+        "logoutButton": "Se déconnecter",
+        "deleteTitle": "Supprimer mon compte",
+        "deleteHint": "Tu cotises à une tontine et tu as des Coins : la suppression n'est pas immédiate. L'équipe DBC te contacte avant de traiter ta demande.",
+        "deleteButton": "Demander la suppression",
+        "deleteConfirm": "Oui, envoyer ma demande",
+        "deleteSent": "Demande envoyée. L'équipe DBC te contactera.",
+        "deleteCancel": "Annuler ma demande"
+      }
+    },
+    "piliers": {
+      "intro": "Les 4 piliers de la DBC : Financer, Former, Réseauter, Investir. Ouvre le détail d'un pilier pour voir tout ce qu'il contient.",
+      "groups": {
+        "financer": {
+          "title": "Financer",
+          "subtitle": "Mécanismes détaillés",
+          "quote": "« Le nerf de la guerre, c'est l'argent. »"
+        },
+        "former": {
+          "title": "Former",
+          "subtitle": "Catalogue complet",
+          "quote": "« L'argent sans compétence s'envole rapidement. »"
+        },
+        "reseauter": {
+          "title": "Réseauter",
+          "subtitle": "Rencontres et opportunités",
+          "quote": "« Votre réseau, c'est votre valeur nette. »"
+        },
+        "investir": {
+          "title": "Investir",
+          "subtitle": "Programmes",
+          "quote": "« La vraie richesse se construit en investissant. »"
+        }
+      },
+      "detail": {
+        "principle": "Le principe",
+        "points": "Les points clés",
+        "audience": "Pour qui ?",
+        "others": "Autres piliers · {{group}}"
+      },
+      "open": {
+        "tontine-royale": "Ouvrir Ma Tontine",
+        "mlm-longrich": "Voir Mon MLM"
+      },
+      "notFound": {
+        "title": "Pilier introuvable",
+        "text": "Ce pilier n'existe pas ou n'est pas disponible pour le moment."
+      },
+      "detailLink": "Détail {{group}}",
+      "backToGroup": "Retour à {{group}}",
+      "otherGroups": "Les autres piliers",
+      "formationCta": "Aller à la page Formation",
+      "emptyGroup": "Aucun programme n'est disponible pour ce pilier pour le moment.",
+      "back": "Retour aux piliers"
+    }
+  },
+  "piliers": {
+    "status": {
+      "active": "Actif",
+      "soon": "Bientôt",
+      "project": "Projet"
+    },
+    "packs": {
+      "title": "Packs Longrich — Détail PV",
+      "pack": "Pack",
+      "price": "Prix",
+      "pv": "PV",
+      "level": "Niveau DBC",
+      "pvValue": "{{count}} PV"
+    },
+    "items": {
+      "diaspo-fund": {
+        "name": "DBC Diaspo Fund",
+        "summary": "Les membres de la diaspora co-investissent dans des projets du pays.",
+        "overview": "Le DBC Diaspo Fund permet aux membres installés à l'étranger de mettre leurs ressources en commun pour financer des projets au pays.\nAu lieu d'investir seul et à distance, chacun co-investit avec d'autres membres de la communauté, dans des projets choisis ensemble.",
+        "points": {
+          "1": "Co-investir avec d'autres membres de la diaspora",
+          "2": "Soutenir des projets concrets dans le pays",
+          "3": "Investir à plusieurs plutôt que seul et à distance"
+        },
+        "audience": "Les membres de la diaspora qui veulent investir dans leur pays d'origine."
+      },
+      "export-import": {
+        "name": "Export-Import Club",
+        "summary": "Opportunités d'échanges commerciaux entre membres de divers pays.",
+        "overview": "L'Export-Import Club met en relation des membres de pays différents qui veulent échanger des produits et des services.\nIl fait de la communauté un réseau d'affaires : un membre qui produit, vend ou cherche à acheter peut trouver un partenaire parmi les autres membres.",
+        "points": {
+          "1": "Trouver des partenaires commerciaux dans la communauté",
+          "2": "Échanger entre membres de pays différents",
+          "3": "S'appuyer sur la confiance du réseau DBC"
+        },
+        "audience": "Les membres commerçants, producteurs ou entrepreneurs qui veulent développer leurs échanges au-delà de leurs frontières."
+      },
+      "joint-ventures": {
+        "name": "Joint-Ventures Projets",
+        "summary": "Projets communs entre membres, supervisés par la DBC.",
+        "overview": "Une joint-venture réunit deux membres ou plus autour d'un projet commun : ils mettent en commun leurs moyens, leurs compétences et leur travail.\nLa DBC supervise ces projets pour garder un cadre clair entre les partenaires.",
+        "points": {
+          "1": "S'associer entre membres autour d'un projet",
+          "2": "Mettre ses moyens et ses compétences en commun",
+          "3": "Avancer dans un cadre supervisé par la DBC"
+        },
+        "audience": "Les membres qui ont un projet, ou des compétences à mettre au service d'un projet porté avec d'autres."
+      },
+      "real-estate": {
+        "name": "Communs Real Estate",
+        "summary": "Initiative de foncier et d'immobilier en commun.",
+        "overview": "Communs Real Estate permet aux membres d'investir ensemble dans le foncier et l'immobilier.\nCe que l'on ne pourrait pas toujours acquérir seul, on peut l'acquérir à plusieurs, au sein de la communauté.",
+        "points": {
+          "1": "Investir dans le foncier et l'immobilier à plusieurs",
+          "2": "Accéder à des biens difficiles à acquérir seul",
+          "3": "Bâtir un patrimoine en commun"
+        },
+        "audience": "Les membres qui veulent investir dans la pierre sans le faire seuls."
+      },
+      "invest-back-home": {
+        "name": "Invest Back Home",
+        "summary": "Investissement local en guise de préparation de son retour.",
+        "overview": "Invest Back Home s'adresse aux membres qui envisagent de rentrer un jour au pays.\nIl s'agit d'investir localement dès maintenant, pour préparer son retour et arriver avec des bases déjà posées.",
+        "points": {
+          "1": "Investir localement avant de rentrer",
+          "2": "Préparer son retour pas à pas",
+          "3": "Arriver avec des bases déjà posées"
+        },
+        "audience": "Les membres de la diaspora qui préparent leur retour."
+      },
+      "consulting": {
+        "name": "DBC Consulting",
+        "summary": "Agence de consultation pour les entreprises communautaires.",
+        "overview": "DBC Consulting est l'agence de consultation de la communauté.\nElle accompagne les entreprises des membres pour les aider à se structurer et à se développer.",
+        "points": {
+          "1": "Un accompagnement pensé pour les entreprises de la communauté",
+          "2": "Un conseil proche de la réalité des membres",
+          "3": "Un appui pour se structurer et se développer"
+        },
+        "audience": "Les membres qui dirigent une entreprise, ou qui veulent en lancer une."
+      },
+      "tontine-royale": {
+        "name": "Tontine Royale",
+        "summary": "Épargne collective rotative — 12 mois · 36 membres min · Capital + Revenus passifs.",
+        "overview": "La Tontine Royale est l'épargne collective de la DBC.\nLes membres cotisent chaque mois, et la cagnotte est attribuée à tour de rôle, sur un cycle de 12 mois réunissant au moins 36 membres. Elle combine la constitution d'un capital et des revenus passifs.",
+        "points": {
+          "1": "Cotiser régulièrement, chaque mois, avec le groupe",
+          "2": "Recevoir la cagnotte à son tour",
+          "3": "Constituer un capital tout en générant des revenus passifs"
+        },
+        "audience": "Tous les membres, à partir du niveau auquel ils cotisent.",
+        "facts": {
+          "1": {
+            "label": "Durée du cycle",
+            "value": "12 mois"
+          },
+          "2": {
+            "label": "Membres minimum",
+            "value": "36"
+          },
+          "3": {
+            "label": "Ce que tu construis",
+            "value": "Capital + revenus passifs"
+          }
+        }
+      },
+      "mlm-longrich": {
+        "name": "Business MLM (Longrich)",
+        "summary": "Marketing relationnel multi-niveaux — 6 packs de 24k à 1,8M FCFA.",
+        "overview": "Le Business MLM Longrich est le marketing relationnel multi-niveaux proposé dans le cadre du partenariat avec Longrich.\nIl s'organise autour de 6 packs, de 24 000 à 1 800 000 FCFA ; chaque pack est rattaché à un niveau DBC. Le détail des packs et de leurs PV est ci-dessous.",
+        "points": {
+          "1": "6 packs, du plus accessible au plus complet",
+          "2": "Chaque pack est rattaché à un niveau DBC",
+          "3": "Un suivi de ton réseau et de tes commissions dans Mon MLM"
+        },
+        "audience": "Les membres qui veulent développer une activité de réseau, à partir du niveau Bâtisseur Pro.",
+        "facts": {
+          "1": {
+            "label": "Packs",
+            "value": "6"
+          },
+          "2": {
+            "label": "Prix des packs",
+            "value": "24 000 à 1 800 000 F"
+          }
+        }
+      },
+      "credit-solidaire": {
+        "name": "Crédit Solidaire",
+        "summary": "Prêts entre membres de tontines avec garanties communautaires.",
+        "overview": "Le Crédit Solidaire permet à des membres des tontines de se prêter entre eux.\nLes prêts reposent sur des garanties communautaires : c'est la confiance et l'engagement du groupe qui sécurisent le prêt.",
+        "points": {
+          "1": "Des prêts entre membres de tontines",
+          "2": "Des garanties communautaires",
+          "3": "Un financement qui s'appuie sur la confiance du groupe"
+        },
+        "audience": "Les membres des tontines qui ont un besoin de financement."
+      },
+      "micro-equity": {
+        "name": "Micro-Equity",
+        "summary": "Co-investissement dans des projets des membres de la communauté.",
+        "overview": "Avec la Micro-Equity, des membres investissent ensemble dans les projets d'autres membres de la communauté.\nLe porteur de projet trouve un financement auprès de la communauté, et ceux qui co-investissent participent à son développement.",
+        "points": {
+          "1": "Co-investir dans les projets de membres",
+          "2": "Financer un projet auprès de la communauté",
+          "3": "Participer au développement d'entreprises que l'on connaît"
+        },
+        "audience": "Les membres porteurs de projets, et les membres qui veulent investir à leurs côtés."
+      },
+      "invest-club": {
+        "name": "DBC Invest Club",
+        "summary": "Cercle d'accompagnement structuré pour membres investisseurs (4 niveaux).",
+        "overview": "Le DBC Invest Club est un cercle d'accompagnement structuré, réservé aux membres investisseurs.\nIl s'organise en 4 niveaux, pour accompagner chaque membre selon son parcours d'investisseur.",
+        "points": {
+          "1": "Un accompagnement structuré",
+          "2": "4 niveaux, pour progresser pas à pas",
+          "3": "Un cercle de membres investisseurs"
+        },
+        "audience": "Les membres investisseurs qui veulent être accompagnés.",
+        "facts": {
+          "1": {
+            "label": "Niveaux d'accompagnement",
+            "value": "4"
+          }
+        }
+      },
+      "dbc-bank": {
+        "name": "DBC Bank",
+        "summary": "Institution financière communautaire — Phase 3 (2029–2030).",
+        "overview": "DBC Bank est un projet d'institution financière communautaire.\nIl n'est pas encore ouvert : il est prévu en Phase 3, en 2029–2030, comme aboutissement des mécanismes de financement de la communauté.",
+        "points": {
+          "1": "Une institution financière propre à la communauté",
+          "2": "Un projet prévu en Phase 3 (2029–2030)",
+          "3": "Pas encore ouvert : aucune démarche à faire pour l'instant"
+        },
+        "audience": "Tous les membres, à terme.",
+        "facts": {
+          "1": {
+            "label": "Phase",
+            "value": "Phase 3"
+          },
+          "2": {
+            "label": "Période prévue",
+            "value": "2029–2030"
+          }
+        }
+      },
+      "ecole-affaires": {
+        "name": "École des Affaires DBC",
+        "summary": "Programme complet : Créer · Structurer · Financer · Manager — 6 modules progressifs",
+        "tag": "Niv.1→4"
+      },
+      "leadership-academy": {
+        "name": "Leadership Academy",
+        "summary": "Développement personnel avancé et leadership transformationnel",
+        "tag": "Niv.3+"
+      },
+      "digital-masters": {
+        "name": "Digital Masters",
+        "summary": "Marketing digital · Réseaux sociaux · E-influence · E-commerce",
+        "tag": "Niv.1+"
+      },
+      "pitch-school": {
+        "name": "Pitch School",
+        "summary": "Convaincre les investisseurs, partenaires et clients",
+        "tag": "Niv.3+"
+      },
+      "sales-academy": {
+        "name": "Sales Academy",
+        "summary": "Techniques de vente, persuasion et négociation",
+        "tag": "Niv.3+"
+      },
+      "dbc-challenge": {
+        "name": "DBC Challenge",
+        "summary": "Programme de challenge mutuel pour évoluer ensemble et vite",
+        "tag": "Tous niv."
+      },
+      "mastermind": {
+        "name": "Mastermind Circles",
+        "summary": "Des cercles de membres qui avancent ensemble sur leurs projets."
+      },
+      "speed-networking": {
+        "name": "Speed Networking",
+        "summary": "Des rencontres rapides et organisées pour faire connaissance avec un maximum de membres."
+      },
+      "mentor-connect": {
+        "name": "Mentor Connect",
+        "summary": "La mise en relation entre membres expérimentés et membres qui veulent être guidés."
+      },
+      "summit": {
+        "name": "DBC Summit Annuel",
+        "summary": "Le grand rendez-vous annuel de la communauté."
+      },
+      "dbc-tour": {
+        "name": "DBC Tour",
+        "summary": "Une tournée de rencontres de la communauté, étape par étape."
+      },
+      "marketplace": {
+        "name": "DBC Marketplace",
+        "summary": "La place de marché de la communauté : les membres y présentent leurs produits et services."
       }
     }
   }
