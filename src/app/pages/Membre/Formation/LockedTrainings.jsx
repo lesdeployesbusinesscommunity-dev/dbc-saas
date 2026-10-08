@@ -10,6 +10,7 @@ import { currentMember } from "../currentMember";
 import { LevelDetailModal } from "../Coins/LevelDetailModal";
 import { getDomain } from "./domains";
 import { getLockedCatalog } from "./mockData";
+import { courseMatches } from "./searchFilter";
 
 // ----------------------------------------------------------------------
 
@@ -19,11 +20,19 @@ import { getLockedCatalog } from "./mockData";
 // aussi, voir CoursePage.jsx) : le bouton ouvre à la place le détail du
 // niveau requis, avec "Solliciter ce niveau" (même fenêtre que depuis le
 // classement des Coins : Coins/LevelDetailModal.jsx). Indépendant du
-// niveau consulté et des filtres du catalogue.
-export function LockedTrainings() {
+// niveau consulté et des filtres du catalogue — mais PAS de la recherche de
+// l'en-tête ("query", voir index.jsx), qui filtre aussi ces formations : sans
+// résultat ici, toute la section disparaît plutôt que de montrer un titre
+// au-dessus de rien.
+export function LockedTrainings({ query = "" }) {
   const { t } = useTranslation();
   const [selectedLevelKey, setSelectedLevelKey] = useState(null);
-  const groups = getLockedCatalog(currentMember.levelKeys);
+  const groups = getLockedCatalog(currentMember.levelKeys)
+    .map((group) => ({
+      ...group,
+      courses: group.courses.filter((course) => courseMatches(course, query, t)),
+    }))
+    .filter((group) => group.courses.length > 0);
 
   if (groups.length === 0) return null;
 

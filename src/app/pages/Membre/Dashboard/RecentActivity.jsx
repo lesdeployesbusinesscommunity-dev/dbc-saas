@@ -7,6 +7,11 @@ import {
 } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 
+// Local Imports
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
+import { useReportMatches } from "../components/searchSummary";
+import { getAccountOverrides } from "../accountData";
+
 // ----------------------------------------------------------------------
 
 // Fil des dernières actions du membre connecté — placeholder en attendant
@@ -23,15 +28,31 @@ const recentActivity = [
   { id: "a4", kind: "parrainage", Icon: UserPlusIcon, color: "#52A2DF", timeUnit: "weeks", timeCount: 2 },
 ];
 
-export function RecentActivity() {
+// Icône et couleur de chaque type d'action, pour les activités propres au
+// compte de l'administrateur (voir accountData.js).
+const KIND_STYLE = Object.fromEntries(recentActivity.map(({ kind, Icon, color }) => [kind, { Icon, color }]));
+
+export function RecentActivity({ query = "", onMatches }) {
   const { t } = useTranslation();
+  const own = getAccountOverrides()?.activity.recent;
+  const source = own ? own.map((item) => ({ ...item, ...KIND_STYLE[item.kind] })) : recentActivity;
+  // Texte d'une activité : certaines citent une personne ou une formation.
+  const labelOf = (item) =>
+    item.params
+      ? t(`membre.dashboard.activity.items.${item.kind === "parrainage" ? "parrainageOf" : "formationNamed"}`, item.params)
+      : t(`membre.dashboard.activity.items.${item.kind}`);
+  const items = source.filter((item) => searchTextIncludes(labelOf(item), query));
+  useReportMatches(onMatches, "activity", items.length);
+
+  // Recherche en cours sans correspondance : la section disparaît.
+  if (query.trim() !== "" && items.length === 0) return null;
 
   return (
     <div className="mt-8">
       <h2 className="text-base font-bold text-gray-900">{t("membre.dashboard.activity.title")}</h2>
 
       <div className="mt-4 divide-y divide-black/5 rounded-2xl border border-black/5 bg-white px-4 shadow-sm sm:px-5">
-        {recentActivity.map((item) => (
+        {items.map((item) => (
           <div key={item.id} className="flex items-center gap-3 py-3">
             <span
               aria-hidden="true"
@@ -42,7 +63,7 @@ export function RecentActivity() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-gray-900">
-                {t(`membre.dashboard.activity.items.${item.kind}`)}
+                {labelOf(item)}
               </p>
             </div>
             <p className="shrink-0 text-xs text-gray-400">

@@ -27,8 +27,10 @@ const LANGUAGES = ["fr", "en"];
 // Admin/Parametres/index.jsx), dont elle réutilise SettingsSection, Field
 // et Toggle. Même principe aussi : les interrupteurs et la langue
 // s'appliquent tout de suite, avec une pastille "Enregistré" discrète ;
-// seuls le profil et le mot de passe ont un bouton, parce qu'on y
-// saisit du texte qu'on veut pouvoir relire avant de valider.
+// seul le mot de passe a un bouton, parce qu'on y saisit du texte qu'on
+// veut pouvoir relire avant de valider. Le profil (nom, photo, coordonnées)
+// est en lecture seule, pour des raisons de sécurité : voir
+// ProfileSection.jsx.
 //
 // La langue passe par le même LocaleProvider que le bouton FR/EN de la
 // barre du haut (voir components/shared/LanguageToggle.jsx) : les deux
@@ -66,7 +68,7 @@ export default function MembreParametres() {
         </div>
 
         <div className="mt-2 space-y-6">
-          <ProfileSection onSaved={() => setJustSaved(true)} />
+          <ProfileSection />
           <SecuritySection onSaved={() => setJustSaved(true)} />
           <NotificationsSection settings={settings} onChange={change} />
           <PrivacySection settings={settings} onChange={change} />
@@ -97,10 +99,7 @@ export default function MembreParametres() {
             </div>
           </SettingsSection>
 
-          <AccountSection
-            requested={settings.deletionRequested}
-            onRequestChange={(value) => change({ ...settings, deletionRequested: value })}
-          />
+          <AccountSection />
         </div>
       </div>
     </Page>

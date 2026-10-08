@@ -10,7 +10,9 @@ import {
 } from "@heroicons/react/24/solid";
 
 // Local Imports
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { currentMember } from "../currentMember";
+import { useReportMatches } from "../components/searchSummary";
 import { ConfirmRequestPopover } from "../components/ConfirmRequestPopover";
 import { getCoinsRewards } from "./mockData";
 
@@ -32,10 +34,18 @@ const REWARD_ICONS = {
 // actuel n'a pas de bouton : on y lit exactement combien de Coins il
 // manque, plutôt que de disparaître. Catalogue de démonstration (voir
 // mockData.js : "getCoinsRewards").
-export function CoinsRewards() {
+export function CoinsRewards({ query = "", onMatches }) {
   const { t } = useTranslation();
-  const rewards = getCoinsRewards();
+  // Recherche de l'en-tête : sur le titre ou la description de la récompense.
+  const rewards = getCoinsRewards().filter(
+    (reward) =>
+      searchTextIncludes(t(`membre.coins.rewards.items.${reward.id}.title`), query) ||
+      searchTextIncludes(t(`membre.coins.rewards.items.${reward.id}.description`), query),
+  );
   const balance = currentMember.coins;
+  useReportMatches(onMatches, "rewards", rewards.length);
+
+  if (query.trim() !== "" && rewards.length === 0) return null;
 
   return (
     <div className="mt-6 rounded-3xl border border-black/5 bg-white p-6 shadow-sm sm:p-8">
@@ -75,6 +85,7 @@ export function CoinsRewards() {
                   <ConfirmRequestPopover
                     triggerClassName="rounded-lg bg-[#52A2DF] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"
                     question={t("membre.coins.rewards.question", { cost: reward.cost, reward: title })}
+                    request={{ type: "reward", rewardId: reward.id, cost: reward.cost }}
                   >
                     {t("membre.coins.rewards.exchange")}
                   </ConfirmRequestPopover>

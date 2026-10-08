@@ -32,7 +32,10 @@ const RELATION_CHIPS = {
 };
 const STATUS_DOTS = { actif: "bg-green-500", attente: "bg-amber-400" };
 
-export function NetworkList({ onSelect }) {
+// "searchQuery" : la recherche de l'en-tête de la page (voir Reseau/index.jsx),
+// qui s'ajoute à la recherche propre de cette vue — les deux champs filtrent
+// ensemble.
+export function NetworkList({ onSelect, searchQuery = "" }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState("all");
@@ -40,7 +43,8 @@ export function NetworkList({ onSelect }) {
   const rows = getNetworkList().filter(
     (node) =>
       (GROUPS[group] === null || GROUPS[group].includes(node.relation)) &&
-      searchTextIncludes(node.member.name, query),
+      searchTextIncludes(node.member.name, query) &&
+      searchTextIncludes(node.member.name, searchQuery),
   );
 
   return (

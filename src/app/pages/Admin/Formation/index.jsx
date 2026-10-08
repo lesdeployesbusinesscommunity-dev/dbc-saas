@@ -30,7 +30,11 @@ import { normalizeSearchText } from "../searchUtils";
 // s'affiche et s'ouvre ensuite comme les autres. handleAddVideo /
 // handleToggleVideoWatched ci-dessous gèrent l'import de vidéos dans un
 // chapitre et leur statut "vue" — c'est ce qui fait évoluer l'avancement
-// affiché sur chaque carte (voir mockData.getTrainingProgress). Tout est
+// affiché sur chaque carte (voir mockData.getTrainingProgress). Les PDF
+// (téléchargeables par les membres), les quiz de validation de chaque
+// chapitre et le quiz de pré-requis de la formation s'ajoutent de la même
+// façon depuis la fiche (handleAddDocument, handleSaveQuiz...) ; les vidéos
+// ne sont, elles, jamais téléchargeables. Tout est
 // en local pour l'instant (voir mockData.js), comme le reste de l'admin,
 // en attendant les vrais endpoints — les vidéos importées ne survivent
 // donc qu'à la session en cours (voir le commentaire de handleAddVideo).
@@ -168,6 +172,75 @@ export default function Formation() {
     });
   };
 
+  // Modifie UNE formation (immutable, comme les handlers ci-dessus) — sert
+  // aux PDF et aux quiz ci-dessous.
+  const updateTraining = (levelKey, trainingId, update) =>
+    setTrainingsByLevel((prev) => ({
+      ...prev,
+      [levelKey]: (prev[levelKey] ?? []).map((training) =>
+        training.id === trainingId ? update(training) : training,
+      ),
+    }));
+
+  const updateChapter = (levelKey, trainingId, chapterIndex, update) =>
+    updateTraining(levelKey, trainingId, (training) => ({
+      ...training,
+      objectives: {
+        ...training.objectives,
+        chapters: training.objectives.chapters.map((chapter, index) =>
+          index === chapterIndex ? update(chapter) : chapter,
+        ),
+      },
+    }));
+
+  // Support PDF de TOUTE la formation (un seul, regroupant tous les
+  // chapitres) : "coursePdf" null = aucun.
+  const handleSetCoursePdf = (levelKey, trainingId, coursePdf) =>
+    updateTraining(levelKey, trainingId, (training) => ({ ...training, coursePdf }));
+
+  // Supports PDF d'un chapitre (téléchargeables par les membres).
+  const handleAddDocument = (levelKey, trainingId, chapterIndex, document) =>
+    updateChapter(levelKey, trainingId, chapterIndex, (chapter) => ({
+      ...chapter,
+      documents: [...(chapter.documents ?? []), document],
+    }));
+
+  const handleRemoveDocument = (levelKey, trainingId, chapterIndex, documentId) =>
+    updateChapter(levelKey, trainingId, chapterIndex, (chapter) => ({
+      ...chapter,
+      documents: (chapter.documents ?? []).filter((document) => document.id !== documentId),
+    }));
+
+  // Quiz : "chapterIndex" null = le quiz de PRÉ-REQUIS de la formation (un
+  // seul), sinon un quiz de VALIDATION du chapitre (ajouté, ou remplacé s'il
+  // porte déjà cet id — c'est ainsi qu'une modification est enregistrée).
+  const handleSaveQuiz = (levelKey, trainingId, chapterIndex, quiz) => {
+    if (chapterIndex == null) {
+      updateTraining(levelKey, trainingId, (training) => ({ ...training, prerequisiteQuiz: quiz }));
+      return;
+    }
+    updateChapter(levelKey, trainingId, chapterIndex, (chapter) => {
+      const quizzes = chapter.quizzes ?? [];
+      return {
+        ...chapter,
+        quizzes: quizzes.some((existing) => existing.id === quiz.id)
+          ? quizzes.map((existing) => (existing.id === quiz.id ? quiz : existing))
+          : [...quizzes, quiz],
+      };
+    });
+  };
+
+  const handleRemoveQuiz = (levelKey, trainingId, chapterIndex, quizId) => {
+    if (chapterIndex == null) {
+      updateTraining(levelKey, trainingId, (training) => ({ ...training, prerequisiteQuiz: null }));
+      return;
+    }
+    updateChapter(levelKey, trainingId, chapterIndex, (chapter) => ({
+      ...chapter,
+      quizzes: (chapter.quizzes ?? []).filter((quiz) => quiz.id !== quizId),
+    }));
+  };
+
   return (
     <Page title={`Admin – ${t("admin.formation.title")}`}>
       <div className="p-6 lg:p-8">
@@ -221,6 +294,21 @@ export default function Formation() {
         }
         onToggleWatched={(chapterIndex, videoId) =>
           handleToggleVideoWatched(viewing.levelKey, viewing.trainingId, chapterIndex, videoId)
+        }
+        onSetCoursePdf={(coursePdf) =>
+          handleSetCoursePdf(viewing.levelKey, viewing.trainingId, coursePdf)
+        }
+        onAddDocument={(chapterIndex, document) =>
+          handleAddDocument(viewing.levelKey, viewing.trainingId, chapterIndex, document)
+        }
+        onRemoveDocument={(chapterIndex, documentId) =>
+          handleRemoveDocument(viewing.levelKey, viewing.trainingId, chapterIndex, documentId)
+        }
+        onSaveQuiz={(chapterIndex, quiz) =>
+          handleSaveQuiz(viewing.levelKey, viewing.trainingId, chapterIndex, quiz)
+        }
+        onRemoveQuiz={(chapterIndex, quizId) =>
+          handleRemoveQuiz(viewing.levelKey, viewing.trainingId, chapterIndex, quizId)
         }
       />
 

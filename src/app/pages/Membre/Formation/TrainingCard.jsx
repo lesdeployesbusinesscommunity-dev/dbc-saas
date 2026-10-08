@@ -8,11 +8,13 @@ import {
   CheckCircleIcon,
   ArrowPathIcon,
   CircleStackIcon,
+  ClipboardDocumentCheckIcon,
 } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 
 // Local Imports
 import { getDomain } from "./domains";
+import { isPrerequisitePassed } from "./progressStore";
 
 // ----------------------------------------------------------------------
 
@@ -79,6 +81,13 @@ export function TrainingCard({ course, progress, rewarded }) {
             coins: course.coinsReward,
           })}
         </p>
+
+        {course.prerequisiteQuiz && !isPrerequisitePassed(course) && (
+          <p className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+            <ClipboardDocumentCheckIcon aria-hidden="true" className="size-3.5" />
+            {t("membre.formation.card.prerequisite")}
+          </p>
+        )}
 
         <div className="mt-4">
           <div className="flex items-center justify-between text-xs font-semibold">

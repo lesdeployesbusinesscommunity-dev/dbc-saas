@@ -9,7 +9,12 @@
 // Le profil (nom, photo, coordonnées) n'est PAS ici : il vit dans
 // currentMember.js ("applyProfile"), parce que le reste de l'espace membre
 // le lit.
-const STORAGE_KEY = "dbc-membre-settings-v1";
+import { accountStorageKey } from "../currentMember";
+
+// Une clé PAR COMPTE (voir currentMember.js : "accountStorageKey") : les
+// préférences de l'administrateur en mode membre sont à lui.
+const BASE_KEY = "dbc-membre-settings-v1";
+const storageKey = () => accountStorageKey(BASE_KEY);
 
 // Types de notification proposés, avec le canal (email / WhatsApp) par
 // lequel les recevoir. Les rappels d'échéance de cotisation sont activés
@@ -52,7 +57,7 @@ export const defaultSettings = {
 export function loadSettings() {
   let saved = {};
   try {
-    saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "{}");
+    saved = JSON.parse(window.localStorage.getItem(storageKey()) ?? "{}");
   } catch {
     saved = {};
   }
@@ -72,7 +77,7 @@ export function loadSettings() {
 
 export function saveSettings(settings) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    window.localStorage.setItem(storageKey(), JSON.stringify(settings));
   } catch {
     // stockage indisponible : les réglages restent valables pour cette session
   }

@@ -5,6 +5,8 @@ import clsx from "clsx";
 
 // Local Imports
 import { formatMoney, levels } from "app/pages/Simulateur/data";
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
+import { useReportMatches } from "../components/searchSummary";
 import { getMlmStats, getNetworkMembers } from "./mockData";
 
 // ----------------------------------------------------------------------
@@ -29,13 +31,27 @@ function getInitials(name) {
     .join("");
 }
 
-export function MyNetwork() {
+export function MyNetwork({ query = "", onMatches }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("fr") ? "fr-FR" : "en-US";
   const stats = getMlmStats();
   const members = getNetworkMembers();
   const directMembers = members.filter((m) => m.type === "direct");
   const indirectMembers = members.filter((m) => m.type === "indirect");
+  // Recherche de l'en-tête : on garde le RANG d'origine de chaque filleul
+  // (il décide de la couleur de son avatar) pour qu'une recherche ne
+  // change pas les couleurs.
+  const hasQuery = query.trim() !== "";
+  const directShown = directMembers
+    .map((member, index) => ({ member, index }))
+    .filter(({ member }) => searchTextIncludes(member.name, query));
+  const indirectShown = indirectMembers
+    .map((member, index) => ({ member, index: directMembers.length + index }))
+    .filter(({ member }) => searchTextIncludes(member.name, query));
+
+  useReportMatches(onMatches, "network", directShown.length + indirectShown.length);
+
+  if (hasQuery && directShown.length === 0 && indirectShown.length === 0) return null;
 
   const renderRow = (member, index) => {
     const level = levels[member.levelPosition - 1];
@@ -85,21 +101,27 @@ export function MyNetwork() {
         {t("membre.mlm.network.title", { levels: stats.networkLevels })}
       </h2>
 
-      <div className="mt-5">
-        <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
-          {t("membre.mlm.network.directGroup")}
-        </p>
-        <div className="mt-2 flex flex-col gap-2">{directMembers.map(renderRow)}</div>
-      </div>
-
-      <div className="mt-6">
-        <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
-          {t("membre.mlm.network.indirectGroup")}
-        </p>
-        <div className="mt-2 flex flex-col gap-2">
-          {indirectMembers.map((member, index) => renderRow(member, directMembers.length + index))}
+      {(!hasQuery || directShown.length > 0) && (
+        <div className="mt-5">
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
+            {t("membre.mlm.network.directGroup")}
+          </p>
+          <div className="mt-2 flex flex-col gap-2">
+            {directShown.map(({ member, index }) => renderRow(member, index))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {(!hasQuery || indirectShown.length > 0) && (
+        <div className="mt-6">
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
+            {t("membre.mlm.network.indirectGroup")}
+          </p>
+          <div className="mt-2 flex flex-col gap-2">
+            {indirectShown.map(({ member, index }) => renderRow(member, index))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

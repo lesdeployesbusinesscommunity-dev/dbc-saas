@@ -1,3 +1,6 @@
+// Local Imports
+import { getAccountOverrides } from "../accountData";
+
 // ----------------------------------------------------------------------
 // Données de démonstration pour "Mon MLM" (partenariat Longrich) — à
 // remplacer par de vrais appels API une fois l'intégration backend faite,
@@ -13,6 +16,8 @@
 // "starter" et "batisseur", pas "elite" — à confirmer/ajuster une fois le
 // vrai lien entre pack Longrich et niveau DBC précisé.
 export function getMlmStats() {
+  const own = getAccountOverrides();
+  if (own) return { ...own.mlm.stats };
   return {
     directReferrals: 3,
     networkLevels: 3,
@@ -23,6 +28,8 @@ export function getMlmStats() {
 }
 
 export function getMyPack() {
+  const own = getAccountOverrides();
+  if (own) return { ...own.mlm.pack };
   return {
     name: "Pack Elite",
     price: 800000,
@@ -65,6 +72,8 @@ export function getLongrichPacks() {
 // donnée de démo les regroupe par profondeur (direct/indirect) sans
 // inventer cette filiation.
 export function getNetworkMembers() {
+  const own = getAccountOverrides();
+  if (own) return own.mlm.network.map((member) => ({ ...member }));
   return [
     { id: "net-1", name: "Marie Atangana", type: "direct", levelPosition: 5, commission: 15000 },
     { id: "net-2", name: "Jean Nkodo", type: "direct", levelPosition: 4, commission: 10000 },

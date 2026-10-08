@@ -64,6 +64,12 @@ const adminRoutes = {
       }),
     },
     {
+      path: "notifications",
+      lazy: async () => ({
+        Component: (await import("app/pages/Admin/Notifications")).default,
+      }),
+    },
+    {
       path: "parametres",
       lazy: async () => ({
         Component: (await import("app/pages/Admin/Parametres")).default,

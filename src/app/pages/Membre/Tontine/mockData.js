@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 // Local Imports
 import { currentMember } from "../currentMember";
 import { levels } from "app/pages/Simulateur/data";
+import { getContributionDay } from "app/pages/Admin/Parametres/platformSettings";
 
 // ----------------------------------------------------------------------
 // Données de démonstration pour "Ma Tontine" — à remplacer par de vrais
@@ -31,23 +32,34 @@ import { levels } from "app/pages/Simulateur/data";
 // montant propre à chacun. "paid" a été retiré d'ici : le statut "a payé
 // ce mois-ci" vient maintenant de l'historique de cotisation ci-dessous
 // (son dernier tour), pour ne garder qu'une seule source de vérité.
-// Le membre connecté ("isMe") lit son nom et sa ville directement dans
-// currentMember (getters) : s'il modifie son profil dans Paramètres, la
-// tontine l'affiche et le retrouve sous son nouveau nom, sans rechargement.
+// La place du membre connecté ("isMe") : voir "mySlot" ci-dessous. Elle lit
+// son nom et sa ville directement dans currentMember : s'il modifie son
+// profil dans Paramètres, la tontine l'affiche et le retrouve sous son
+// nouveau nom, sans rechargement. Chaque compte a sa propre place (repérée
+// par son matricule) : l'administrateur, quand il passe en mode membre, se
+// retrouve à SA place dans le groupe Starter, et le membre de démonstration
+// à la sienne — l'autre apparaît alors comme n'importe quel membre.
+function mySlot(id, matricule, fallbackName, fallbackCity) {
+  return {
+    id,
+    matricule,
+    get isMe() {
+      return currentMember.matricule === matricule;
+    },
+    get name() {
+      return this.isMe ? currentMember.name : fallbackName;
+    },
+    get city() {
+      return this.isMe ? currentMember.city : fallbackCity;
+    },
+  };
+}
+
 const tontineMembersByLevel = {
   starter: [
-    { id: "ts-1", name: "Hubert Wakap", city: "Douala, Cameroun" },
+    mySlot("ts-1", "DBC-1-0001", "Hubert Wakap", "Douala, Cameroun"),
     { id: "ts-2", name: "Marie Atangana", city: "Yaoundé, Cameroun" },
-    {
-      id: "ts-3",
-      isMe: true,
-      get name() {
-        return currentMember.name;
-      },
-      get city() {
-        return currentMember.city;
-      },
-    },
+    mySlot("ts-3", "DBC-1-0042", "Thierry Mbida", "Douala, Cameroun"),
     { id: "ts-4", name: "Céleste Mbida", city: "Douala, Cameroun" },
     { id: "ts-5", name: "Patrick Essono", city: "Yaoundé, Cameroun" },
     { id: "ts-6", name: "Diane Fouda", city: "Garoua, Cameroun" },
@@ -55,16 +67,7 @@ const tontineMembersByLevel = {
   batisseur: [
     { id: "tb-1", name: "Samuel Okafor", city: "Lagos, Nigéria" },
     { id: "tb-2", name: "Kwame Asante", city: "Kumasi, Ghana" },
-    {
-      id: "tb-3",
-      isMe: true,
-      get name() {
-        return currentMember.name;
-      },
-      get city() {
-        return currentMember.city;
-      },
-    },
+    mySlot("tb-3", "DBC-1-0042", "Thierry Mbida", "Douala, Cameroun"),
     { id: "tb-4", name: "Amara Chukwu", city: "Abuja, Nigéria" },
     { id: "tb-5", name: "Fatou Diallo", city: "Dakar, Sénégal" },
     { id: "tb-6", name: "Ibrahim Touré", city: "Abidjan, Côte d'Ivoire" },
@@ -219,9 +222,11 @@ function getMyMemberId(levelKey) {
   return members.find((m) => m.isMe)?.id ?? null;
 }
 
-// Jour du mois où la cotisation est due, pour tous les niveaux — simple
-// donnée de démonstration (le vrai jour d'échéance viendra du backend).
-const PAYMENT_DUE_DAY = 5;
+// Jour du mois où la cotisation est due, pour tous les niveaux : celui choisi
+// par l'admin dans Paramètres > Tontine (voir
+// Admin/Parametres/platformSettings.js — le 5 par défaut), relu à chaque
+// appel.
+const getPaymentDueDay = () => getContributionDay();
 
 // Résumé de "mon" prochain versement pour la carte "Mon prochain
 // versement" (voir MyTontineStatus.jsx) : montant (celui du niveau),
@@ -236,8 +241,9 @@ export function getMyNextPayment(levelKey) {
   const mine = tracking.find((m) => m.id === myId);
 
   const now = dayjs();
-  const dueThisMonth = now.date(PAYMENT_DUE_DAY);
-  const dueDate = now.date() > PAYMENT_DUE_DAY ? dueThisMonth.add(1, "month") : dueThisMonth;
+  const dueDay = getPaymentDueDay();
+  const dueThisMonth = now.date(dueDay);
+  const dueDate = now.date() > dueDay ? dueThisMonth.add(1, "month") : dueThisMonth;
 
   return {
     amount: level?.cotisation ?? 0,

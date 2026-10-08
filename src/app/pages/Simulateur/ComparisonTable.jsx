@@ -121,6 +121,7 @@ export function ComparisonTable({ levels, selectedKey, onSelect, myLevelKeys }) 
                             question={t("membre.dashboard.comparison.requestQuestion", {
                               level: t(`simulateur.levels.${level.key}.name`),
                             })}
+                            request={{ type: "level", levelKey: level.key }}
                           >
                             {t("membre.dashboard.comparison.requestButton")}
                           </ConfirmRequestPopover>

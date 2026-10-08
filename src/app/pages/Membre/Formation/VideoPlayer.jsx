@@ -8,6 +8,16 @@ import { markLessonWatched, saveLessonPosition } from "./progressStore";
 
 // ----------------------------------------------------------------------
 
+// Les vidéos ne sont PAS téléchargeables : elles se regardent uniquement
+// dans la plateforme. Le lecteur n'offre donc ni bouton "télécharger" (
+// controlsList="nodownload"), ni menu clic droit "Enregistrer la vidéo
+// sous", ni lecture à distance / en fenêtre flottante. ATTENTION : ce n'est
+// qu'une barrière d'interface — tant que la vidéo est un fichier servi tel
+// quel (comme ce fichier de démonstration), quelqu'un de déterminé peut
+// encore retrouver son adresse dans les outils du navigateur. Une vraie
+// protection se fait côté serveur : diffusion en flux (HLS/DASH) avec des
+// liens signés à durée limitée, jamais de lien direct vers le fichier.
+//
 // Lecteur d'une leçon. C'est lui qui fait monter le pourcentage : une
 // leçon est comptée comme TERMINÉE dès que 90 % de la vidéo ont été lus
 // (ou à la fin) — voir progressStore.js : "markLessonWatched". Il retient
@@ -65,6 +75,10 @@ export function VideoPlayer({ course, lesson, startAt, autoPlay, onEnded }) {
       src={lesson.url}
       poster={course.poster}
       controls
+      controlsList="nodownload noremoteplayback"
+      disablePictureInPicture
+      disableRemotePlayback
+      onContextMenu={(event) => event.preventDefault()}
       playsInline
       preload="metadata"
       autoPlay={autoPlay}

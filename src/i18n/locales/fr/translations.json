@@ -415,7 +415,8 @@
       "finance": "Finance",
       "formation": "Formation",
       "parametres": "Paramètres",
-      "piliers": "Piliers"
+      "piliers": "Piliers",
+      "notifications": "Notifications"
     },
     "comingSoon": {
       "message": "Cette section est en cours de construction et arrive bientôt."
@@ -849,9 +850,50 @@
           "mois_other": "mois",
           "annees_one": "année",
           "annees_other": "années"
-        }
+        },
+        "prerequisiteSection": "Quiz de pré-requis",
+        "prerequisiteHint": "Posé au tout début de la formation : le membre doit le réussir avant d'en ouvrir le contenu.",
+        "addPrerequisite": "Ajouter un quiz de pré-requis",
+        "downloadRules": "Les vidéos ne sont pas téléchargeables (lecture dans la plateforme uniquement) ; les PDF, eux, peuvent être téléchargés par les membres.",
+        "documentsSection": "Supports PDF",
+        "noDocuments": "Aucun PDF pour l'instant dans ce chapitre.",
+        "addDocument": "Ajouter un PDF",
+        "documentTitlePlaceholder": "Titre du PDF (optionnel)",
+        "documentSessionOnlyHint": "PDF importé pour cette session seulement (aucun serveur d'envoi pour l'instant) — il disparaîtra à la fermeture de l'onglet.",
+        "openDocument": "Ouvrir le PDF",
+        "removeDocument": "Supprimer ce PDF",
+        "quizzesSection": "Quiz de validation",
+        "noQuizzes": "Aucun quiz pour l'instant dans ce chapitre.",
+        "addQuiz": "Ajouter un quiz de validation",
+        "editQuiz": "Modifier le quiz",
+        "removeQuiz": "Supprimer le quiz",
+        "quizMeta": "{{count}} question(s) · réussite à {{percent}} %",
+        "coursePdfSection": "Support de cours complet (PDF)",
+        "coursePdfHint": "Un seul PDF qui regroupe tous les chapitres, en plus des vidéos de chaque chapitre. Les membres peuvent le télécharger.",
+        "noCoursePdf": "Aucun PDF de cours pour l'instant.",
+        "addCoursePdf": "Ajouter le PDF du cours",
+        "replaceCoursePdf": "Remplacer le PDF du cours",
+        "removeCoursePdf": "Supprimer le PDF du cours"
       },
-      "addButton": "Ajouter une formation"
+      "addButton": "Ajouter une formation",
+      "quizEditor": {
+        "prerequisiteHeading": "Quiz de pré-requis",
+        "validationHeading": "Quiz de validation",
+        "title": "Titre du quiz",
+        "titlePlaceholder": "ex : Quiz de validation — Chapitre 1",
+        "passingScore": "Seuil de réussite (%)",
+        "correctHint": "Coche la ou les bonnes réponses de chaque question : une seule case = réponse unique, plusieurs cases = le membre devra cocher exactement toutes les bonnes.",
+        "questionPlaceholder": "Énoncé de la question",
+        "questionLabel": "Question {{n}}",
+        "optionPlaceholder": "Réponse {{letter}}",
+        "correctAnswer": "La réponse {{letter}} est une bonne réponse",
+        "addOption": "Ajouter une réponse",
+        "removeOption": "Supprimer cette réponse",
+        "addQuestion": "Ajouter une question",
+        "removeQuestion": "Supprimer cette question",
+        "invalid": "Pour enregistrer : un titre, et pour chaque question un énoncé, au moins 2 réponses et au moins 1 bonne réponse.",
+        "save": "Enregistrer le quiz"
+      }
     },
     "parametres": {
       "title": "Paramètres",
@@ -901,17 +943,12 @@
         "twoFactorEnabled": "Authentification à deux facteurs",
         "twoFactorHint": "Demande un code supplémentaire à la connexion des administrateurs",
         "sessionTimeout": "Expiration de session",
-        "passwordPolicy": "Politique de mot de passe",
         "sessionTimeoutOptions": {
           "15": "15 minutes",
           "30": "30 minutes",
           "60": "1 heure",
           "240": "4 heures",
           "480": "8 heures"
-        },
-        "passwordPolicyOptions": {
-          "standard": "Standard (8 caractères minimum)",
-          "renforcee": "Renforcée (12 caractères, majuscule, chiffre, symbole)"
         }
       },
       "notifications": {
@@ -932,7 +969,10 @@
           "nouvelleFormation": "Nouvelle formation disponible",
           "rappelFormation": "Rappel de progression de formation",
           "changementNiveau": "Changement de niveau",
-          "annonceGouvernance": "Annonce de gouvernance"
+          "annonceGouvernance": "Annonce de gouvernance",
+          "rencontre": "Rencontre ou événement DBC",
+          "coinsGagnes": "Coins gagnés",
+          "nouveauFilleul": "Nouveau filleul"
         }
       },
       "backup": {
@@ -946,6 +986,18 @@
           "weekly": "Hebdomadaire",
           "monthly": "Mensuelle"
         }
+      },
+      "memberBadge": "Concerne les membres",
+      "memberAccounts": {
+        "title": "Comptes des membres",
+        "description": "Règles appliquées aux comptes de l'espace membre : mot de passe et déconnexion automatique.",
+        "passwordMinLength": "Longueur minimale du mot de passe",
+        "idleMinutes": "Déconnexion après inactivité",
+        "idleOption": "{{count}} minutes",
+        "passwordHint": "Entre {{min}} et {{max}} caractères. Le membre voit cette règle dans Paramètres > Sécurité.",
+        "requireUpper": "Exiger une majuscule",
+        "requireDigit": "Exiger un chiffre",
+        "requireSymbol": "Exiger un symbole"
       }
     },
     "piliers": {
@@ -994,6 +1046,19 @@
       "visibleCount": "{{visible}} sur {{total}} visibles",
       "add": "Ajouter un programme",
       "added": "Ajouté"
+    },
+    "profileMenu": {
+      "open": "Ouvrir le menu du profil",
+      "settings": "Paramètres",
+      "switch": "Passer en mode membre",
+      "switchHint": "Retourner dans l'espace membre",
+      "logout": "Se déconnecter",
+      "confirm": {
+        "title": "Se déconnecter ?",
+        "text": "La session administrateur sera fermée. Il sera possible de se reconnecter à tout moment.",
+        "yes": "Oui, se déconnecter",
+        "cancel": "Annuler"
+      }
     }
   },
   "membre": {
@@ -1005,14 +1070,17 @@
       "reseau": "Mon Réseau",
       "formation": "Formation",
       "parametres": "Paramètres",
-      "piliers": "Piliers"
+      "piliers": "Piliers",
+      "notifications": "Notifications"
     },
     "comingSoon": {
       "message": "Cette section est en cours de construction et arrive bientôt."
     },
     "topbar": {
       "notifications": "Notifications",
-      "searchPlaceholder": "Recherche"
+      "searchPlaceholder": "Recherche",
+      "eyebrow": "Espace membre",
+      "noNotifications": "Aucune nouvelle notification pour le moment."
     },
     "dashboard": {
       "title": "Dashboard",
@@ -1020,6 +1088,56 @@
       "welcome": {
         "greeting": "Bonjour",
         "subtitle": "Bienvenue sur votre session, vous pouvez y consulter l'avancement de votre tontine."
+      },
+      "news": {
+        "label": "Actualités de la DBC",
+        "kind": {
+          "event": "Événement",
+          "formation": "Nouvelle formation",
+          "antenne": "Nouvelle antenne",
+          "niveau": "Votre prochain niveau",
+          "general": "Actualité DBC"
+        },
+        "cta": {
+          "participate": "Je participe",
+          "openFormation": "Voir la formation",
+          "requestLevel": "Solliciter ce niveau",
+          "seeNetwork": "Voir mon réseau",
+          "discover": "Découvrir"
+        },
+        "dateStarts": "Début le {{date}}",
+        "dateOpens": "Ouverture le {{date}}",
+        "formationText": "Avec {{trainer}} · {{duration}}",
+        "levelTitle": "Passez au niveau {{level}}",
+        "levelText": "{{cotisation}} de cotisation par mois pour une cagnotte de {{cagnotte}}.",
+        "prev": "Actualité précédente",
+        "next": "Actualité suivante",
+        "pause": "Mettre en pause le défilement",
+        "play": "Relancer le défilement",
+        "goTo": "Aller à l'actualité {{n}} sur {{total}}",
+        "items": {
+          "rencontreDouala": {
+            "title": "Rencontre DBC à Douala",
+            "text": "Une soirée pour réseauter avec les membres, échanger sur vos projets et rencontrer l'équipe.",
+            "place": "Akwa, Douala",
+            "question": "Voulez-vous vous inscrire à la rencontre DBC de Douala ?"
+          },
+          "antenneBafoussam": {
+            "title": "Nouvelle antenne DBC à Bafoussam",
+            "text": "Les membres de l'Ouest ont désormais un point de rencontre : réunions, accompagnement et formations près de chez vous.",
+            "place": "Bafoussam, Cameroun"
+          },
+          "atelierYaounde": {
+            "title": "Atelier financement à Yaoundé",
+            "text": "Comment présenter son projet et accéder aux financements : un atelier pratique animé par l'équipe DBC.",
+            "place": "Yaoundé, Cameroun",
+            "question": "Voulez-vous vous inscrire à l'atelier de Yaoundé ?"
+          },
+          "nouveauxProgrammes": {
+            "title": "De nouveaux programmes dans les Piliers",
+            "text": "Découvrez les programmes des piliers de la DBC et trouvez celui qui correspond à votre projet."
+          }
+        }
       },
       "profile": {
         "coins": "DBC Coins",
@@ -1055,6 +1173,8 @@
           "cotisation": "Cotisation Tontine Juillet",
           "formation": "Formation École des Affaires Niv.3",
           "coins": "+75 Coins — Challenge mensuel",
+          "parrainageOf": "Parrainage de {{name}}",
+          "formationNamed": "Formation {{name}}",
           "parrainage": "Parrainage de Patrick Essono"
         },
         "time": {
@@ -1101,7 +1221,8 @@
         "requestButton": "Solliciter",
         "alreadyMember": "Déjà membre",
         "requestQuestion": "Voulez-vous solliciter le niveau {{level}} ? Une nouvelle tontine sera ouverte pour vous à ce niveau."
-      }
+      },
+      "searchPlaceholder": "Rechercher une activité, un niveau, une formation…"
     },
     "common": {
       "months": [
@@ -1211,7 +1332,8 @@
             "answer": "Le cycle est clôturé : vous pouvez alors recommencer une nouvelle tontine à ce niveau ou demander à passer au niveau supérieur, depuis le bouton en bas de cette page."
           }
         ]
-      }
+      },
+      "searchPlaceholder": "Rechercher un membre du groupe…"
     },
     "mlm": {
       "overviewTitle": "Business MLM Longrich, Mon arbre",
@@ -1255,8 +1377,13 @@
       },
       "ineligible": {
         "title": "Pas encore éligible au MLM Longrich",
-        "message": "Le niveau {{currentLevel}} n'y donne pas accès. Passez au moins au niveau {{requiredLevel}} pour débloquer votre arbre et vos commissions Longrich."
-      }
+        "message": "Le niveau {{currentLevel}} n'y donne pas accès. Passez au moins au niveau {{requiredLevel}} pour débloquer votre arbre et vos commissions Longrich.",
+        "requestButton": "Solliciter ce niveau",
+        "ownedTitle": "Vous avez déjà le niveau {{level}}",
+        "ownedMessage": "Vous consultez actuellement le niveau {{currentLevel}}, qui ne donne pas accès au MLM Longrich. Votre niveau {{level}}, lui, y donne accès : activez-le pour afficher votre arbre et vos commissions.",
+        "activateButton": "Activer ce niveau"
+      },
+      "searchPlaceholder": "Rechercher un filleul ou un pack…"
     },
     "coins": {
       "hero": {
@@ -1346,7 +1473,8 @@
             "description": "Un échange individuel avec un coach de la communauté."
           }
         }
-      }
+      },
+      "searchPlaceholder": "Rechercher un membre, une récompense, une activité…"
     },
     "reseau": {
       "title": "Ma lignée de parrainage",
@@ -1363,6 +1491,7 @@
       },
       "stats": {
         "sponsor": "Mon parrain",
+        "noSponsor": "Aucun (fondateur)",
         "direct": "Filleuls directs",
         "total": "Réseau total"
       },
@@ -1423,7 +1552,8 @@
         "mlm": "Commissions Longrich du mois",
         "top": "Les filleuls qui rapportent le plus (Longrich)",
         "seeMlm": "Voir le détail dans Mon MLM"
-      }
+      },
+      "searchPlaceholder": "Rechercher quelqu'un de mon réseau…"
     },
     "formation": {
       "domains": {
@@ -1477,7 +1607,8 @@
         "lessons_one": "{{count}} leçon",
         "lessons_other": "{{count}} leçons",
         "coinsToEarn": "{{coins}} Coins à gagner",
-        "coinsEarned": "{{coins}} Coins gagnés"
+        "coinsEarned": "{{coins}} Coins gagnés",
+        "prerequisite": "Quiz de pré-requis"
       },
       "empty": "Aucune formation pour ce niveau pour l'instant.",
       "emptyFilter": "Aucune formation ne correspond à ces filtres.",
@@ -1511,25 +1642,65 @@
         "progressDetail_other": "{{count}} leçons terminées sur {{total}}",
         "coinsToEarn": "Termine la formation pour gagner {{coins}} Coins",
         "coinsEarned": "{{coins}} Coins gagnés avec cette formation",
-        "seeCoins": "Voir mes Coins"
+        "seeCoins": "Voir mes Coins",
+        "type": {
+          "video": "Vidéo",
+          "pdf": "PDF",
+          "quiz": "Quiz"
+        },
+        "quizDone": "Quiz réussi",
+        "videoOnlyHint": "Cette vidéo se regarde uniquement sur la plateforme : elle n'est pas téléchargeable."
       },
       "lockedSection": {
         "title": "Débloque d'autres formations",
         "subtitle": "Ces formations s'ouvrent quand tu rejoins le niveau indiqué.",
         "requires": "Niveau requis : {{level}}",
         "discover": "Découvrir ce niveau"
+      },
+      "searchPlaceholder": "Rechercher une formation, un formateur, un domaine…",
+      "pdf": {
+        "hint": "Support téléchargeable : enregistre-le sur ton ordinateur pour le garder.",
+        "download": "Télécharger le PDF",
+        "open": "Ouvrir dans un onglet"
+      },
+      "quiz": {
+        "questionCount_one": "{{count}} question",
+        "questionCount_other": "{{count}} questions",
+        "passingScore": "réussite à partir de {{percent}} %",
+        "multipleHint": "Plusieurs réponses possibles : coche toutes les bonnes.",
+        "answerAll": "Réponds à toutes les questions pour valider.",
+        "submit": "Valider mes réponses",
+        "goodAnswer": "Bonne réponse",
+        "wrongAnswer": "Réponse fausse",
+        "questionRight": "Bien joué !",
+        "questionWrong": "Ce n'est pas la bonne réponse : la correction est en vert.",
+        "score": "Ton score : {{percent}} % ({{correct}} sur {{total}})",
+        "retry": "Réessayer",
+        "retake": "Repasser le quiz",
+        "alreadyPassed": "Quiz déjà réussi",
+        "bestScore": "Meilleur score : {{percent}} %",
+        "validation": {
+          "passed": "Bravo, tu as validé ce quiz (seuil : {{percent}} %).",
+          "failed": "Il te faut au moins {{percent}} % pour valider. Revois les leçons du chapitre, puis réessaie.",
+          "continue": "Leçon suivante"
+        },
+        "prerequisite": {
+          "intro": "Avant de commencer cette formation, réponds à ce court quiz : il vérifie que tu as les bases nécessaires. Tu peux le repasser autant de fois que tu veux.",
+          "passed": "Bravo, tu as les bases pour suivre cette formation (seuil : {{percent}} %).",
+          "failed": "Il te faut au moins {{percent}} % pour accéder à la formation. Relis la correction en vert, puis réessaie.",
+          "continue": "Commencer la formation"
+        }
+      },
+      "coursePdf": {
+        "title": "Support de cours complet",
+        "hint": "Un seul PDF avec tous les chapitres de la formation : télécharge-le pour le garder sur ton ordinateur."
       }
     },
     "parametres": {
       "saved": "Enregistré",
       "profile": {
         "title": "Mon profil",
-        "description": "Tes informations personnelles, telles que les autres membres et l'équipe DBC te voient.",
-        "changePhoto": "Changer la photo",
-        "removePhoto": "Retirer",
-        "photoHint": "Image carrée de préférence, 5 Mo maximum.",
-        "photoNotImage": "Ce fichier n'est pas une image.",
-        "photoTooBig": "Cette image dépasse 5 Mo.",
+        "description": "Tes informations personnelles, telles que l'équipe DBC les a enregistrées.",
         "firstName": "Prénom",
         "lastName": "Nom",
         "email": "Email",
@@ -1538,13 +1709,10 @@
         "country": "Pays",
         "profession": "Travail / Profession",
         "matricule": "Matricule : {{matricule}}",
-        "matriculeHint": "Ton matricule est unique et ne se modifie pas : c'est lui que tes filleuls indiquent à l'inscription. Pour corriger ton nom légal ou ta pièce d'identité, contacte l'équipe DBC.",
-        "save": "Enregistrer",
-        "errors": {
-          "required": "Ce champ est obligatoire.",
-          "email": "Entre une adresse email valide.",
-          "phone": "Entre un numéro valide, avec l'indicatif (ex : +237…)."
-        }
+        "matriculeHint": "Ton matricule est unique : c'est lui que tes filleuls indiquent à l'inscription.",
+        "notProvided": "Non renseigné",
+        "lockedTitle": "Informations verrouillées",
+        "lockedHint": "Pour des raisons de sécurité, tu ne peux pas modifier ces informations toi-même : seul ton mot de passe se change (section Sécurité ci-dessous). Pour corriger ton nom, ton numéro, ton email ou toute autre information, contacte l'équipe DBC."
       },
       "security": {
         "title": "Sécurité",
@@ -1552,16 +1720,22 @@
         "current": "Mot de passe actuel",
         "new": "Nouveau mot de passe",
         "confirm": "Confirme le nouveau mot de passe",
-        "rule": "{{min}} caractères minimum, avec au moins une lettre et un chiffre.",
+        "rule": "{{min}} caractères minimum, avec {{requirements}}.",
         "show": "Afficher les mots de passe",
         "hide": "Masquer les mots de passe",
         "submit": "Changer le mot de passe",
         "done": "Ton mot de passe a été modifié.",
         "errors": {
           "currentRequired": "Entre ton mot de passe actuel.",
-          "weak": "Au moins {{min}} caractères, avec une lettre et un chiffre.",
+          "weak": "Au moins {{min}} caractères, avec {{requirements}}.",
           "same": "Le nouveau mot de passe doit être différent de l'actuel.",
           "mismatch": "Les deux mots de passe ne sont pas identiques."
+        },
+        "requirements": {
+          "letter": "au moins une lettre",
+          "upper": "une majuscule",
+          "digit": "un chiffre",
+          "symbol": "un symbole"
         }
       },
       "notifications": {
@@ -1640,7 +1814,9 @@
         "deleteButton": "Demander la suppression",
         "deleteConfirm": "Oui, envoyer ma demande",
         "deleteSent": "Demande envoyée. L'équipe DBC te contactera.",
-        "deleteCancel": "Annuler ma demande"
+        "deleteCancel": "Annuler ma demande",
+        "deleteValidated": "Demande validée. L'équipe DBC te contacte pour finaliser avec toi.",
+        "deleteRefused": "Ta dernière demande a été refusée : ton compte est conservé."
       }
     },
     "piliers": {
@@ -1686,7 +1862,24 @@
       "otherGroups": "Les autres piliers",
       "formationCta": "Aller à la page Formation",
       "emptyGroup": "Aucun programme n'est disponible pour ce pilier pour le moment.",
-      "back": "Retour aux piliers"
+      "back": "Retour aux piliers",
+      "searchPlaceholder": "Rechercher un pilier ou un programme…"
+    },
+    "search": {
+      "noResults": "Aucun résultat pour « {{query}} »"
+    },
+    "profileMenu": {
+      "open": "Ouvrir le menu du profil",
+      "settings": "Mon profil et paramètres",
+      "switch": "Passer en mode admin",
+      "switchHint": "Accéder à l'espace administration",
+      "logout": "Se déconnecter",
+      "confirm": {
+        "title": "Se déconnecter ?",
+        "text": "Tu vas quitter ton espace membre. Tu pourras te reconnecter à tout moment.",
+        "yes": "Oui, me déconnecter",
+        "cancel": "Annuler"
+      }
     }
   },
   "piliers": {
@@ -1929,6 +2122,298 @@
       "marketplace": {
         "name": "DBC Marketplace",
         "summary": "La place de marché de la communauté : les membres y présentent leurs produits et services."
+      }
+    }
+  },
+  "session": {
+    "warnTitle": "Toujours là ?",
+    "warnText": "Sans activité de ta part, ta session se fermera dans {{seconds}} s pour protéger tes informations.",
+    "stay": "Rester connecté",
+    "logout": "Se déconnecter",
+    "notice": {
+      "required": "Connecte-toi pour accéder à ton espace.",
+      "expired": "Ta session s'est fermée par sécurité après un moment d'inactivité. Reconnecte-toi pour continuer.",
+      "logout": "Tu es bien déconnecté. À bientôt !"
+    },
+    "locked": "Trop de tentatives. Réessaie dans {{seconds}} s."
+  },
+  "notifications": {
+    "unread": "Non lue",
+    "unreadCount_one": "{{count}} non lue",
+    "unreadCount_other": "{{count}} non lues",
+    "markAllRead": "Tout marquer comme lu",
+    "seeAll": "Voir toutes les notifications",
+    "emptyBell": "Aucune notification pour le moment.",
+    "filters": "Filtrer les notifications",
+    "filter": {
+      "all": "Toutes",
+      "unread": "Non lues"
+    },
+    "groups": {
+      "requests": "Demandes",
+      "tontine": "Tontine",
+      "coins": "Coins",
+      "formation": "Formations",
+      "community": "DBC et rencontres",
+      "system": "Plateforme"
+    },
+    "searchPlaceholder": "Rechercher une notification",
+    "noResults": "Aucun résultat",
+    "noResultsHint": "Aucune notification ne correspond à cette recherche.",
+    "allRead": "Tout est lu",
+    "empty": "Aucune notification",
+    "emptyHint": {
+      "membre": "Les nouveautés de la DBC, de ta tontine, de tes formations et de tes Coins apparaîtront ici.",
+      "admin": "Les demandes des membres et les alertes de la plateforme apparaîtront ici."
+    },
+    "pendingTitle": "Mes demandes en attente",
+    "pendingHint": "L'équipe DBC les traite et te répond ici, dans tes notifications.",
+    "validate": "Valider",
+    "refuse": "Refuser",
+    "status": {
+      "pending": "À traiter",
+      "validated": "Validée",
+      "refused": "Refusée",
+      "withdrawn": "Retirée par le membre"
+    },
+    "decidedOn": {
+      "validated": "validée le {{date}}",
+      "refused": "refusée le {{date}}",
+      "withdrawn": "retirée le {{date}}"
+    },
+    "profile": {
+      "show": "Voir le profil du membre",
+      "hide": "Masquer le profil",
+      "name": "Nom",
+      "matricule": "Matricule",
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "location": "Ville et pays",
+      "profession": "Profession",
+      "levels": "Niveaux",
+      "coins": "Solde de Coins",
+      "sponsored": "Filleuls parrainés"
+    },
+    "mail": {
+      "button": "Écrire un mail",
+      "hint": "Le message s'ouvre déjà rédigé, avec le profil du membre. Il reste à le relire puis à l'envoyer depuis la messagerie.",
+      "providers": {
+        "default": "Application de messagerie de l'ordinateur",
+        "gmail": "Gmail (sur le web)",
+        "outlook": "Outlook (sur le web)"
+      },
+      "greeting": "Bonjour {{firstName}},",
+      "profileTitle": "Rappel de votre profil :",
+      "closing": "Cordialement,",
+      "signature": "L'équipe {{platform}}",
+      "intro": {
+        "deleteAccount": "Nous avons bien reçu votre demande de suppression de compte. Avant de la traiter, nous souhaitons échanger avec vous au sujet de votre tontine en cours et de votre solde de Coins.",
+        "level": "Nous avons bien reçu votre demande d'accès au niveau {{level}}. Nous revenons vers vous pour la suite.",
+        "event": "Nous avons bien reçu votre demande de participation : {{event}}. Nous revenons vers vous pour confirmer votre place.",
+        "reward": "Nous avons bien reçu votre demande d'échange de {{cost}} Coins contre : {{reward}}. Nous revenons vers vous pour la suite.",
+        "tontineNext": {
+          "restart": "Votre cycle de tontine est terminé et vous souhaitez le recommencer au niveau {{level}}. Nous revenons vers vous pour la suite.",
+          "levelUp": "Votre cycle de tontine est terminé et vous souhaitez passer au niveau {{nextLevel}}. Nous revenons vers vous pour la suite."
+        }
+      },
+      "subject": {
+        "deleteAccount": "Votre demande de suppression de compte",
+        "level": "Votre demande d'accès au niveau {{level}}",
+        "event": "Votre participation : {{event}}",
+        "reward": "Votre échange de Coins : {{reward}}",
+        "tontineNext": {
+          "restart": "La suite de votre tontine : recommencer",
+          "levelUp": "La suite de votre tontine : niveau {{nextLevel}}"
+        }
+      }
+    },
+    "confirmDelete": {
+      "validateTitle": "Valider la suppression de ce compte ?",
+      "validateText": "Le membre sera prévenu que sa demande est acceptée. Le compte n'est pas supprimé automatiquement : pense à lui écrire pour régler sa tontine et ses Coins avant toute suppression.",
+      "validateYes": "Oui, valider",
+      "refuseTitle": "Refuser la suppression de ce compte ?",
+      "refuseText": "Le membre sera prévenu que son compte est conservé.",
+      "refuseYes": "Oui, refuser",
+      "cancel": "Annuler"
+    },
+    "requests": {
+      "deleteAccount": {
+        "title": "{{name}} demande la suppression de son compte",
+        "text": "Une tontine en cours et un solde de Coins sont à régler avant toute suppression : écris au membre avant de valider."
+      },
+      "level": {
+        "title": "{{name}} sollicite le niveau {{level}}",
+        "text": "Demande d'accès à ce niveau de cotisation."
+      },
+      "event": {
+        "title": "{{name}} souhaite participer à : {{event}}",
+        "text": "Demande de participation à cette rencontre."
+      },
+      "reward": {
+        "title": "{{name}} veut échanger {{cost}} Coins",
+        "text": "Récompense demandée : {{reward}}."
+      },
+      "tontineNext": {
+        "restart": {
+          "title": "{{name}} veut recommencer sa tontine ({{level}})",
+          "text": "Son cycle est terminé : il demande à repartir pour un nouveau cycle au même niveau."
+        },
+        "levelUp": {
+          "title": "{{name}} veut passer au niveau {{nextLevel}}",
+          "text": "Son cycle {{level}} est terminé : il demande à passer au niveau supérieur."
+        }
+      }
+    },
+    "decisions": {
+      "deleteAccount": {
+        "validated": {
+          "title": "Ta demande de suppression de compte est validée",
+          "text": "L'équipe DBC te contacte pour finaliser avec toi (tontine et Coins)."
+        },
+        "refused": {
+          "title": "Ta demande de suppression de compte est refusée",
+          "text": "Ton compte est conservé. Écris à l'équipe DBC si tu as une question."
+        }
+      },
+      "level": {
+        "validated": {
+          "title": "Ta demande pour le niveau {{level}} est acceptée",
+          "text": "L'équipe DBC te recontacte pour la suite."
+        },
+        "refused": {
+          "title": "Ta demande pour le niveau {{level}} n'est pas acceptée",
+          "text": "Contacte l'équipe DBC pour en savoir plus."
+        }
+      },
+      "event": {
+        "validated": {
+          "title": "Ta participation est confirmée : {{event}}",
+          "text": "Ta place est réservée."
+        },
+        "refused": {
+          "title": "Ta participation n'a pas pu être confirmée : {{event}}",
+          "text": "Contacte l'équipe DBC pour en savoir plus."
+        }
+      },
+      "reward": {
+        "validated": {
+          "title": "Ton échange de Coins est accepté : {{reward}}",
+          "text": "L'équipe DBC te contacte pour te remettre ta récompense."
+        },
+        "refused": {
+          "title": "Ton échange de Coins n'est pas accepté : {{reward}}",
+          "text": "Contacte l'équipe DBC pour en savoir plus."
+        }
+      },
+      "tontineNext": {
+        "restart": {
+          "validated": {
+            "title": "Ta demande de recommencer ta tontine est acceptée",
+            "text": "L'équipe DBC te contacte pour lancer ton nouveau cycle."
+          },
+          "refused": {
+            "title": "Ta demande de recommencer ta tontine n'est pas acceptée",
+            "text": "Contacte l'équipe DBC pour en savoir plus."
+          }
+        },
+        "levelUp": {
+          "validated": {
+            "title": "Ton passage au niveau {{nextLevel}} est accepté",
+            "text": "L'équipe DBC te contacte pour la suite."
+          },
+          "refused": {
+            "title": "Ton passage au niveau {{nextLevel}} n'est pas accepté",
+            "text": "Contacte l'équipe DBC pour en savoir plus."
+          }
+        }
+      }
+    },
+    "mine": {
+      "deleteAccount": "Suppression de mon compte",
+      "level": "Accès au niveau {{level}}",
+      "event": "Participation : {{event}}",
+      "reward": "Échange de {{cost}} Coins : {{reward}}",
+      "tontineNext": {
+        "restart": "Recommencer ma tontine",
+        "levelUp": "Passer au niveau {{nextLevel}}"
+      }
+    },
+    "items": {
+      "cotisationRetard": {
+        "title": "Cotisation en retard : {{level}}",
+        "text": "{{amount}} F étaient attendus le {{due}}. Pense à régler ta cotisation pour ne pas bloquer le tour."
+      },
+      "cotisationRappel": {
+        "title": "Rappel de cotisation : {{level}}",
+        "text": "{{amount}} F à régler d'ici le {{due}} (dans {{days}} jours).",
+        "tomorrow": {
+          "title": "Ta cotisation est due demain : {{level}}",
+          "text": "{{amount}} F à régler avant demain ({{due}})."
+        },
+        "today": {
+          "title": "Ta cotisation est due aujourd'hui : {{level}}",
+          "text": "{{amount}} F à régler aujourd'hui ({{due}})."
+        }
+      },
+      "cotisationSuivi": {
+        "title": "Tontine {{level}} : {{paid}} sur {{total}} ont cotisé",
+        "text": "Pas encore cotisé ce mois-ci : {{names}}.",
+        "complete": {
+          "title": "Tontine {{level}} : tout le monde a cotisé",
+          "text": "Les {{total}} membres ont réglé leur cotisation de ce mois."
+        }
+      },
+      "tourAttribue": {
+        "title": "Tour {{tour}} de la tontine {{level}} : {{name}}",
+        "text": "La cagnotte de {{amount}} F revient à {{name}} ce mois-ci."
+      },
+      "tourProche": {
+        "title": "Ton tour de tontine approche : {{level}}",
+        "text": "Ton tour (n° {{tour}}) arrive dans {{months}} mois. Garde tes cotisations à jour.",
+        "now": {
+          "title": "C'est bientôt ton tour : {{level}}",
+          "text": "Ton tour (n° {{tour}}) est ce mois-ci. Garde tes cotisations à jour."
+        }
+      },
+      "coins": {
+        "title": "Tu as gagné {{amount}} Coins",
+        "text": "{{label}}"
+      },
+      "filleul": {
+        "title": "Nouveau filleul : +{{amount}} Coins",
+        "text": "{{label}}"
+      },
+      "formationNouvelle": {
+        "title": "Nouvelle formation : {{name}}",
+        "text": "Disponible pour ton niveau {{level}}, à partir du {{date}}."
+      },
+      "formationRappel": {
+        "title": "Reprends ta formation : {{name}}",
+        "text": "Tu en es à {{percent}} %. Termine-la pour gagner tes Coins."
+      },
+      "rencontre": {
+        "title": "Rencontre DBC : {{event}}",
+        "text": "Le {{date}}, {{place}}. Réserve ta place depuis ton tableau de bord."
+      },
+      "dbc": {
+        "title": "{{title}}",
+        "text": "{{text}}"
+      },
+      "adminNouveauMembre": {
+        "title": "Nouveau membre à valider : {{name}}",
+        "text": "{{city}}, {{country}} : l'inscription attend une validation dans Gestion des membres."
+      },
+      "adminCotisations": {
+        "title": "Cotisations du mois : {{level}}",
+        "text": "{{paid}} membre(s) sur {{total}} ont cotisé ce mois-ci."
+      },
+      "adminRetards": {
+        "title": "Cotisations en attente : {{level}}",
+        "text": "{{count}} membre(s) n'ont pas encore réglé : {{names}}."
+      },
+      "adminTour": {
+        "title": "Tour {{tour}} de la tontine {{level}} : {{name}}",
+        "text": "{{name}} est le bénéficiaire de ce mois."
       }
     }
   }

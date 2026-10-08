@@ -6,6 +6,8 @@ import clsx from "clsx";
 
 // Local Imports
 import { levels } from "app/pages/Simulateur/data";
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
+import { useReportMatches } from "../components/searchSummary";
 import { LEVEL_HEX, getInitials } from "../communityMembers";
 import { getLeaderboard, getLeaderboardLevelKeys, getCommunityRanks } from "./mockData";
 import { MemberCvModal } from "./MemberCvModal";
@@ -44,17 +46,28 @@ const RANK_DEFAULT = "bg-gray-100 text-gray-500";
 // d'ouvrir aussi la fiche — le badge est un <span role="button">, jamais
 // un vrai <button> dans la ligne (qui, elle, en est un), pour rester du
 // HTML valide (même précaution que Simulateur/ComparisonTable.jsx).
-export function CoinsLeaderboard() {
+export function CoinsLeaderboard({ query = "", onMatches }) {
   const { t } = useTranslation();
   const [period, setPeriod] = useState("all");
   const [levelKey, setLevelKey] = useState("all");
   const [selectedMember, setSelectedMember] = useState(null);
   const [selectedLevelKey, setSelectedLevelKey] = useState(null);
 
-  const entries = getLeaderboard({ period, levelKey });
+  // La recherche de l'en-tête (voir Coins/index.jsx) ne retire que des
+  // LIGNES : le rang affiché et la longueur des barres restent ceux du
+  // classement complet, sinon chercher quelqu'un changerait son rang.
+  const ranked = getLeaderboard({ period, levelKey });
+  const entries = ranked.filter((entry) => searchTextIncludes(entry.name, query));
+  const hasQuery = query.trim() !== "";
   const levelKeys = getLeaderboardLevelKeys();
   const globalRanks = getCommunityRanks();
-  const maxValue = Math.max(1, ...entries.map((entry) => entry.value));
+  const maxValue = Math.max(1, ...ranked.map((entry) => entry.value));
+
+  // Un classement vide à cause des filtres de période / niveau garde son
+  // propre message et ne participe pas à la recherche.
+  useReportMatches(onMatches, "leaderboard", ranked.length === 0 ? null : entries.length);
+
+  if (hasQuery && ranked.length > 0 && entries.length === 0) return null;
 
   const openLevel = (key) => setSelectedLevelKey(key);
 

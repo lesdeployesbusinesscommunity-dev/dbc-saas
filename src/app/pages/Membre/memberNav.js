@@ -6,6 +6,7 @@ import {
   CircleStackIcon,
   ShareIcon,
   AcademicCapIcon,
+  BellIcon,
   BuildingLibraryIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/solid";
@@ -27,6 +28,8 @@ export const memberNavItems = [
   { key: "formation", labelKey: "membre.nav.formation", to: "/membre/formation", Icon: AcademicCapIcon },
   // "Piliers" (colonnes) : INVESTIR et FINANCER, les deux piliers de la DBC.
   { key: "piliers", labelKey: "membre.nav.piliers", to: "/membre/piliers", Icon: BuildingLibraryIcon },
+  // Pastille du nombre de notifications non lues (voir MembreSidebar).
+  { key: "notifications", labelKey: "membre.nav.notifications", to: "/membre/notifications", Icon: BellIcon },
 ];
 
 // Traité à part (voir MembreSidebar) : toujours affiché en bas, séparé du

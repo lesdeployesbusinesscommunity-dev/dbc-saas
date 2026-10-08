@@ -1,9 +1,12 @@
 // Import Dependencies
 import { useMemo, useState } from "react";
 import Chart from "react-apexcharts";
-import { ChartPieIcon, CheckBadgeIcon, AcademicCapIcon } from "@heroicons/react/24/solid";
+import { ChartPieIcon, CheckBadgeIcon, AcademicCapIcon, UserPlusIcon } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
+
+// Local Imports
+import { getAccountOverrides } from "../accountData";
 
 // ----------------------------------------------------------------------
 
@@ -40,10 +43,14 @@ const CATEGORY_COINS = {
 // style icône/couleur), repris ici sans dépendre du composant admin
 // (celui-ci est couplé à sa propre liste de membres et affiche la raison
 // seulement au survol — ici elle doit rester visible).
-const EARNED_BADGES = [
-  { key: "formation", Icon: AcademicCapIcon, className: "bg-orange-50 text-[#EE7115]" },
-  { key: "cotisation", Icon: CheckBadgeIcon, className: "bg-green-50 text-green-700" },
-];
+const BADGE_STYLES = {
+  formation: { Icon: AcademicCapIcon, className: "bg-orange-50 text-[#EE7115]" },
+  cotisation: { Icon: CheckBadgeIcon, className: "bg-green-50 text-green-700" },
+  parrainage: { Icon: UserPlusIcon, className: "bg-[#52A2DF]/[0.12] text-[#52A2DF]" },
+};
+// Ceux du membre de démonstration ; le compte de l'administrateur a les siens
+// (voir accountData.js).
+const DEFAULT_BADGES = ["formation", "cotisation"];
 
 // Graphe "ce que vous avez fait le plus ce mois-ci" : un donut (plus
 // lisible qu'un histogramme ici, vu l'écart entre les montants) avec le
@@ -54,13 +61,16 @@ const EARNED_BADGES = [
 // les badges obtenus ce mois-ci avec leur raison.
 export function MonthlyActivityChart() {
   const { t } = useTranslation();
+  const own = getAccountOverrides()?.activity;
+  const categoryCoins = own?.categoryCoins ?? CATEGORY_COINS;
+  const earnedBadges = (own?.badges ?? DEFAULT_BADGES).map((key) => ({ key, ...BADGE_STYLES[key] }));
 
   const totalsByCategory = useMemo(
     () =>
       Object.fromEntries(
-        CATEGORY_ORDER.map((key) => [key, CATEGORY_COINS[key].reduce((sum, c) => sum + c, 0)]),
+        CATEGORY_ORDER.map((key) => [key, categoryCoins[key].reduce((sum, c) => sum + c, 0)]),
       ),
-    [],
+    [categoryCoins],
   );
   const grandTotal = Object.values(totalsByCategory).reduce((sum, v) => sum + v, 0);
 
@@ -121,10 +131,13 @@ export function MonthlyActivityChart() {
     },
   };
 
-  const breakdownLabels = t(`membre.dashboard.activity.breakdown.items.${selectedCategory}`, {
-    returnObjects: true,
-  });
-  const breakdownCoins = CATEGORY_COINS[selectedCategory];
+  const ownNames = own?.names?.[selectedCategory];
+  const breakdownLabels = ownNames
+    ? ownNames.map((name) =>
+        selectedCategory === "parrainage" ? t("membre.dashboard.activity.items.parrainageOf", { name }) : name,
+      )
+    : t(`membre.dashboard.activity.breakdown.items.${selectedCategory}`, { returnObjects: true });
+  const breakdownCoins = categoryCoins[selectedCategory];
 
   return (
     <div className="mt-8 rounded-2xl border border-black/5 bg-white p-5 shadow-sm sm:p-6">
@@ -202,7 +215,7 @@ export function MonthlyActivityChart() {
           {t("membre.dashboard.activity.badges.title")}
         </p>
         <div className="mt-2.5 space-y-3">
-          {EARNED_BADGES.map(({ key, Icon, className }) => (
+          {earnedBadges.map(({ key, Icon, className }) => (
             <div key={key} className="flex items-start gap-3">
               <span
                 aria-hidden="true"

@@ -4,7 +4,9 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useMemberLevel } from "../../context/MemberLevelContext";
+import { useReportMatches } from "../../components/searchSummary";
 import { getTrainingsInProgress } from "../mockData";
 
 // ----------------------------------------------------------------------
@@ -19,10 +21,18 @@ import { getTrainingsInProgress } from "../mockData";
 // getTrainingProgress dans Admin/Formation/mockData.js). Pas de
 // navigation au clic ici : chaque formation ouvre sa page de cours (voir
 // Formation/CoursePage.jsx) pour reprendre là où le membre s'était arrêté.
-export function TrainingsInProgress() {
+export function TrainingsInProgress({ query = "", onMatches }) {
   const { t } = useTranslation();
   const { activeLevelKey } = useMemberLevel();
-  const trainingsInProgress = getTrainingsInProgress(activeLevelKey);
+  const allInProgress = getTrainingsInProgress(activeLevelKey);
+  const trainingsInProgress = allInProgress.filter(
+    (training) =>
+      searchTextIncludes(training.name, query) || searchTextIncludes(training.trainer, query),
+  );
+  useReportMatches(onMatches, "trainings", trainingsInProgress.length);
+
+  // Recherche en cours sans correspondance : la section disparaît.
+  if (query.trim() !== "" && trainingsInProgress.length === 0) return null;
 
   return (
     <div className="mt-6">

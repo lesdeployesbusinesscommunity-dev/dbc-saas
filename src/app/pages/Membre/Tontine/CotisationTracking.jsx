@@ -6,7 +6,9 @@ import { CheckCircleIcon, ExclamationTriangleIcon } from "@heroicons/react/24/so
 // Local Imports
 import { Avatar } from "app/pages/Admin/components/Avatar";
 import { formatMoney } from "app/pages/Simulateur/data";
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useMemberLevel } from "../context/MemberLevelContext";
+import { useReportMatches } from "../components/searchSummary";
 import { getCotisationTracking, getCurrentTour } from "./mockData";
 
 // ----------------------------------------------------------------------
@@ -20,14 +22,18 @@ import { getCotisationTracking, getCurrentTour } from "./mockData";
 // montre une ligne pleine, un membre en retard montre tout de suite
 // lesquels de ses tours posent problème, plutôt qu'une simple fraction
 // qui cacherait où est le trou.
-export function CotisationTracking() {
+export function CotisationTracking({ query = "", onMatches }) {
   const { t } = useTranslation();
   const { activeLevelKey } = useMemberLevel();
-  const tracking = getCotisationTracking(activeLevelKey);
+  const tracking = getCotisationTracking(activeLevelKey).filter((member) =>
+    searchTextIncludes(member.name, query),
+  );
   const currentTour = getCurrentTour(activeLevelKey);
   const months = t("membre.common.months", { returnObjects: true });
+  const hasQuery = query.trim() !== "";
+  useReportMatches(onMatches, "tracking", currentTour ? tracking.length : null);
 
-  if (!currentTour) return null;
+  if (!currentTour || (hasQuery && tracking.length === 0)) return null;
 
   const monthLabel = `${months[currentTour.month.month()]} ${currentTour.month.year()}`;
 

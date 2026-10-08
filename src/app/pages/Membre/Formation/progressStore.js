@@ -1,6 +1,9 @@
 // Import Dependencies
 import { useSyncExternalStore } from "react";
 
+// Local Imports
+import { accountStorageKey, subscribeMember } from "../currentMember";
+
 // ----------------------------------------------------------------------
 // Avancement du membre dans ses formations : quelles leçons (vidéos) il a
 // terminées et où il s'est arrêté dans chacune. C'est ce qui fait monter
@@ -15,7 +18,15 @@ import { useSyncExternalStore } from "react";
 // sans changer ce que ces fonctions renvoient.
 //
 // Forme : { [idFormation]: { watched: [idLeçon], positions: { [idLeçon]:
-// secondes }, lastLessonId, updatedAt } }.
+// secondes }, lastLessonId, updatedAt, quizzes: { [idQuiz]: { best,
+// attempts } }, prereq: { passed, best, attempts } } }.
+//
+// "Leçon" = n'importe quel élément d'un chapitre : vidéo, PDF ou quiz de
+// validation (voir mockData.js). Une vidéo est terminée quand elle est
+// vue (voir VideoPlayer.jsx), un PDF quand le membre l'a ouvert / téléchargé
+// / marqué lu, un quiz quand il est RÉUSSI. "prereq" garde le résultat du
+// quiz de pré-requis de la formation, qui doit être réussi pour en ouvrir
+// le contenu (voir isPrerequisitePassed).
 //
 // Tant qu'un membre n'a RIEN fait dans une formation (pas d'entrée), son
 // avancement de départ est repris du catalogue ("baseProgress", le
@@ -47,19 +58,29 @@ function save(key, value) {
   }
 }
 
-let state = load(STORAGE_KEY);
-let rewards = load(REWARDS_KEY);
+// Une progression PAR COMPTE (voir currentMember.js : "accountStorageKey") :
+// l'administrateur en mode membre a ses propres formations et ses propres
+// Coins de formation, séparés de ceux du membre de démonstration.
+let state = load(accountStorageKey(STORAGE_KEY));
+let rewards = load(accountStorageKey(REWARDS_KEY));
 const listeners = new Set();
 
 function setState(next, nextRewards = rewards) {
   state = next;
-  save(STORAGE_KEY, state);
+  save(accountStorageKey(STORAGE_KEY), state);
   if (nextRewards !== rewards) {
     rewards = nextRewards;
-    save(REWARDS_KEY, rewards);
+    save(accountStorageKey(REWARDS_KEY), rewards);
   }
   listeners.forEach((listener) => listener());
 }
+
+// Un autre compte s'affiche : on relit SA progression.
+subscribeMember(() => {
+  state = load(accountStorageKey(STORAGE_KEY));
+  rewards = load(accountStorageKey(REWARDS_KEY));
+  listeners.forEach((listener) => listener());
+});
 
 function subscribe(listener) {
   listeners.add(listener);
@@ -108,6 +129,7 @@ function entryFor(course) {
       positions: {},
       lastLessonId: null,
       updatedAt: 0,
+      quizzes: {},
     }
   );
 }
@@ -134,6 +156,50 @@ export function markLessonWatched(course, lessonId) {
   setState(nextState);
 }
 
+// Enregistre une tentative à un quiz de validation ; un quiz réussi compte
+// comme une leçon terminée.
+export function recordQuizAttempt(course, quizId, percent, passed) {
+  const entry = entryFor(course);
+  const previous = entry.quizzes?.[quizId] ?? { best: 0, attempts: 0 };
+  setState({
+    ...state,
+    [course.id]: {
+      ...entry,
+      quizzes: {
+        ...entry.quizzes,
+        [quizId]: { best: Math.max(previous.best, percent), attempts: previous.attempts + 1 },
+      },
+      lastLessonId: quizId,
+      updatedAt: Date.now(),
+    },
+  });
+  if (passed) markLessonWatched(course, quizId);
+}
+
+// Le quiz de pré-requis : les membres qui ont déjà commencé la formation
+// (avancement de départ > 0) sont considérés comme l'ayant déjà réussi.
+export function isPrerequisitePassed(course, progressState = state) {
+  if (!course.prerequisiteQuiz) return true;
+  return Boolean(progressState[course.id]?.prereq?.passed) || course.baseProgress > 0;
+}
+
+export function recordPrerequisiteAttempt(course, percent, passed) {
+  const entry = entryFor(course);
+  const previous = entry.prereq ?? { passed: false, best: 0, attempts: 0 };
+  setState({
+    ...state,
+    [course.id]: {
+      ...entry,
+      prereq: {
+        passed: previous.passed || passed,
+        best: Math.max(previous.best, percent),
+        attempts: previous.attempts + 1,
+      },
+      updatedAt: Date.now(),
+    },
+  });
+}
+
 export function saveLessonPosition(course, lessonId, seconds) {
   const entry = entryFor(course);
   setState({
@@ -148,11 +214,21 @@ export function saveLessonPosition(course, lessonId, seconds) {
 }
 
 // "Recommencer" : tout remettre à zéro (et non retomber sur l'avancement
-// de départ du catalogue).
+// de départ du catalogue). Le quiz de pré-requis, lui, reste réussi : le
+// membre n'a pas à le repasser. Le résultat des quiz de validation est
+// effacé avec le reste.
 export function resetCourse(course) {
+  const entry = state[course.id];
   setState({
     ...state,
-    [course.id]: { watched: [], positions: {}, lastLessonId: null, updatedAt: Date.now() },
+    [course.id]: {
+      watched: [],
+      positions: {},
+      lastLessonId: null,
+      updatedAt: Date.now(),
+      quizzes: {},
+      prereq: entry?.prereq ?? (course.baseProgress > 0 && course.prerequisiteQuiz ? { passed: true, best: 100, attempts: 0 } : undefined),
+    },
   });
 }
 
@@ -182,6 +258,7 @@ export function getCourseProgress(course, progressState = state) {
     status: percent >= 100 ? "completed" : watched > 0 ? "inProgress" : "notStarted",
     resumeLesson,
     positions: entry?.positions ?? {},
+    quizzes: entry?.quizzes ?? {},
     updatedAt: entry?.updatedAt ?? 0,
   };
 }

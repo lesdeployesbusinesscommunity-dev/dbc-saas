@@ -8,6 +8,7 @@ import clsx from "clsx";
 
 // Local Imports
 import { levels } from "app/pages/Simulateur/data";
+import { submitRequest } from "app/pages/Notifications/notificationsStore";
 import { useMemberLevel } from "../context/MemberLevelContext";
 import { isCycleComplete } from "./mockData";
 
@@ -116,7 +117,16 @@ export function NextStepButton() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setStep("done")}
+                        onClick={() => {
+                          // La suite choisie part chez l'admin avec le profil du membre.
+                          submitRequest({
+                            type: "tontineNext",
+                            choice,
+                            levelKey: activeLevelKey,
+                            nextLevelKey: choice === "levelUp" ? nextLevel?.key : undefined,
+                          });
+                          setStep("done");
+                        }}
                         className="rounded-lg bg-[#52A2DF] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
                       >
                         {t("membre.common.yes")}

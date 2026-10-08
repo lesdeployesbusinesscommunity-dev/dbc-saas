@@ -4,7 +4,9 @@ import clsx from "clsx";
 
 // Local Imports
 import { Avatar } from "app/pages/Admin/components/Avatar";
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useMemberLevel } from "../context/MemberLevelContext";
+import { useReportMatches } from "../components/searchSummary";
 import { getTontineCycle } from "./mockData";
 import { STATUS_STYLES } from "./statusStyles";
 
@@ -18,11 +20,17 @@ import { STATUS_STYLES } from "./statusStyles";
 // "en cours" est mis en évidence (fond teinté + liseré orange) — sans
 // quoi, dans une liste de 12 lignes, rien n'indique "où on en est" d'un
 // coup d'œil.
-export function TontineCycle() {
+export function TontineCycle({ query = "", onMatches }) {
   const { t } = useTranslation();
   const { activeLevelKey } = useMemberLevel();
-  const cycle = getTontineCycle(activeLevelKey);
+  const cycle = getTontineCycle(activeLevelKey).filter((tour) =>
+    searchTextIncludes(tour.memberName, query),
+  );
   const months = t("membre.common.months", { returnObjects: true });
+  const hasQuery = query.trim() !== "";
+  useReportMatches(onMatches, "cycle", cycle.length);
+
+  if (hasQuery && cycle.length === 0) return null;
 
   return (
     <div className="mt-8">

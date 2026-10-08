@@ -6,19 +6,30 @@ import { EyeIcon, EyeSlashIcon, LockClosedIcon } from "@heroicons/react/24/solid
 // Local Imports
 import { Field, TextInput } from "app/pages/Admin/Parametres/Field";
 import { SettingsSection } from "app/pages/Admin/Parametres/SettingsSection";
+import {
+  isPasswordValid,
+  passwordRequirements,
+  usePlatformSettings,
+} from "app/pages/Admin/Parametres/platformSettings";
 
 // ----------------------------------------------------------------------
 
-const MIN_LENGTH = 8;
-
-// Paramètres > Sécurité : changer son mot de passe. Même règle que la
-// politique "Standard" de l'admin (8 caractères minimum), plus une lettre
-// et un chiffre. Aucun mot de passe n'est conservé ni envoyé nulle part
+// Paramètres > Sécurité : changer son mot de passe. La règle (longueur
+// minimale, majuscule, chiffre, symbole) est celle choisie par l'admin dans
+// ses Paramètres > Comptes des membres (voir
+// Admin/Parametres/platformSettings.js) : si l'admin la change, elle
+// s'applique ici tout de suite. Aucun mot de passe n'est conservé ni envoyé nulle part
 // pour l'instant : la connexion membre n'est pas encore branchée au
 // backend (voir router/membre.jsx) — c'est à cet endroit qu'on appellera
 // l'endpoint de changement de mot de passe, avec "current" et "next".
 export function SecuritySection({ onSaved }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { security } = usePlatformSettings();
+  const min = security.passwordMinLength;
+  // "au moins une lettre, un chiffre et un symbole" selon la règle en vigueur.
+  const requirements = new Intl.ListFormat(i18n.language, { style: "long", type: "conjunction" }).format(
+    passwordRequirements(security).map((key) => t(`membre.parametres.security.requirements.${key}`)),
+  );
   const [values, setValues] = useState({ current: "", next: "", confirm: "" });
   const [visible, setVisible] = useState(false);
   const [errors, setErrors] = useState({});
@@ -34,8 +45,8 @@ export function SecuritySection({ onSaved }) {
     event.preventDefault();
     const next = {};
     if (!values.current) next.current = t("membre.parametres.security.errors.currentRequired");
-    if (values.next.length < MIN_LENGTH || !/[A-Za-z]/.test(values.next) || !/[0-9]/.test(values.next)) {
-      next.next = t("membre.parametres.security.errors.weak", { min: MIN_LENGTH });
+    if (!isPasswordValid(values.next, security)) {
+      next.next = t("membre.parametres.security.errors.weak", { min, requirements });
     } else if (values.next === values.current) {
       next.next = t("membre.parametres.security.errors.same");
     }
@@ -71,7 +82,7 @@ export function SecuritySection({ onSaved }) {
             <Field label={t("membre.parametres.security.new")}>
               <TextInput type={type} autoComplete="new-password" value={values.next} onChange={update("next")} />
             </Field>
-            <p className="mt-1 text-xs text-gray-400">{t("membre.parametres.security.rule", { min: MIN_LENGTH })}</p>
+            <p className="mt-1 text-xs text-gray-400">{t("membre.parametres.security.rule", { min, requirements })}</p>
             {errorText("next")}
           </div>
           <div>
