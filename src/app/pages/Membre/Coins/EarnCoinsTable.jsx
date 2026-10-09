@@ -4,6 +4,8 @@ import { CheckCircleIcon, UserPlusIcon, AcademicCapIcon, CircleStackIcon } from 
 
 // Local Imports
 import { levels } from "app/pages/Simulateur/data";
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
+import { useReportMatches } from "../components/searchSummary";
 import { getCoinsWays } from "./mockData";
 
 // ----------------------------------------------------------------------
@@ -35,26 +37,35 @@ const CATEGORY_ICONS = {
   challenges: CircleStackIcon,
 };
 
-export function EarnCoinsTable() {
+export function EarnCoinsTable({ query = "", onMatches }) {
   const { t } = useTranslation();
-  const ways = getCoinsWays();
+  // Le texte affiché de chaque ligne ("Cotisation Starter", "Parrainage"...)
+  // est calculé ICI, avant le rendu, pour que la recherche de l'en-tête
+  // cherche exactement ce que le membre lit.
+  const ways = getCoinsWays()
+    .map((way) => {
+      const level = way.levelKey ? levels.find((l) => l.key === way.levelKey) : null;
+      const label =
+        way.category === "tontine"
+          ? t("membre.coins.earn.cotisationLabel", {
+              level: level ? t(`simulateur.levels.${level.key}.name`) : way.levelKey,
+            })
+          : t(`membre.coins.earn.${way.category}Label`);
+      return { way, label };
+    })
+    .filter(({ label }) => searchTextIncludes(label, query));
+  useReportMatches(onMatches, "earn", ways.length);
+
+  if (query.trim() !== "" && ways.length === 0) return null;
 
   return (
     <div className="mt-6 rounded-3xl border border-black/5 bg-white p-6 shadow-sm sm:p-8">
       <h2 className="text-base font-bold text-gray-900">{t("membre.coins.earn.title")}</h2>
 
       <div className="mt-4 flex flex-col gap-2">
-        {ways.map((way) => {
+        {ways.map(({ way, label }) => {
           const Icon = CATEGORY_ICONS[way.category];
           const color = CATEGORY_COLORS[way.category];
-          const level = way.levelKey ? levels.find((l) => l.key === way.levelKey) : null;
-
-          const label =
-            way.category === "tontine"
-              ? t("membre.coins.earn.cotisationLabel", {
-                  level: level ? t(`simulateur.levels.${level.key}.name`) : way.levelKey,
-                })
-              : t(`membre.coins.earn.${way.category}Label`);
 
           return (
             <div

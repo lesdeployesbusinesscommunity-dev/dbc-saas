@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { CheckCircleIcon, UserPlusIcon, AcademicCapIcon, CircleStackIcon, ClockIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
+import { useReportMatches } from "../components/searchSummary";
 import { getCoinsHistory, getCoinsStats } from "./mockData";
 
 // ----------------------------------------------------------------------
@@ -27,10 +29,23 @@ const CATEGORY_ICONS = {
   challenges: CircleStackIcon,
 };
 
-export function CoinsHistory() {
+export function CoinsHistory({ query = "", onMatches }) {
   const { t } = useTranslation();
   const stats = getCoinsStats();
-  const history = getCoinsHistory();
+  // Recherche de l'en-tête : on garde le TOTAL du mois calculé sur toutes
+  // ses lignes (il doit rester égal à la réalité), et on ne retire que les
+  // lignes qui ne correspondent pas — puis les mois devenus vides.
+  const history = getCoinsHistory()
+    .map((group) => ({
+      ...group,
+      monthTotal: group.entries.reduce((sum, entry) => sum + entry.amount, 0),
+      entries: group.entries.filter((entry) => searchTextIncludes(entry.label, query)),
+    }))
+    .filter((group) => group.entries.length > 0);
+  const rowCount = history.reduce((sum, group) => sum + group.entries.length, 0);
+  useReportMatches(onMatches, "history", rowCount);
+
+  if (query.trim() !== "" && rowCount === 0) return null;
 
   return (
     <div className="mt-6 rounded-3xl border border-black/5 bg-white p-6 shadow-sm sm:p-8">
@@ -41,7 +56,7 @@ export function CoinsHistory() {
 
       <div className="mt-5 flex flex-col gap-6">
         {history.map((group) => {
-          const monthTotal = group.entries.reduce((sum, entry) => sum + entry.amount, 0);
+          const { monthTotal } = group;
 
           return (
             <div key={group.month}>

@@ -9,6 +9,7 @@ import {
   CheckCircleIcon,
   CircleStackIcon,
   ForwardIcon,
+  ShieldCheckIcon,
   LockClosedIcon,
   TrophyIcon,
   UserIcon,
@@ -23,23 +24,39 @@ import { getCourseById } from "./mockData";
 import {
   getCourseProgress,
   isCourseRewarded,
+  isPrerequisitePassed,
   markLessonWatched,
+  recordQuizAttempt,
   resetCourse,
   useProgressState,
   useRewards,
 } from "./progressStore";
 import { VideoPlayer } from "./VideoPlayer";
+import { PdfViewer } from "./PdfViewer";
+import { QuizPlayer } from "./QuizPlayer";
+import { PrerequisiteGate } from "./PrerequisiteGate";
 import { ChapterList } from "./ChapterList";
+import { CoursePdfCard } from "./CoursePdfCard";
 
 // ----------------------------------------------------------------------
 
 // Page d'une formation (/membre/formation/:trainingId), ouverte par le
 // bouton "Commencer la formation" du catalogue (voir TrainingCard.jsx) :
-// la vidéo de la leçon en cours à gauche, et à droite les chapitres avec
-// leurs leçons. Le pourcentage en haut monte au fur et à mesure que le
-// membre termine ses leçons (voir VideoPlayer.jsx et progressStore.js) ;
-// à la fin d'une vidéo on enchaîne sur la suivante. À l'ouverture, on
-// reprend là où il s'était arrêté.
+// la leçon en cours à gauche, et à droite les chapitres avec leurs leçons.
+// Une leçon est une VIDÉO (lecteur sans téléchargement, voir
+// VideoPlayer.jsx), un support PDF (téléchargeable, voir PdfViewer.jsx) ou
+// un QUIZ de validation (voir QuizPlayer.jsx) — un quiz réussi termine la
+// leçon. Le pourcentage en haut monte au fur et à mesure que le membre
+// termine ses leçons (voir progressStore.js) ; à la fin d'une vidéo on
+// enchaîne sur la suivante. À l'ouverture, on reprend là où il s'était
+// arrêté.
+//
+// À droite, au-dessus des chapitres, le SUPPORT DE COURS COMPLET : un PDF
+// téléchargeable qui regroupe tous les chapitres (voir CoursePdfCard.jsx), en
+// plus des vidéos.
+//
+// Si la formation a un QUIZ DE PRÉ-REQUIS (voir PrerequisiteGate.jsx), il
+// s'affiche d'abord et le contenu reste fermé tant qu'il n'est pas réussi.
 //
 // Un membre ne peut ouvrir que les formations des niveaux auxquels il
 // cotise (currentMember.levelKeys) — comme le catalogue, qui ne montre que
@@ -72,6 +89,10 @@ function CourseView({ course }) {
     () => getCourseProgress(course).resumeLesson?.id ?? course.lessons[0]?.id,
   );
   const [autoPlay, setAutoPlay] = useState(false);
+  // Écran du quiz de pré-requis : ouvert à l'arrivée si le quiz n'est pas
+  // réussi, puis refermé par "Commencer la formation" (pas dès la réussite,
+  // pour laisser le membre lire son résultat).
+  const [gateOpen, setGateOpen] = useState(() => !isPrerequisitePassed(course));
 
   const lessons = course.lessons;
   const index = Math.max(0, lessons.findIndex((lesson) => lesson.id === currentId));
@@ -85,6 +106,10 @@ function CourseView({ course }) {
     setCurrentId(lessonId);
     setAutoPlay(shouldAutoPlay);
   };
+
+  if (gateOpen) {
+    return <PrerequisiteGate course={course} onStart={() => setGateOpen(false)} />;
+  }
 
   if (!lesson) {
     return <Notice Icon={LockClosedIcon} title={course.name} text={t("membre.formation.course.noVideo")} />;
@@ -186,17 +211,40 @@ function CourseView({ course }) {
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0">
-          <VideoPlayer
-            key={lesson.id}
-            course={course}
-            lesson={lesson}
-            startAt={progress.positions[lesson.id] ?? 0}
-            autoPlay={autoPlay}
-            onEnded={() => {
-              const next = lessons[index + 1];
-              if (next) select(next.id, true);
-            }}
-          />
+          {lesson.type === "pdf" ? (
+            <PdfViewer
+              key={lesson.id}
+              lesson={lesson}
+              onOpened={() => markLessonWatched(course, lesson.id)}
+            />
+          ) : lesson.type === "quiz" ? (
+            <QuizPlayer
+              key={lesson.id}
+              quiz={lesson.quiz}
+              alreadyPassed={progress.watchedIds.has(lesson.id)}
+              bestPercent={progress.quizzes[lesson.id]?.best ?? null}
+              onResult={(percent, passed) => recordQuizAttempt(course, lesson.id, percent, passed)}
+              onContinue={index < lessons.length - 1 ? () => select(lessons[index + 1].id) : undefined}
+            />
+          ) : (
+            <>
+              <VideoPlayer
+                key={lesson.id}
+                course={course}
+                lesson={lesson}
+                startAt={progress.positions[lesson.id] ?? 0}
+                autoPlay={autoPlay}
+                onEnded={() => {
+                  const next = lessons[index + 1];
+                  if (next) select(next.id, true);
+                }}
+              />
+              <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
+                <ShieldCheckIcon aria-hidden="true" className="size-4 shrink-0" />
+                {t("membre.formation.course.videoOnlyHint")}
+              </p>
+            </>
+          )}
 
           <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
@@ -209,9 +257,9 @@ function CourseView({ course }) {
             {progress.watchedIds.has(lesson.id) ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1.5 text-xs font-bold text-green-700">
                 <CheckCircleIcon aria-hidden="true" className="size-4" />
-                {t("membre.formation.course.done")}
+                {t(lesson.type === "quiz" ? "membre.formation.course.quizDone" : "membre.formation.course.done")}
               </span>
-            ) : (
+            ) : lesson.type === "quiz" ? null : (
               <button
                 type="button"
                 onClick={() => markLessonWatched(course, lesson.id)}
@@ -272,6 +320,7 @@ function CourseView({ course }) {
         </div>
 
         <aside>
+          {course.coursePdf && <CoursePdfCard coursePdf={course.coursePdf} />}
           <h2 className="mb-3 text-base font-bold text-gray-900">{t("membre.formation.course.contentTitle")}</h2>
           <ChapterList
             course={course}

@@ -5,7 +5,9 @@ import clsx from "clsx";
 
 // Local Imports
 import { Avatar } from "app/pages/Admin/components/Avatar";
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useMemberLevel } from "../../context/MemberLevelContext";
+import { useReportMatches } from "../../components/searchSummary";
 import { getTontineGroup } from "../mockData";
 
 // ----------------------------------------------------------------------
@@ -21,10 +23,17 @@ import { getTontineGroup } from "../mockData";
 // pour toute la page. Le ✓ est actif (bleu) si la cotisation a été faite
 // à la date prévue, sinon c'est la ✕ qui est active (rouge) — jamais les
 // deux en même temps.
-export function TontineStatus() {
+export function TontineStatus({ query = "", onMatches }) {
   const { t } = useTranslation();
   const { activeLevelKey } = useMemberLevel();
-  const tontineGroup = getTontineGroup(activeLevelKey);
+  const tontineGroup = getTontineGroup(activeLevelKey).filter(
+    (member) =>
+      searchTextIncludes(member.name, query) || searchTextIncludes(member.city, query),
+  );
+  useReportMatches(onMatches, "tontine", tontineGroup.length);
+
+  // Recherche en cours sans correspondance : la section disparaît.
+  if (query.trim() !== "" && tontineGroup.length === 0) return null;
 
   return (
     <div className="mt-6">

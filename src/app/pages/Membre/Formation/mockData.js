@@ -2,6 +2,7 @@
 import { initialTrainingsByLevel } from "app/pages/Admin/Formation/mockData";
 import { levels } from "app/pages/Simulateur/data";
 import { trainingDomains } from "./domains";
+import { getAccountOverrides } from "../accountData";
 
 // ----------------------------------------------------------------------
 // Catalogue de formations côté MEMBRE. Il part du même catalogue que
@@ -19,6 +20,20 @@ import { trainingDomains } from "./domains";
 //   VIDÉO DE DÉMONSTRATION de 20 secondes (public/formation-demo.webm).
 //   Quand les vraies vidéos seront stockées (backend), "url" viendra
 //   d'elles, une par leçon, sans changer le reste de l'interface.
+//
+// Chaque formation peut avoir, EN PLUS des vidéos de ses chapitres, UN support
+// PDF qui regroupe tous les chapitres (training.coursePdf → course.coursePdf) :
+// ce n'est pas une leçon (il ne compte pas dans l'avancement), c'est un
+// document de référence téléchargeable, affiché à côté des chapitres (voir
+// CoursePdfCard.jsx).
+//
+// Un chapitre peut aussi contenir, APRÈS ses vidéos, des supports PDF
+// (chapter.documents, téléchargeables) puis des quiz de validation
+// (chapter.quizzes). Une formation peut en plus avoir un quiz de pré-requis
+// (training.prerequisiteQuiz), à réussir avant d'en ouvrir le contenu. Tous
+// les éléments d'un chapitre sont des "leçons" (course.lessons) avec un
+// "type" — "video", "pdf" ou "quiz" — pour que l'avancement, la reprise et
+// la liste des chapitres les traitent de la même façon.
 const DEMO_VIDEO_URL = "/formation-demo.webm";
 
 // Avancement de DÉPART du membre quand il diffère du "progress" du
@@ -41,11 +56,26 @@ function buildCourse(training, levelKey) {
   const chapters = (training.objectives?.chapters ?? []).map((chapter, chapterIndex) => ({
     id: `${training.id}-c${chapterIndex + 1}`,
     title: chapter.title,
-    lessons: (chapter.objectives ?? []).map((objective, lessonIndex) => ({
-      id: `${training.id}-c${chapterIndex + 1}-l${lessonIndex + 1}`,
-      title: objective,
-      url: DEMO_VIDEO_URL,
-    })),
+    lessons: [
+      ...(chapter.objectives ?? []).map((objective, lessonIndex) => ({
+        id: `${training.id}-c${chapterIndex + 1}-l${lessonIndex + 1}`,
+        type: "video",
+        title: objective,
+        url: DEMO_VIDEO_URL,
+      })),
+      ...(chapter.documents ?? []).map((document) => ({
+        id: document.id,
+        type: "pdf",
+        title: document.title,
+        url: document.url,
+      })),
+      ...(chapter.quizzes ?? []).map((quiz) => ({
+        id: quiz.id,
+        type: "quiz",
+        title: quiz.title,
+        quiz,
+      })),
+    ],
   }));
 
   return {
@@ -58,9 +88,12 @@ function buildCourse(training, levelKey) {
     levelKey,
     coinsReward: coinsRewardFor(levelKey),
     domainKey: trainingDomains[training.id] ?? "fondamentaux",
-    baseProgress: memberStartProgress[training.id] ?? training.progress ?? 0,
+    baseProgress:
+      getAccountOverrides()?.trainingStartProgress?.[training.id] ?? memberStartProgress[training.id] ?? training.progress ?? 0,
     objectives: training.objectives?.global ?? [],
     outcomes: training.objectives?.outcomes ?? [],
+    prerequisiteQuiz: training.prerequisiteQuiz ?? null,
+    coursePdf: training.coursePdf ?? null,
     chapters,
     lessons: chapters.flatMap((chapter) => chapter.lessons),
   };

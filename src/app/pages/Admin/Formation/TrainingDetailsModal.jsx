@@ -3,17 +3,25 @@ import { useState } from "react";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import {
   AcademicCapIcon,
+  ArrowTopRightOnSquareIcon,
   CalendarDaysIcon,
   CheckCircleIcon,
+  ClipboardDocumentCheckIcon,
   ClockIcon,
+  DocumentTextIcon,
   FilmIcon,
+  PencilSquareIcon,
   PlayCircleIcon,
   PlusIcon,
   StarIcon,
+  TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
+
+// Local Imports
+import { QuizEditorDialog } from "./QuizEditor";
 
 // ----------------------------------------------------------------------
 
@@ -208,6 +216,315 @@ function ChapterVideos({ chapter, chapterIndex, onAddVideo, onToggleWatched, onP
   );
 }
 
+// Support PDF de TOUTE la formation : un seul fichier qui regroupe tous les
+// chapitres, proposé au téléchargement aux membres en plus des vidéos de
+// chaque chapitre (voir Membre/Formation/CoursePdfCard.jsx). Même principe
+// que les autres envois : sans serveur d'envoi, le fichier reste local à la
+// session (URL.createObjectURL) et l'admin en est prévenu sous le formulaire.
+// Ajouter un nouveau PDF remplace le précédent.
+function CoursePdfSection({ coursePdf, onSetCoursePdf }) {
+  const { t } = useTranslation();
+  const [showForm, setShowForm] = useState(false);
+  const [file, setFile] = useState(null);
+  const [title, setTitle] = useState("");
+
+  const closeForm = () => {
+    setShowForm(false);
+    setFile(null);
+    setTitle("");
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (!file) return;
+    onSetCoursePdf({
+      id: `cp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      title: title.trim() || file.name.replace(/\.pdf$/i, ""),
+      url: URL.createObjectURL(file),
+    });
+    closeForm();
+  };
+
+  return (
+    <section className="mt-4 rounded-2xl border border-red-100 bg-red-50/40 p-5">
+      <h3 className="flex items-center gap-1.5 text-sm font-bold text-red-700">
+        <DocumentTextIcon aria-hidden="true" className="size-4" />
+        {t("admin.formation.modal.coursePdfSection")}
+      </h3>
+      <p className="mt-1 text-xs text-red-700/80">{t("admin.formation.modal.coursePdfHint")}</p>
+
+      {coursePdf ? (
+        <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-100 bg-white p-2">
+          <DocumentTextIcon aria-hidden="true" className="size-5 shrink-0 text-red-500" />
+          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-gray-700">{coursePdf.title}</span>
+          <a
+            href={coursePdf.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t("admin.formation.modal.openDocument")}
+            title={t("admin.formation.modal.openDocument")}
+            className="flex size-7 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-50 hover:text-[#52A2DF]"
+          >
+            <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-4" />
+          </a>
+          <button
+            type="button"
+            onClick={() => onSetCoursePdf(null)}
+            aria-label={t("admin.formation.modal.removeCoursePdf")}
+            title={t("admin.formation.modal.removeCoursePdf")}
+            className="flex size-7 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-50 hover:text-red-500"
+          >
+            <TrashIcon aria-hidden="true" className="size-4" />
+          </button>
+        </div>
+      ) : (
+        <p className="mt-3 text-xs text-gray-500">{t("admin.formation.modal.noCoursePdf")}</p>
+      )}
+
+      {showForm ? (
+        <form onSubmit={handleSubmit} className="mt-2 space-y-2 rounded-xl border border-dashed border-red-200 bg-white p-3">
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            className="block w-full text-xs text-gray-500 file:mr-2 file:rounded-lg file:border-0 file:bg-[#52A2DF]/[0.1] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-[#52A2DF]"
+          />
+          <input
+            type="text"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder={t("admin.formation.modal.documentTitlePlaceholder")}
+            className="block w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-700 outline-none focus:border-[#52A2DF]"
+          />
+          <p className="text-[11px] text-gray-400">{t("admin.formation.modal.documentSessionOnlyHint")}</p>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={closeForm}
+              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              {t("admin.formation.modal.cancel")}
+            </button>
+            <button
+              type="submit"
+              disabled={!file}
+              className="rounded-lg bg-[#52A2DF] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {t("admin.formation.modal.confirmAddVideo")}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
+          className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#52A2DF] hover:underline"
+        >
+          <PlusIcon aria-hidden="true" className="size-3.5" />
+          {t(coursePdf ? "admin.formation.modal.replaceCoursePdf" : "admin.formation.modal.addCoursePdf")}
+        </button>
+      )}
+    </section>
+  );
+}
+
+// Supports PDF d'un chapitre. Contrairement aux vidéos, les PDF sont
+// TÉLÉCHARGEABLES par les membres (voir Membre/Formation/PdfViewer.jsx).
+// Même principe que les vidéos : tant qu'il n'existe aucun endpoint
+// d'upload, le fichier ajouté reste local à la session (URL.createObjectURL)
+// et l'admin en est prévenu sous le formulaire.
+function ChapterDocuments({ chapter, chapterIndex, onAddDocument, onRemoveDocument }) {
+  const { t } = useTranslation();
+  const documents = chapter.documents ?? [];
+  const [showAdd, setShowAdd] = useState(false);
+  const [file, setFile] = useState(null);
+  const [title, setTitle] = useState("");
+
+  const closeAddForm = () => {
+    setShowAdd(false);
+    setFile(null);
+    setTitle("");
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (!file) return;
+    onAddDocument(chapterIndex, {
+      id: `d-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      title: title.trim() || file.name.replace(/\.pdf$/i, ""),
+      url: URL.createObjectURL(file),
+    });
+    closeAddForm();
+  };
+
+  return (
+    <div className="mt-4">
+      <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-400">
+        <DocumentTextIcon aria-hidden="true" className="size-3.5" />
+        {t("admin.formation.modal.documentsSection")}
+      </h4>
+
+      {documents.length > 0 ? (
+        <ul className="mt-2 space-y-1.5">
+          {documents.map((document) => (
+            <li
+              key={document.id}
+              className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50/60 p-2"
+            >
+              <DocumentTextIcon aria-hidden="true" className="size-5 shrink-0 text-red-500" />
+              <span className="min-w-0 flex-1 truncate text-xs font-semibold text-gray-700">{document.title}</span>
+              <a
+                href={document.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t("admin.formation.modal.openDocument")}
+                title={t("admin.formation.modal.openDocument")}
+                className="flex size-7 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-white hover:text-[#52A2DF]"
+              >
+                <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-4" />
+              </a>
+              <button
+                type="button"
+                onClick={() => onRemoveDocument(chapterIndex, document.id)}
+                aria-label={t("admin.formation.modal.removeDocument")}
+                title={t("admin.formation.modal.removeDocument")}
+                className="flex size-7 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-white hover:text-red-500"
+              >
+                <TrashIcon aria-hidden="true" className="size-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-xs text-gray-400">{t("admin.formation.modal.noDocuments")}</p>
+      )}
+
+      {showAdd ? (
+        <form
+          onSubmit={handleSubmit}
+          className="mt-2 space-y-2 rounded-xl border border-dashed border-gray-200 p-3"
+        >
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            className="block w-full text-xs text-gray-500 file:mr-2 file:rounded-lg file:border-0 file:bg-[#52A2DF]/[0.1] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-[#52A2DF]"
+          />
+          <input
+            type="text"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder={t("admin.formation.modal.documentTitlePlaceholder")}
+            className="block w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-700 outline-none focus:border-[#52A2DF]"
+          />
+          <p className="text-[11px] text-gray-400">{t("admin.formation.modal.documentSessionOnlyHint")}</p>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={closeAddForm}
+              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              {t("admin.formation.modal.cancel")}
+            </button>
+            <button
+              type="submit"
+              disabled={!file}
+              className="rounded-lg bg-[#52A2DF] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {t("admin.formation.modal.confirmAddVideo")}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowAdd(true)}
+          className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#52A2DF] hover:underline"
+        >
+          <PlusIcon aria-hidden="true" className="size-3.5" />
+          {t("admin.formation.modal.addDocument")}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Une ligne de quiz (titre, nombre de questions, seuil) avec "Modifier" et
+// "Supprimer" — la même pour les quiz de validation d'un chapitre et pour
+// le quiz de pré-requis de la formation.
+function QuizRow({ quiz, onEdit, onRemove }) {
+  const { t } = useTranslation();
+  return (
+    <li className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50/60 p-2">
+      <ClipboardDocumentCheckIcon aria-hidden="true" className="size-5 shrink-0 text-[#EE7115]" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-semibold text-gray-700">{quiz.title}</p>
+        <p className="text-[11px] text-gray-400">
+          {t("admin.formation.modal.quizMeta", { count: quiz.questions.length, percent: quiz.passingScore })}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onEdit}
+        aria-label={t("admin.formation.modal.editQuiz")}
+        title={t("admin.formation.modal.editQuiz")}
+        className="flex size-7 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-white hover:text-[#52A2DF]"
+      >
+        <PencilSquareIcon aria-hidden="true" className="size-4" />
+      </button>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={t("admin.formation.modal.removeQuiz")}
+        title={t("admin.formation.modal.removeQuiz")}
+        className="flex size-7 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-white hover:text-red-500"
+      >
+        <TrashIcon aria-hidden="true" className="size-4" />
+      </button>
+    </li>
+  );
+}
+
+// Quiz de validation d'un chapitre : proposés au membre APRÈS les vidéos et
+// les PDF du chapitre ; un quiz réussi compte comme une étape terminée.
+function ChapterQuizzes({ chapter, chapterIndex, onEdit, onRemove }) {
+  const { t } = useTranslation();
+  const quizzes = chapter.quizzes ?? [];
+
+  return (
+    <div className="mt-4">
+      <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-400">
+        <ClipboardDocumentCheckIcon aria-hidden="true" className="size-3.5" />
+        {t("admin.formation.modal.quizzesSection")}
+      </h4>
+
+      {quizzes.length > 0 ? (
+        <ul className="mt-2 space-y-1.5">
+          {quizzes.map((quiz) => (
+            <QuizRow
+              key={quiz.id}
+              quiz={quiz}
+              onEdit={() => onEdit(chapterIndex, quiz)}
+              onRemove={() => onRemove(chapterIndex, quiz.id)}
+            />
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-xs text-gray-400">{t("admin.formation.modal.noQuizzes")}</p>
+      )}
+
+      <button
+        type="button"
+        onClick={() => onEdit(chapterIndex, null)}
+        className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#52A2DF] hover:underline"
+      >
+        <PlusIcon aria-hidden="true" className="size-3.5" />
+        {t("admin.formation.modal.addQuiz")}
+      </button>
+    </div>
+  );
+}
+
 // Fiche détaillée d'une formation, ouverte au clic sur sa carte (voir
 // TrainingCard.jsx) : reprend l'esprit de la maquette "Sprint" fournie
 // par l'utilisateur (un bloc d'objectifs généraux en tête, puis une
@@ -223,6 +540,11 @@ export function TrainingDetailsModal({
   onClose,
   onAddVideo,
   onToggleWatched,
+  onSetCoursePdf,
+  onAddDocument,
+  onRemoveDocument,
+  onSaveQuiz,
+  onRemoveQuiz,
 }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("fr") ? "fr-FR" : "en-US";
@@ -233,6 +555,11 @@ export function TrainingDetailsModal({
   // Formation/index.jsx) — pour que, par exemple, le badge "vue" du
   // lecteur reste juste si l'admin le bascule pendant la lecture.
   const [playing, setPlaying] = useState(null); // { chapterIndex, videoId } | null
+
+  // Quiz en cours d'édition dans l'éditeur (voir QuizEditor.jsx) :
+  // { chapterIndex, quiz } — "chapterIndex" null = le quiz de pré-requis de
+  // la formation, "quiz" null = un nouveau quiz.
+  const [editingQuiz, setEditingQuiz] = useState(null);
 
   if (!training) return null;
 
@@ -249,6 +576,8 @@ export function TrainingDetailsModal({
     : null;
 
   const handlePlay = (chapterIndex, videoId) => setPlaying({ chapterIndex, videoId });
+
+  const prerequisiteQuiz = training.prerequisiteQuiz ?? null;
 
   const handlePlayingEnded = () => {
     if (playing && playingVideo && !playingVideo.watched) {
@@ -326,6 +655,40 @@ export function TrainingDetailsModal({
               />
             </section>
 
+            {/* Quiz de pré-requis : au tout début de la formation, à
+                réussir par le membre avant d'en ouvrir le contenu. */}
+            <section className="mt-4 rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
+              <h3 className="flex items-center gap-1.5 text-sm font-bold text-amber-700">
+                <ClipboardDocumentCheckIcon aria-hidden="true" className="size-4" />
+                {t("admin.formation.modal.prerequisiteSection")}
+              </h3>
+              <p className="mt-1 text-xs text-amber-700/80">{t("admin.formation.modal.prerequisiteHint")}</p>
+              {prerequisiteQuiz ? (
+                <ul className="mt-3 space-y-1.5">
+                  <QuizRow
+                    quiz={prerequisiteQuiz}
+                    onEdit={() => setEditingQuiz({ chapterIndex: null, quiz: prerequisiteQuiz })}
+                    onRemove={() => onRemoveQuiz(null, prerequisiteQuiz.id)}
+                  />
+                </ul>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setEditingQuiz({ chapterIndex: null, quiz: null })}
+                  className="mt-3 flex items-center gap-1 text-xs font-semibold text-[#52A2DF] hover:underline"
+                >
+                  <PlusIcon aria-hidden="true" className="size-3.5" />
+                  {t("admin.formation.modal.addPrerequisite")}
+                </button>
+              )}
+            </section>
+
+            {/* Le PDF qui regroupe tous les chapitres, en plus des vidéos
+                de chaque chapitre (cartes ci-dessous). */}
+            <CoursePdfSection coursePdf={training.coursePdf ?? null} onSetCoursePdf={onSetCoursePdf} />
+
+            <p className="mt-4 text-[11px] text-gray-400">{t("admin.formation.modal.downloadRules")}</p>
+
             {/* Un chapitre = une carte, avec ses propres objectifs —
                 même logique de grille que la maquette de référence. */}
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -346,6 +709,18 @@ export function TrainingDetailsModal({
                     onAddVideo={onAddVideo}
                     onToggleWatched={onToggleWatched}
                     onPlay={handlePlay}
+                  />
+                  <ChapterDocuments
+                    chapter={chapter}
+                    chapterIndex={chapterIndex}
+                    onAddDocument={onAddDocument}
+                    onRemoveDocument={onRemoveDocument}
+                  />
+                  <ChapterQuizzes
+                    chapter={chapter}
+                    chapterIndex={chapterIndex}
+                    onEdit={(index, quiz) => setEditingQuiz({ chapterIndex: index, quiz })}
+                    onRemove={onRemoveQuiz}
                   />
                 </section>
               ))}
@@ -395,6 +770,9 @@ export function TrainingDetailsModal({
                   key={playingVideo.id}
                   src={playingVideo.url}
                   controls
+                  controlsList="nodownload noremoteplayback"
+                  disablePictureInPicture
+                  onContextMenu={(event) => event.preventDefault()}
                   autoPlay
                   className="aspect-video w-full bg-black"
                   onEnded={handlePlayingEnded}
@@ -404,6 +782,21 @@ export function TrainingDetailsModal({
           </DialogPanel>
         </div>
       </Dialog>
+
+      <QuizEditorDialog
+        open={!!editingQuiz}
+        initial={editingQuiz?.quiz ?? null}
+        heading={t(
+          editingQuiz?.chapterIndex == null
+            ? "admin.formation.quizEditor.prerequisiteHeading"
+            : "admin.formation.quizEditor.validationHeading",
+        )}
+        onClose={() => setEditingQuiz(null)}
+        onSave={(quiz) => {
+          onSaveQuiz(editingQuiz.chapterIndex, quiz);
+          setEditingQuiz(null);
+        }}
+      />
     </Dialog>
   );
 }

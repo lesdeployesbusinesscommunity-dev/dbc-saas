@@ -415,7 +415,8 @@
       "finance": "Finance",
       "formation": "Training",
       "parametres": "Settings",
-      "piliers": "Pillars"
+      "piliers": "Pillars",
+      "notifications": "Notifications"
     },
     "comingSoon": {
       "message": "This section is under construction and coming soon."
@@ -849,9 +850,50 @@
           "mois_other": "months",
           "annees_one": "year",
           "annees_other": "years"
-        }
+        },
+        "prerequisiteSection": "Prerequisite quiz",
+        "prerequisiteHint": "Asked at the very start of the training: the member must pass it before opening the content.",
+        "addPrerequisite": "Add a prerequisite quiz",
+        "downloadRules": "Videos cannot be downloaded (watched on the platform only); PDFs can be downloaded by members.",
+        "documentsSection": "PDF materials",
+        "noDocuments": "No PDF yet in this chapter.",
+        "addDocument": "Add a PDF",
+        "documentTitlePlaceholder": "PDF title (optional)",
+        "documentSessionOnlyHint": "PDF imported for this session only (no upload server yet) — it will disappear when the tab is closed.",
+        "openDocument": "Open the PDF",
+        "removeDocument": "Remove this PDF",
+        "quizzesSection": "Validation quizzes",
+        "noQuizzes": "No quiz yet in this chapter.",
+        "addQuiz": "Add a validation quiz",
+        "editQuiz": "Edit the quiz",
+        "removeQuiz": "Remove the quiz",
+        "quizMeta": "{{count}} question(s) · pass mark {{percent}} %",
+        "coursePdfSection": "Full course handout (PDF)",
+        "coursePdfHint": "A single PDF covering all chapters, in addition to each chapter's videos. Members can download it.",
+        "noCoursePdf": "No course PDF yet.",
+        "addCoursePdf": "Add the course PDF",
+        "replaceCoursePdf": "Replace the course PDF",
+        "removeCoursePdf": "Remove the course PDF"
       },
-      "addButton": "Add a training"
+      "addButton": "Add a training",
+      "quizEditor": {
+        "prerequisiteHeading": "Prerequisite quiz",
+        "validationHeading": "Validation quiz",
+        "title": "Quiz title",
+        "titlePlaceholder": "e.g. Validation quiz — Chapter 1",
+        "passingScore": "Pass mark (%)",
+        "correctHint": "Tick the right answer(s) of each question: one box = single answer, several boxes = the member must tick exactly all the right ones.",
+        "questionPlaceholder": "Question text",
+        "questionLabel": "Question {{n}}",
+        "optionPlaceholder": "Answer {{letter}}",
+        "correctAnswer": "Answer {{letter}} is a right answer",
+        "addOption": "Add an answer",
+        "removeOption": "Remove this answer",
+        "addQuestion": "Add a question",
+        "removeQuestion": "Remove this question",
+        "invalid": "To save: a title, and for each question a text, at least 2 answers and at least 1 right answer.",
+        "save": "Save the quiz"
+      }
     },
     "parametres": {
       "title": "Settings",
@@ -901,17 +943,12 @@
         "twoFactorEnabled": "Two-factor authentication",
         "twoFactorHint": "Requires an extra code when admins sign in",
         "sessionTimeout": "Session timeout",
-        "passwordPolicy": "Password policy",
         "sessionTimeoutOptions": {
           "15": "15 minutes",
           "30": "30 minutes",
           "60": "1 hour",
           "240": "4 hours",
           "480": "8 hours"
-        },
-        "passwordPolicyOptions": {
-          "standard": "Standard (8 characters minimum)",
-          "renforcee": "Strong (12 characters, uppercase, digit, symbol)"
         }
       },
       "notifications": {
@@ -932,7 +969,10 @@
           "nouvelleFormation": "New training available",
           "rappelFormation": "Training progress reminder",
           "changementNiveau": "Level change",
-          "annonceGouvernance": "Governance announcement"
+          "annonceGouvernance": "Governance announcement",
+          "rencontre": "DBC meeting or event",
+          "coinsGagnes": "Coins earned",
+          "nouveauFilleul": "New sponsored member"
         }
       },
       "backup": {
@@ -946,6 +986,18 @@
           "weekly": "Weekly",
           "monthly": "Monthly"
         }
+      },
+      "memberBadge": "Affects members",
+      "memberAccounts": {
+        "title": "Member accounts",
+        "description": "Rules applied to member-space accounts: password and automatic sign-out.",
+        "passwordMinLength": "Minimum password length",
+        "idleMinutes": "Sign out after inactivity",
+        "idleOption": "{{count}} minutes",
+        "passwordHint": "Between {{min}} and {{max}} characters. Members see this rule in Settings > Security.",
+        "requireUpper": "Require an uppercase letter",
+        "requireDigit": "Require a digit",
+        "requireSymbol": "Require a symbol"
       }
     },
     "piliers": {
@@ -994,6 +1046,19 @@
       "visibleCount": "{{visible}} of {{total}} visible",
       "add": "Add a program",
       "added": "Added"
+    },
+    "profileMenu": {
+      "open": "Open the profile menu",
+      "settings": "Settings",
+      "switch": "Switch to member mode",
+      "switchHint": "Go back to the member area",
+      "logout": "Sign out",
+      "confirm": {
+        "title": "Sign out?",
+        "text": "The administrator session will be closed. It is possible to sign back in at any time.",
+        "yes": "Yes, sign out",
+        "cancel": "Cancel"
+      }
     }
   },
   "membre": {
@@ -1005,14 +1070,17 @@
       "reseau": "My Network",
       "formation": "Training",
       "parametres": "Settings",
-      "piliers": "Pillars"
+      "piliers": "Pillars",
+      "notifications": "Notifications"
     },
     "comingSoon": {
       "message": "This section is under construction and coming soon."
     },
     "topbar": {
       "notifications": "Notifications",
-      "searchPlaceholder": "Search"
+      "searchPlaceholder": "Search",
+      "eyebrow": "Member area",
+      "noNotifications": "No new notifications for now."
     },
     "dashboard": {
       "title": "Dashboard",
@@ -1020,6 +1088,56 @@
       "welcome": {
         "greeting": "Hello",
         "subtitle": "Welcome to your session — you can track your tontine's progress here."
+      },
+      "news": {
+        "label": "DBC news",
+        "kind": {
+          "event": "Event",
+          "formation": "New training",
+          "antenne": "New branch",
+          "niveau": "Your next level",
+          "general": "DBC news"
+        },
+        "cta": {
+          "participate": "I'll attend",
+          "openFormation": "View the training",
+          "requestLevel": "Request this level",
+          "seeNetwork": "View my network",
+          "discover": "Discover"
+        },
+        "dateStarts": "Starts {{date}}",
+        "dateOpens": "Opens {{date}}",
+        "formationText": "With {{trainer}} · {{duration}}",
+        "levelTitle": "Move up to the {{level}} level",
+        "levelText": "{{cotisation}} monthly contribution for a {{cagnotte}} jackpot.",
+        "prev": "Previous news item",
+        "next": "Next news item",
+        "pause": "Pause the slideshow",
+        "play": "Resume the slideshow",
+        "goTo": "Go to news item {{n}} of {{total}}",
+        "items": {
+          "rencontreDouala": {
+            "title": "DBC meetup in Douala",
+            "text": "An evening to network with members, talk about your projects and meet the team.",
+            "place": "Akwa, Douala",
+            "question": "Would you like to register for the DBC meetup in Douala?"
+          },
+          "antenneBafoussam": {
+            "title": "New DBC branch in Bafoussam",
+            "text": "Members in the West now have a meeting point: meetings, coaching and training close to home.",
+            "place": "Bafoussam, Cameroon"
+          },
+          "atelierYaounde": {
+            "title": "Funding workshop in Yaoundé",
+            "text": "How to present your project and access funding: a hands-on workshop led by the DBC team.",
+            "place": "Yaoundé, Cameroon",
+            "question": "Would you like to register for the Yaoundé workshop?"
+          },
+          "nouveauxProgrammes": {
+            "title": "New programs in the Pillars",
+            "text": "Explore the programs of the DBC pillars and find the one that fits your project."
+          }
+        }
       },
       "profile": {
         "coins": "DBC Coins",
@@ -1055,6 +1173,8 @@
           "cotisation": "July Tontine Contribution",
           "formation": "Business School Training Lvl.3",
           "coins": "+75 Coins — Monthly Challenge",
+          "parrainageOf": "Referred {{name}}",
+          "formationNamed": "Training: {{name}}",
           "parrainage": "Referred Patrick Essono"
         },
         "time": {
@@ -1101,7 +1221,8 @@
         "requestButton": "Request",
         "alreadyMember": "Already a member",
         "requestQuestion": "Would you like to request the {{level}} level? A new tontine will be opened for you at this level."
-      }
+      },
+      "searchPlaceholder": "Search an activity, a level, a training…"
     },
     "common": {
       "months": [
@@ -1211,7 +1332,8 @@
             "answer": "The cycle is closed: you can then restart a new tontine at this level or request to move up to the next level, from the button at the bottom of this page."
           }
         ]
-      }
+      },
+      "searchPlaceholder": "Search a group member…"
     },
     "mlm": {
       "overviewTitle": "Longrich MLM Business, My tree",
@@ -1255,8 +1377,13 @@
       },
       "ineligible": {
         "title": "Not yet eligible for the Longrich MLM",
-        "message": "The {{currentLevel}} level doesn't give access to it. Reach at least the {{requiredLevel}} level to unlock your tree and your Longrich commissions."
-      }
+        "message": "The {{currentLevel}} level doesn't give access to it. Reach at least the {{requiredLevel}} level to unlock your tree and your Longrich commissions.",
+        "requestButton": "Request this level",
+        "ownedTitle": "You already have the {{level}} level",
+        "ownedMessage": "You are currently viewing the {{currentLevel}} level, which doesn't give access to the Longrich MLM. Your {{level}} level does: activate it to show your tree and your commissions.",
+        "activateButton": "Activate this level"
+      },
+      "searchPlaceholder": "Search a referral or a pack…"
     },
     "coins": {
       "hero": {
@@ -1346,7 +1473,8 @@
             "description": "A one-to-one session with a community coach."
           }
         }
-      }
+      },
+      "searchPlaceholder": "Search a member, a reward, an activity…"
     },
     "reseau": {
       "title": "My sponsorship line",
@@ -1363,6 +1491,7 @@
       },
       "stats": {
         "sponsor": "My sponsor",
+        "noSponsor": "None (founder)",
         "direct": "Direct referrals",
         "total": "Total network"
       },
@@ -1423,7 +1552,8 @@
         "mlm": "Longrich commissions this month",
         "top": "Top-earning referrals (Longrich)",
         "seeMlm": "See details in My MLM"
-      }
+      },
+      "searchPlaceholder": "Search someone in my network…"
     },
     "formation": {
       "domains": {
@@ -1477,7 +1607,8 @@
         "lessons_one": "{{count}} lesson",
         "lessons_other": "{{count}} lessons",
         "coinsToEarn": "{{coins}} Coins to earn",
-        "coinsEarned": "{{coins}} Coins earned"
+        "coinsEarned": "{{coins}} Coins earned",
+        "prerequisite": "Prerequisite quiz"
       },
       "empty": "No training for this level yet.",
       "emptyFilter": "No training matches these filters.",
@@ -1511,25 +1642,65 @@
         "progressDetail_other": "{{count}} of {{total}} lessons completed",
         "coinsToEarn": "Finish this training to earn {{coins}} Coins",
         "coinsEarned": "{{coins}} Coins earned with this training",
-        "seeCoins": "See my Coins"
+        "seeCoins": "See my Coins",
+        "type": {
+          "video": "Video",
+          "pdf": "PDF",
+          "quiz": "Quiz"
+        },
+        "quizDone": "Quiz passed",
+        "videoOnlyHint": "This video can only be watched on the platform: it cannot be downloaded."
       },
       "lockedSection": {
         "title": "Unlock more trainings",
         "subtitle": "These trainings open up when you join the level shown.",
         "requires": "Required level: {{level}}",
         "discover": "Discover this level"
+      },
+      "searchPlaceholder": "Search a training, a trainer, a field…",
+      "pdf": {
+        "hint": "Downloadable material: save it to your computer to keep it.",
+        "download": "Download the PDF",
+        "open": "Open in a tab"
+      },
+      "quiz": {
+        "questionCount_one": "{{count}} question",
+        "questionCount_other": "{{count}} questions",
+        "passingScore": "pass mark {{percent}} %",
+        "multipleHint": "Several answers possible: tick all the right ones.",
+        "answerAll": "Answer every question to submit.",
+        "submit": "Submit my answers",
+        "goodAnswer": "Right answer",
+        "wrongAnswer": "Wrong answer",
+        "questionRight": "Well done!",
+        "questionWrong": "That's not the right answer: the correction is in green.",
+        "score": "Your score: {{percent}} % ({{correct}} out of {{total}})",
+        "retry": "Try again",
+        "retake": "Retake the quiz",
+        "alreadyPassed": "Quiz already passed",
+        "bestScore": "Best score: {{percent}} %",
+        "validation": {
+          "passed": "Well done, you passed this quiz (pass mark: {{percent}} %).",
+          "failed": "You need at least {{percent}} % to pass. Review the chapter's lessons, then try again.",
+          "continue": "Next lesson"
+        },
+        "prerequisite": {
+          "intro": "Before starting this training, answer this short quiz: it checks that you have the basics needed. You can retake it as many times as you like.",
+          "passed": "Well done, you have the basics to follow this training (pass mark: {{percent}} %).",
+          "failed": "You need at least {{percent}} % to access the training. Read the correction in green, then try again.",
+          "continue": "Start the training"
+        }
+      },
+      "coursePdf": {
+        "title": "Full course handout",
+        "hint": "One PDF with every chapter of the course: download it to keep it on your computer."
       }
     },
     "parametres": {
       "saved": "Saved",
       "profile": {
         "title": "My profile",
-        "description": "Your personal details, as other members and the DBC team see you.",
-        "changePhoto": "Change photo",
-        "removePhoto": "Remove",
-        "photoHint": "Square image preferred, 5 MB maximum.",
-        "photoNotImage": "This file is not an image.",
-        "photoTooBig": "This image is larger than 5 MB.",
+        "description": "Your personal details, as the DBC team has recorded them.",
         "firstName": "First name",
         "lastName": "Last name",
         "email": "Email",
@@ -1538,13 +1709,10 @@
         "country": "Country",
         "profession": "Job / Profession",
         "matricule": "Member ID: {{matricule}}",
-        "matriculeHint": "Your member ID is unique and cannot be changed: it is what your referrals enter when they sign up. To correct your legal name or ID document, contact the DBC team.",
-        "save": "Save",
-        "errors": {
-          "required": "This field is required.",
-          "email": "Enter a valid email address.",
-          "phone": "Enter a valid number with the country code (e.g. +237…)."
-        }
+        "matriculeHint": "Your member ID is unique: it is what your referrals enter when they sign up.",
+        "notProvided": "Not provided",
+        "lockedTitle": "Locked information",
+        "lockedHint": "For security reasons, you cannot change this information yourself: only your password can be changed (Security section below). To correct your name, number, email or anything else, contact the DBC team."
       },
       "security": {
         "title": "Security",
@@ -1552,16 +1720,22 @@
         "current": "Current password",
         "new": "New password",
         "confirm": "Confirm the new password",
-        "rule": "At least {{min}} characters, with at least one letter and one digit.",
+        "rule": "At least {{min}} characters, with {{requirements}}.",
         "show": "Show passwords",
         "hide": "Hide passwords",
         "submit": "Change password",
         "done": "Your password has been changed.",
         "errors": {
           "currentRequired": "Enter your current password.",
-          "weak": "At least {{min}} characters, with a letter and a digit.",
+          "weak": "At least {{min}} characters, with {{requirements}}.",
           "same": "The new password must be different from the current one.",
           "mismatch": "The two passwords do not match."
+        },
+        "requirements": {
+          "letter": "at least one letter",
+          "upper": "an uppercase letter",
+          "digit": "a digit",
+          "symbol": "a symbol"
         }
       },
       "notifications": {
@@ -1640,7 +1814,9 @@
         "deleteButton": "Request deletion",
         "deleteConfirm": "Yes, send my request",
         "deleteSent": "Request sent. The DBC team will contact you.",
-        "deleteCancel": "Cancel my request"
+        "deleteCancel": "Cancel my request",
+        "deleteValidated": "Request approved. The DBC team will contact you to finalise this with you.",
+        "deleteRefused": "Your last request was declined: your account is kept."
       }
     },
     "piliers": {
@@ -1686,7 +1862,24 @@
       "otherGroups": "The other pillars",
       "formationCta": "Go to the Training page",
       "emptyGroup": "No program is available for this pillar right now.",
-      "back": "Back to pillars"
+      "back": "Back to pillars",
+      "searchPlaceholder": "Search a pillar or a program…"
+    },
+    "search": {
+      "noResults": "No results for “{{query}}”"
+    },
+    "profileMenu": {
+      "open": "Open the profile menu",
+      "settings": "My profile and settings",
+      "switch": "Switch to admin mode",
+      "switchHint": "Go to the administration area",
+      "logout": "Sign out",
+      "confirm": {
+        "title": "Sign out?",
+        "text": "You are about to leave your member area. You can sign back in at any time.",
+        "yes": "Yes, sign me out",
+        "cancel": "Cancel"
+      }
     }
   },
   "piliers": {
@@ -1929,6 +2122,298 @@
       "marketplace": {
         "name": "DBC Marketplace",
         "summary": "The community marketplace: members showcase their products and services."
+      }
+    }
+  },
+  "session": {
+    "warnTitle": "Still there?",
+    "warnText": "With no activity from you, your session will close in {{seconds}} s to protect your information.",
+    "stay": "Stay signed in",
+    "logout": "Sign out",
+    "notice": {
+      "required": "Sign in to access your space.",
+      "expired": "Your session was closed for security after a period of inactivity. Sign in again to continue.",
+      "logout": "You are signed out. See you soon!"
+    },
+    "locked": "Too many attempts. Try again in {{seconds}} s."
+  },
+  "notifications": {
+    "unread": "Unread",
+    "unreadCount_one": "{{count}} unread",
+    "unreadCount_other": "{{count}} unread",
+    "markAllRead": "Mark all as read",
+    "seeAll": "See all notifications",
+    "emptyBell": "No notifications yet.",
+    "filters": "Filter notifications",
+    "filter": {
+      "all": "All",
+      "unread": "Unread"
+    },
+    "groups": {
+      "requests": "Requests",
+      "tontine": "Tontine",
+      "coins": "Coins",
+      "formation": "Trainings",
+      "community": "DBC and meetings",
+      "system": "Platform"
+    },
+    "searchPlaceholder": "Search a notification",
+    "noResults": "No results",
+    "noResultsHint": "No notification matches this search.",
+    "allRead": "All caught up",
+    "empty": "No notifications",
+    "emptyHint": {
+      "membre": "News from DBC, your tontine, your trainings and your Coins will show up here.",
+      "admin": "Member requests and platform alerts will show up here."
+    },
+    "pendingTitle": "My pending requests",
+    "pendingHint": "The DBC team handles them and answers you here, in your notifications.",
+    "validate": "Approve",
+    "refuse": "Decline",
+    "status": {
+      "pending": "To review",
+      "validated": "Approved",
+      "refused": "Declined",
+      "withdrawn": "Withdrawn by the member"
+    },
+    "decidedOn": {
+      "validated": "approved on {{date}}",
+      "refused": "declined on {{date}}",
+      "withdrawn": "withdrawn on {{date}}"
+    },
+    "profile": {
+      "show": "View member profile",
+      "hide": "Hide profile",
+      "name": "Name",
+      "matricule": "Member ID",
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "location": "City and country",
+      "profession": "Profession",
+      "levels": "Levels",
+      "coins": "Coins balance",
+      "sponsored": "Sponsored members"
+    },
+    "mail": {
+      "button": "Write an email",
+      "hint": "The message opens already written, with the member's profile. Just review it and send it from your mailbox.",
+      "providers": {
+        "default": "Computer's default mail app",
+        "gmail": "Gmail (web)",
+        "outlook": "Outlook (web)"
+      },
+      "greeting": "Hello {{firstName}},",
+      "profileTitle": "Your profile on file:",
+      "closing": "Best regards,",
+      "signature": "The {{platform}} team",
+      "intro": {
+        "deleteAccount": "We have received your account deletion request. Before processing it, we would like to talk with you about your ongoing tontine and your Coins balance.",
+        "level": "We have received your request to join the {{level}} level. We will get back to you with the next steps.",
+        "event": "We have received your request to take part in: {{event}}. We will get back to you to confirm your seat.",
+        "reward": "We have received your request to exchange {{cost}} Coins for: {{reward}}. We will get back to you with the next steps.",
+        "tontineNext": {
+          "restart": "Your tontine cycle is over and you would like to start it again at the {{level}} level. We will get back to you with the next steps.",
+          "levelUp": "Your tontine cycle is over and you would like to move up to the {{nextLevel}} level. We will get back to you with the next steps."
+        }
+      },
+      "subject": {
+        "deleteAccount": "Your account deletion request",
+        "level": "Your request to join the {{level}} level",
+        "event": "Your participation: {{event}}",
+        "reward": "Your Coins exchange: {{reward}}",
+        "tontineNext": {
+          "restart": "What's next for your tontine: start again",
+          "levelUp": "What's next for your tontine: {{nextLevel}} level"
+        }
+      }
+    },
+    "confirmDelete": {
+      "validateTitle": "Approve this account deletion?",
+      "validateText": "The member will be told their request is accepted. The account is not deleted automatically: remember to write to them to settle their tontine and Coins before any deletion.",
+      "validateYes": "Yes, approve",
+      "refuseTitle": "Decline this account deletion?",
+      "refuseText": "The member will be told their account is kept.",
+      "refuseYes": "Yes, decline",
+      "cancel": "Cancel"
+    },
+    "requests": {
+      "deleteAccount": {
+        "title": "{{name}} asks to delete their account",
+        "text": "An ongoing tontine and a Coins balance must be settled before any deletion: write to the member before approving."
+      },
+      "level": {
+        "title": "{{name}} requests the {{level}} level",
+        "text": "Request to join this contribution level."
+      },
+      "event": {
+        "title": "{{name}} wants to take part in: {{event}}",
+        "text": "Request to attend this meeting."
+      },
+      "reward": {
+        "title": "{{name}} wants to exchange {{cost}} Coins",
+        "text": "Requested reward: {{reward}}."
+      },
+      "tontineNext": {
+        "restart": {
+          "title": "{{name}} wants to restart their tontine ({{level}})",
+          "text": "Their cycle is over: they ask to start a new cycle at the same level."
+        },
+        "levelUp": {
+          "title": "{{name}} wants to move up to the {{nextLevel}} level",
+          "text": "Their {{level}} cycle is over: they ask to move up a level."
+        }
+      }
+    },
+    "decisions": {
+      "deleteAccount": {
+        "validated": {
+          "title": "Your account deletion request is approved",
+          "text": "The DBC team will contact you to finalise this with you (tontine and Coins)."
+        },
+        "refused": {
+          "title": "Your account deletion request is declined",
+          "text": "Your account is kept. Write to the DBC team if you have a question."
+        }
+      },
+      "level": {
+        "validated": {
+          "title": "Your request for the {{level}} level is accepted",
+          "text": "The DBC team will contact you with the next steps."
+        },
+        "refused": {
+          "title": "Your request for the {{level}} level is not accepted",
+          "text": "Contact the DBC team to find out more."
+        }
+      },
+      "event": {
+        "validated": {
+          "title": "Your participation is confirmed: {{event}}",
+          "text": "Your seat is reserved."
+        },
+        "refused": {
+          "title": "Your participation could not be confirmed: {{event}}",
+          "text": "Contact the DBC team to find out more."
+        }
+      },
+      "reward": {
+        "validated": {
+          "title": "Your Coins exchange is accepted: {{reward}}",
+          "text": "The DBC team will contact you to hand over your reward."
+        },
+        "refused": {
+          "title": "Your Coins exchange is not accepted: {{reward}}",
+          "text": "Contact the DBC team to find out more."
+        }
+      },
+      "tontineNext": {
+        "restart": {
+          "validated": {
+            "title": "Your request to restart your tontine is accepted",
+            "text": "The DBC team will contact you to start your new cycle."
+          },
+          "refused": {
+            "title": "Your request to restart your tontine is not accepted",
+            "text": "Contact the DBC team to find out more."
+          }
+        },
+        "levelUp": {
+          "validated": {
+            "title": "Your move up to the {{nextLevel}} level is accepted",
+            "text": "The DBC team will contact you with the next steps."
+          },
+          "refused": {
+            "title": "Your move up to the {{nextLevel}} level is not accepted",
+            "text": "Contact the DBC team to find out more."
+          }
+        }
+      }
+    },
+    "mine": {
+      "deleteAccount": "Deleting my account",
+      "level": "Access to the {{level}} level",
+      "event": "Participation: {{event}}",
+      "reward": "Exchange of {{cost}} Coins: {{reward}}",
+      "tontineNext": {
+        "restart": "Restart my tontine",
+        "levelUp": "Move up to the {{nextLevel}} level"
+      }
+    },
+    "items": {
+      "cotisationRetard": {
+        "title": "Late contribution: {{level}}",
+        "text": "{{amount}} F were due on {{due}}. Please pay your contribution so the turn is not held up."
+      },
+      "cotisationRappel": {
+        "title": "Contribution reminder: {{level}}",
+        "text": "{{amount}} F to pay by {{due}} (in {{days}} days).",
+        "tomorrow": {
+          "title": "Your contribution is due tomorrow: {{level}}",
+          "text": "{{amount}} F to pay before tomorrow ({{due}})."
+        },
+        "today": {
+          "title": "Your contribution is due today: {{level}}",
+          "text": "{{amount}} F to pay today ({{due}})."
+        }
+      },
+      "cotisationSuivi": {
+        "title": "{{level}} tontine: {{paid}} of {{total}} have paid",
+        "text": "Not paid yet this month: {{names}}.",
+        "complete": {
+          "title": "{{level}} tontine: everyone has paid",
+          "text": "All {{total}} members have paid this month's contribution."
+        }
+      },
+      "tourAttribue": {
+        "title": "Turn {{tour}} of the {{level}} tontine: {{name}}",
+        "text": "The {{amount}} F pot goes to {{name}} this month."
+      },
+      "tourProche": {
+        "title": "Your tontine turn is coming: {{level}}",
+        "text": "Your turn (no. {{tour}}) comes in {{months}} months. Keep your contributions up to date.",
+        "now": {
+          "title": "Your turn is almost here: {{level}}",
+          "text": "Your turn (no. {{tour}}) is this month. Keep your contributions up to date."
+        }
+      },
+      "coins": {
+        "title": "You earned {{amount}} Coins",
+        "text": "{{label}}"
+      },
+      "filleul": {
+        "title": "New sponsored member: +{{amount}} Coins",
+        "text": "{{label}}"
+      },
+      "formationNouvelle": {
+        "title": "New training: {{name}}",
+        "text": "Available for your {{level}} level, starting {{date}}."
+      },
+      "formationRappel": {
+        "title": "Pick your training back up: {{name}}",
+        "text": "You are at {{percent}}%. Finish it to earn your Coins."
+      },
+      "rencontre": {
+        "title": "DBC meeting: {{event}}",
+        "text": "On {{date}}, {{place}}. Book your seat from your dashboard."
+      },
+      "dbc": {
+        "title": "{{title}}",
+        "text": "{{text}}"
+      },
+      "adminNouveauMembre": {
+        "title": "New member to approve: {{name}}",
+        "text": "{{city}}, {{country}}: the registration is waiting for approval in Member management."
+      },
+      "adminCotisations": {
+        "title": "This month's contributions: {{level}}",
+        "text": "{{paid}} of {{total}} members have paid this month."
+      },
+      "adminRetards": {
+        "title": "Pending contributions: {{level}}",
+        "text": "{{count}} member(s) have not paid yet: {{names}}."
+      },
+      "adminTour": {
+        "title": "Turn {{tour}} of the {{level}} tontine: {{name}}",
+        "text": "{{name}} is this month's beneficiary."
       }
     }
   }

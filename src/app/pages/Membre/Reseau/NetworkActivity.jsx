@@ -3,7 +3,9 @@ import { useTranslation } from "react-i18next";
 import { BellAlertIcon, ExclamationTriangleIcon, ClockIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { LEVEL_HEX, getInitials } from "../communityMembers";
+import { useReportMatches } from "../components/searchSummary";
 import { getNetworkActivity } from "./mockData";
 import { whatsappLink } from "./contactLinks";
 
@@ -18,10 +20,18 @@ import { whatsappLink } from "./contactLinks";
 const ALERT_ICONS = { latePayment: ExclamationTriangleIcon, pending: ClockIcon };
 const ALERT_TONES = { latePayment: "text-amber-500", pending: "text-gray-400" };
 
-export function NetworkActivity() {
+export function NetworkActivity({ query = "", onMatches }) {
   const { t } = useTranslation();
   const { alerts, total, upToDate } = getNetworkActivity();
   const percent = Math.round((upToDate / total) * 100);
+  // Recherche de l'en-tête : filtre les relances (les chiffres du haut, eux,
+  // restent ceux de tout le réseau).
+  const shownAlerts = alerts.filter((alert) => searchTextIncludes(alert.member.name, query));
+  // Sans relance du tout, le bloc affiche "rien à relancer" : il n'est pas
+  // filtrable, donc il ne participe pas à la recherche.
+  useReportMatches(onMatches, "activity", alerts.length === 0 ? null : shownAlerts.length);
+
+  if (alerts.length > 0 && query.trim() !== "" && shownAlerts.length === 0) return null;
 
   return (
     <div className="mt-6 rounded-3xl border border-black/5 bg-white p-6 shadow-sm sm:p-8">
@@ -53,7 +63,7 @@ export function NetworkActivity() {
         </p>
       ) : (
         <div className="mt-4 flex flex-col gap-2">
-          {alerts.map((alert) => {
+          {shownAlerts.map((alert) => {
             const Icon = ALERT_ICONS[alert.kind];
             return (
               <div

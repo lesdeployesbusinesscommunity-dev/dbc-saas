@@ -1,3 +1,5 @@
+import { withDemoAssessments } from "./demoAssessments";
+
 // ----------------------------------------------------------------------
 // Données de démonstration pour "Gestion des formations". Comme pour le
 // reste de l'admin, tout est en local en attendant les vrais endpoints
@@ -36,7 +38,7 @@
 // "Ajouter une formation" (voir AddTrainingModal.jsx) et l'ajout de
 // vidéos puissent l'enrichir sans toucher ce fichier — comme pour
 // initialMembersByLevel ailleurs dans l'admin.
-export const initialTrainingsByLevel = {
+const baseTrainingsByLevel = {
   starter: [
     {
       id: "f1",
@@ -471,6 +473,14 @@ export const initialTrainingsByLevel = {
   // programmer tant qu'il n'y a personne pour la suivre.
   legende: [],
 };
+
+// "Quiz de pré-requis" (training.prerequisiteQuiz, à l'entrée de la
+// formation) et, par chapitre, "documents" (supports PDF téléchargeables) et
+// "quizzes" (quiz de validation) : voir demoAssessments.js pour leur forme
+// et les formations de démonstration qui en ont. Les vidéos, elles, ne sont
+// JAMAIS téléchargeables (lecture dans la plateforme uniquement) ; les PDF
+// le sont. Voir Membre/Formation/quizUtils.js pour la forme d'un quiz.
+export const initialTrainingsByLevel = withDemoAssessments(baseTrainingsByLevel);
 
 // Avancement d'une formation, calculé à partir des vidéos regardées dans
 // ses chapitres plutôt que codé en dur, dès qu'il en existe au moins une —

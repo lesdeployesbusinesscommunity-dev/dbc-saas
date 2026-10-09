@@ -4,9 +4,26 @@ import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 
 // Local Imports
+import { useNotifications } from "app/pages/Notifications/feeds";
 import { memberNavItems, memberSettingsItem } from "../memberNav";
 
 // ----------------------------------------------------------------------
+
+// Pastille de la ligne "Notifications" : nombre de non lues.
+function UnreadBadge({ space }) {
+  const { t } = useTranslation();
+  const { unreadCount } = useNotifications(space);
+  if (unreadCount === 0) return null;
+  return (
+    <span
+      data-testid="nav-badge"
+      aria-label={t("notifications.unreadCount", { count: unreadCount })}
+      className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#EE7115] px-1.5 text-[11px] font-bold leading-none text-white"
+    >
+      {unreadCount > 99 ? "99+" : unreadCount}
+    </span>
+  );
+}
 
 function NavItem({ item }) {
   const { t } = useTranslation();
@@ -28,6 +45,7 @@ function NavItem({ item }) {
         <>
           <Icon aria-hidden="true" className="size-5 shrink-0" />
           <span className="truncate">{t(labelKey)}</span>
+          {item.key === "notifications" && <UnreadBadge space="membre" />}
           {isActive && (
             <span
               aria-hidden="true"

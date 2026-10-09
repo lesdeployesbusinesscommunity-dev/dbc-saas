@@ -1,5 +1,6 @@
 // Import Dependencies
 import { currentMember } from "../currentMember";
+import { getAccountOverrides } from "../accountData";
 import { levels } from "app/pages/Simulateur/data";
 import { communityMembers } from "../communityMembers";
 import { getCourseById, getFormationRewardRange } from "../Formation/mockData";
@@ -78,27 +79,50 @@ export function getCoinsHistory() {
       amount: reward.coins,
     }));
 
-  return [
-    {
-      month: "Juillet",
-      entries: [
-        ...earned,
-        { id: "h1", label: "Cotisation Tontine Juillet", category: "tontine", amount: 20 },
-        { id: "h2", label: "Parrainage de Patrick Essono", category: "parrainage", amount: 30 },
-        { id: "h3", label: "Formation : Techniques de vente", category: "formations", amount: 30 },
-        { id: "h4", label: "Formation : École des Affaires Niv.3", category: "formations", amount: 20 },
-        { id: "h5", label: "Challenge mensuel", category: "challenges", amount: 75 },
-      ],
-    },
-    {
-      month: "Juin",
-      entries: [
-        { id: "h6", label: "Cotisation Tontine Juin", category: "tontine", amount: 20 },
-        { id: "h7", label: "Challenge mensuel", category: "challenges", amount: 75 },
-        { id: "h8", label: "Formation : Leadership Academy", category: "formations", amount: 50 },
-      ],
-    },
-  ];
+  // Le journal de CE compte (voir accountData.js : l'administrateur en mode
+  // membre a le sien), sinon celui du membre de démonstration.
+  const own = getAccountOverrides();
+  const history = own
+    ? own.coinsHistory.map((group) => ({ ...group, entries: [...group.entries] }))
+    : [
+        {
+          month: "Juillet",
+          entries: [
+            { id: "h1", label: "Cotisation Tontine Juillet", category: "tontine", amount: 20 },
+            { id: "h2", label: "Parrainage de Patrick Essono", category: "parrainage", amount: 30 },
+            { id: "h3", label: "Formation : Techniques de vente", category: "formations", amount: 30 },
+            { id: "h4", label: "Formation : École des Affaires Niv.3", category: "formations", amount: 20 },
+            { id: "h5", label: "Challenge mensuel", category: "challenges", amount: 75 },
+          ],
+        },
+        {
+          month: "Juin",
+          entries: [
+            { id: "h6", label: "Cotisation Tontine Juin", category: "tontine", amount: 20 },
+            { id: "h7", label: "Challenge mensuel", category: "challenges", amount: 75 },
+            { id: "h8", label: "Formation : Leadership Academy", category: "formations", amount: 50 },
+          ],
+        },
+      ];
+  history[0].entries.unshift(...earned);
+
+  // Le solde de départ du membre connecté (currentMember.coins) peut dépasser
+  // ce que ce journal de démonstration détaille (un autre compte a un autre
+  // solde, voir Membre/currentMember.js) : l'écart est ajouté comme un mois
+  // antérieur pour que le journal retombe toujours sur le solde, jamais
+  // l'inverse (un solde qui ne s'explique pas).
+  const detailed = history.reduce(
+    (sum, group) => sum + group.entries.reduce((subtotal, entry) => subtotal + entry.amount, 0),
+    0,
+  );
+  const missing = currentMember.coins - (detailed - earned.reduce((sum, entry) => sum + entry.amount, 0));
+  if (missing > 0) {
+    history.push({
+      month: "Mai",
+      entries: [{ id: "h-before", label: "Coins gagnés avant juin", category: "tontine", amount: missing }],
+    });
+  }
+  return history;
 }
 
 // ----------------------------------------------------------------------
@@ -132,7 +156,10 @@ function getLeaderboardPool() {
     status: "actif",
     isMe: true,
   };
-  return [...communityMembers, me];
+  // L'annuaire contient déjà l'administrateur (Hubert Wakap) : quand il passe
+  // en mode membre, il est "isMe" et ne doit pas apparaître deux fois.
+  const others = communityMembers.filter((member) => member.name !== currentMember.name);
+  return [...others, me];
 }
 
 function rankBy(entries, metric) {

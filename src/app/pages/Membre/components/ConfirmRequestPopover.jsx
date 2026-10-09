@@ -1,10 +1,13 @@
 // Import Dependencies
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useTranslation } from "react-i18next";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
+
+// Local Imports
+import { submitRequest } from "app/pages/Notifications/notificationsStore";
 
 // ----------------------------------------------------------------------
 
@@ -37,12 +40,36 @@ import clsx from "clsx";
 // et en lui donnant un z-index (z-40) inférieur à celui du panneau (z-50),
 // le panneau reste bien blanc et net au-dessus du voile. Clic sur le
 // voile = referme le popover.
+//
+// "request" (facultatif) : { type, ...détails } — la demande qui part
+// réellement quand le membre répond "Oui" (voir Notifications/
+// notificationsStore.js : "submitRequest"). L'admin la reçoit alors dans sa
+// page Notifications, avec le profil du membre, et peut la valider, la
+// refuser ou écrire au membre. Types utilisés ici : "level" ({ levelKey })
+// et "event" ({ eventId, date }). Sans "request", le popover reste une
+// simple confirmation d'affichage.
+//
+// "onOpenChange" (facultatif) : appelé avec true/false quand le popover
+// s'ouvre/se ferme — pour qu'un parent qui bouge tout seul (le carrousel
+// d'actualités du Dashboard, voir Dashboard/NewsCarousel.jsx) se mette en
+// pause tant que la fenêtre est ouverte. Doit être une fonction stable
+// (ex: un setState).
+function OpenWatcher({ open, onChange }) {
+  useEffect(() => {
+    onChange(open);
+    return () => onChange(false);
+  }, [open, onChange]);
+  return null;
+}
+
 export function ConfirmRequestPopover({
   children,
   triggerClassName,
   question,
   disabled = false,
   panelClassName,
+  onOpenChange,
+  request,
 }) {
   const { t } = useTranslation();
   const [confirmed, setConfirmed] = useState(false);
@@ -51,6 +78,7 @@ export function ConfirmRequestPopover({
     <Popover className="relative">
       {({ open, close }) => (
         <>
+          {onOpenChange && <OpenWatcher open={open} onChange={onOpenChange} />}
           <PopoverButton
             disabled={disabled}
             onClick={() => setConfirmed(false)}
@@ -93,7 +121,10 @@ export function ConfirmRequestPopover({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setConfirmed(true)}
+                      onClick={() => {
+                        if (request) submitRequest(request);
+                        setConfirmed(true);
+                      }}
                       className="rounded-lg bg-[#52A2DF] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
                     >
                       {t("membre.common.yes")}

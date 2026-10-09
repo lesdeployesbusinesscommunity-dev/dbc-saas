@@ -1,4 +1,5 @@
 // Import Dependencies
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
@@ -6,6 +7,8 @@ import { Page } from "components/shared/Page";
 import { currentMember } from "../currentMember";
 import { TopBar } from "../Dashboard/TopBar";
 import { LevelSwitcherBadge } from "../components/LevelSwitcherBadge";
+import { SearchEmpty } from "../components/SearchEmpty";
+import { useSearchSummary } from "../components/searchSummary";
 import { CagnotteHero } from "./CagnotteHero";
 import { MyTontineStatus } from "./MyTontineStatus";
 import { StatusLegend } from "./StatusLegend";
@@ -31,19 +34,35 @@ import { NextStepButton } from "./NextStepButton";
 // composant que la carte de profil du Dashboard, voir
 // components/LevelSwitcherBadge.jsx) permet de changer de niveau
 // directement depuis cette page, sans repasser par le Dashboard.
+//
+// La recherche de l'en-tête cherche un membre du groupe par son nom : elle
+// filtre le cycle des 12 tours et le suivi des cotisations (voir
+// TontineCycle.jsx et CotisationTracking.jsx). La bannière, "Mon suivi" et
+// l'historique parlent de moi, pas du groupe : ils ne bougent pas. Une liste
+// sans correspondance disparaît ; un seul message s'affiche sous l'en-tête
+// quand plus aucune des deux ne correspond.
 export default function MembreTontine() {
   const { t } = useTranslation();
+  const [query, setQuery] = useState("");
+  const { report, noResults } = useSearchSummary(query);
 
   return (
     <Page title={`${t("membre.nav.tontine")} – ${currentMember.name}`}>
       <div className="p-6 lg:p-8">
-        <TopBar titleKey="membre.nav.tontine" titleExtra={<LevelSwitcherBadge />} />
+        <TopBar
+          titleKey="membre.nav.tontine"
+          titleExtra={<LevelSwitcherBadge />}
+          searchValue={query}
+          onSearchChange={setQuery}
+          searchPlaceholder={t("membre.tontine.searchPlaceholder")}
+        />
+        {noResults && <SearchEmpty query={query} className="mt-6" />}
         <CagnotteHero />
         <MyTontineStatus />
         <StatusLegend />
         <TontineFaq />
-        <TontineCycle />
-        <CotisationTracking />
+        <TontineCycle query={query} onMatches={report} />
+        <CotisationTracking query={query} onMatches={report} />
         <CycleHistory />
         <NextStepButton />
       </div>

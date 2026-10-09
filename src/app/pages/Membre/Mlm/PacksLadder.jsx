@@ -5,6 +5,8 @@ import clsx from "clsx";
 
 // Local Imports
 import { formatMoney, levels } from "app/pages/Simulateur/data";
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
+import { useReportMatches } from "../components/searchSummary";
 import { getLongrichPacks, getMyPack } from "./mockData";
 
 // ----------------------------------------------------------------------
@@ -27,11 +29,20 @@ import { getLongrichPacks, getMyPack } from "./mockData";
 // le reste du site plutôt qu'un simple dégradé clair→foncé.
 const STEP_HEIGHT_CLASSES = ["h-36", "h-40", "h-44", "h-48", "h-52", "h-56"];
 
-export function PacksLadder({ highlightCurrent = true }) {
+// "query" : la recherche de l'en-tête (voir index.jsx). Les packs qui ne
+// correspondent pas s'estompent au lieu de disparaître (un escalier auquel
+// il manque des marches ne se lit plus) ; sans aucune correspondance, rien
+// ne s'estompe et la page affiche son message (voir searchSummary.js).
+export function PacksLadder({ highlightCurrent = true, query = "", onMatches }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("fr") ? "fr-FR" : "en-US";
   const packs = getLongrichPacks();
   const myPack = getMyPack();
+  const hasQuery = query.trim() !== "";
+  const packMatches = (pack) =>
+    searchTextIncludes(t(`membre.mlm.packs.name.${pack.levelKey}`), query);
+  const matchCount = hasQuery ? packs.filter(packMatches).length : packs.length;
+  useReportMatches(onMatches, "packs", hasQuery ? matchCount : null);
 
   return (
     <div className="mt-6 rounded-3xl border border-black/5 bg-white p-6 shadow-sm sm:p-8">
@@ -62,6 +73,7 @@ export function PacksLadder({ highlightCurrent = true }) {
                     level?.borderClass ?? "border-gray-200",
                     level?.bgTintClass ?? "bg-gray-50",
                     isMine && "border-2 shadow-md",
+                    hasQuery && matchCount > 0 && !packMatches(pack) && "opacity-30",
                   )}
                 >
                   <div>

@@ -15,7 +15,7 @@ export function NetworkStats() {
   const summary = getNetworkSummary();
 
   const tiles = [
-    { key: "sponsor", Icon: ArrowUpCircleIcon, tone: "bg-amber-50 text-amber-500", value: summary.sponsor.name },
+    { key: "sponsor", Icon: ArrowUpCircleIcon, tone: "bg-amber-50 text-amber-500", value: summary.sponsor?.name ?? t("membre.reseau.stats.noSponsor") },
     { key: "direct", Icon: UserPlusIcon, tone: "bg-[#52A2DF]/[0.12] text-[#52A2DF]", value: summary.directReferrals },
     { key: "total", Icon: UsersIcon, tone: "bg-indigo-50 text-indigo-500", value: summary.totalNetwork },
   ];

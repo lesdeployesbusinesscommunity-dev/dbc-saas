@@ -1,16 +1,38 @@
 // Import Dependencies
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircleIcon, PlayCircleIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
+import {
+  CheckCircleIcon,
+  PlayCircleIcon,
+  ChevronDownIcon,
+  ClipboardDocumentCheckIcon,
+  DocumentTextIcon,
+  FilmIcon,
+} from "@heroicons/react/24/solid";
 import clsx from "clsx";
 
 // ----------------------------------------------------------------------
+
+// Une leçon est une vidéo, un support PDF ou un quiz (voir mockData.js) :
+// une petite icône à droite de chaque ligne dit laquelle.
+const TYPE_ICONS = { video: FilmIcon, pdf: DocumentTextIcon, quiz: ClipboardDocumentCheckIcon };
 
 // Le contenu de la formation : les chapitres (repliables) et leurs leçons.
 // Chaque leçon montre où le membre en est — terminée (coche verte), en
 // cours de lecture (lecteur orange), pas encore vue (cercle vide) — et un
 // clic dessus la lance. Le chapitre de la leçon en cours est toujours
 // ouvert (y compris quand la lecture enchaîne sur le chapitre suivant).
+function TypeBadge({ type }) {
+  const { t } = useTranslation();
+  const Icon = TYPE_ICONS[type] ?? FilmIcon;
+  return (
+    <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-gray-400">
+      <Icon aria-hidden="true" className="size-3.5" />
+      {t(`membre.formation.course.type.${type}`)}
+    </span>
+  );
+}
+
 export function ChapterList({ course, progress, currentLessonId, onSelect }) {
   const { t } = useTranslation();
   const currentChapterId = course.chapters.find((chapter) =>
@@ -85,6 +107,7 @@ export function ChapterList({ course, progress, currentLessonId, onSelect }) {
                           <span aria-hidden="true" className="size-5 shrink-0 rounded-full border-2 border-gray-300" />
                         )}
                         <span className="min-w-0 flex-1">{lesson.title}</span>
+                        <TypeBadge type={lesson.type} />
                       </button>
                     </li>
                   );

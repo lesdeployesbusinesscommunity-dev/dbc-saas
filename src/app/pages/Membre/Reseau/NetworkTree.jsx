@@ -8,8 +8,10 @@ import clsx from "clsx";
 import { levels } from "app/pages/Simulateur/data";
 import { currentMember } from "../currentMember";
 import { LEVEL_HEX, getInitials } from "../communityMembers";
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { MemberCvModal } from "../Coins/MemberCvModal";
-import { getSponsorChain, getReferralTree, getNetworkSummary } from "./mockData";
+import { useReportMatches } from "../components/searchSummary";
+import { getSponsorChain, getReferralTree, getNetworkList, getNetworkSummary } from "./mockData";
 import { NetworkList } from "./NetworkList";
 
 // ----------------------------------------------------------------------
@@ -143,13 +145,24 @@ function ChildrenRow({ nodes, onSelect }) {
   );
 }
 
-export function NetworkTree() {
+// "query" : la recherche de l'en-tête (voir index.jsx). Tant qu'elle est
+// remplie, la lignée s'affiche en vue "Liste" (seule vue qui se filtre) et
+// le bouton "Arbre" est désactivé ; l'effacer ramène la vue choisie. Sans
+// personne qui corresponde, le bloc disparaît (voir searchSummary.js).
+export function NetworkTree({ query = "", onMatches }) {
   const { t } = useTranslation();
   const sponsors = getSponsorChain();
   const tree = getReferralTree();
   const summary = getNetworkSummary();
   const [selected, setSelected] = useState(null);
   const [view, setView] = useState("tree");
+  const hasQuery = query.trim() !== "";
+  const shownView = hasQuery ? "list" : view;
+  const matchCount = getNetworkList().filter((node) => searchTextIncludes(node.member.name, query)).length;
+  useReportMatches(onMatches, "lineage", matchCount);
+
+  // Aucune personne ne correspond : tout le bloc disparaît.
+  if (hasQuery && matchCount === 0) return null;
 
   return (
     <div className="mt-6 rounded-3xl border border-black/5 bg-white p-6 shadow-sm sm:p-8">
@@ -166,11 +179,13 @@ export function NetworkTree() {
             <button
               key={key}
               type="button"
-              aria-pressed={view === key}
+              aria-pressed={shownView === key}
+              disabled={hasQuery && key === "tree"}
               onClick={() => setView(key)}
               className={clsx(
                 "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-colors",
-                view === key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700",
+                shownView === key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700",
+                hasQuery && key === "tree" && "cursor-not-allowed opacity-40",
               )}
             >
               <Icon aria-hidden="true" className="size-3.5" />
@@ -181,9 +196,9 @@ export function NetworkTree() {
       </div>
       <p className="mt-1 text-xs text-gray-500">{t("membre.reseau.hint")}</p>
 
-      {view === "list" ? (
+      {shownView === "list" ? (
         <div className="mt-6">
-          <NetworkList onSelect={setSelected} />
+          <NetworkList onSelect={setSelected} searchQuery={query} />
         </div>
       ) : (
       <div className="mt-6 overflow-x-auto pb-2">

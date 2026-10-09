@@ -6,6 +6,7 @@ import {
   BoltIcon,
   BanknotesIcon,
   AcademicCapIcon,
+  BellIcon,
   BuildingLibraryIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/solid";
@@ -34,6 +35,9 @@ export const adminNavItems = [
   { key: "finance", labelKey: "admin.nav.finance", to: "/admin/finance", Icon: BanknotesIcon },
   { key: "formation", labelKey: "admin.nav.formation", to: "/admin/formation", Icon: AcademicCapIcon },
   { key: "piliers", labelKey: "admin.nav.piliers", to: "/admin/piliers", Icon: BuildingLibraryIcon },
+  // Pastille du nombre de demandes à traiter et de notifications non lues
+  // (voir AdminSidebar).
+  { key: "notifications", labelKey: "admin.nav.notifications", to: "/admin/notifications", Icon: BellIcon },
 ];
 
 export const adminSettingsItem = {

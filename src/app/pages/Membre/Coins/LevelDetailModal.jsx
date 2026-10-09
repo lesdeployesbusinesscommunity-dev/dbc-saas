@@ -113,6 +113,7 @@ export function LevelDetailModal({ levelKey, open, onClose }) {
                   question={t("membre.dashboard.comparison.requestQuestion", {
                     level: t(`simulateur.levels.${level.key}.name`),
                   })}
+                  request={{ type: "level", levelKey: level.key }}
                 >
                   {t("membre.dashboard.comparison.requestButton")}
                 </ConfirmRequestPopover>

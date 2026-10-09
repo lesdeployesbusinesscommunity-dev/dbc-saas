@@ -1,4 +1,5 @@
 // Import Dependencies
+import { useState } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { ArrowRightIcon, PlayIcon } from "@heroicons/react/24/solid";
@@ -8,8 +9,10 @@ import clsx from "clsx";
 import { Page } from "components/shared/Page";
 import { pillarGroups } from "app/pages/Admin/Piliers/mockData";
 import { getPillarText, usePillars } from "app/pages/Admin/Piliers/pillarsStore";
+import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { currentMember } from "../currentMember";
 import { TopBar } from "../Dashboard/TopBar";
+import { SearchEmpty } from "../components/SearchEmpty";
 import { groupStyles } from "./pillarStyles";
 
 // ----------------------------------------------------------------------
@@ -21,23 +24,46 @@ import { groupStyles } from "./pillarStyles";
 // (voir GroupPage.jsx). La liste, les statuts et les textes viennent de la
 // même source que la page admin (voir Admin/Piliers/pillarsStore.js) : un
 // programme masqué par l'admin disparaît d'ici.
+//
+// La recherche de l'en-tête cherche un programme par son nom, ou un pilier
+// par son titre (qui montre alors tous ses programmes) ; les piliers sans
+// correspondance disparaissent.
 export default function MembrePiliers() {
   const { t } = useTranslation();
   const pillars = usePillars().filter((pillar) => pillar.visible);
+  const [query, setQuery] = useState("");
+  const hasQuery = query.trim() !== "";
+
+  const visibleGroups = pillarGroups
+    .map((group) => {
+      const title = t(`membre.piliers.groups.${group.key}.title`);
+      const all = pillars.filter((pillar) => pillar.group === group.key);
+      const groupMatches = searchTextIncludes(title, query);
+      const items = groupMatches
+        ? all
+        : all.filter((pillar) => searchTextIncludes(getPillarText(pillar, t).name, query));
+      return { group, title, items, show: !hasQuery || groupMatches || items.length > 0 };
+    })
+    .filter(({ show }) => show);
 
   return (
     <Page title={`${t("membre.nav.piliers")} – ${currentMember.name}`}>
       <div className="p-6 lg:p-8">
-        <TopBar titleKey="membre.nav.piliers" />
+        <TopBar
+          titleKey="membre.nav.piliers"
+          searchValue={query}
+          onSearchChange={setQuery}
+          searchPlaceholder={t("membre.piliers.searchPlaceholder")}
+        />
 
         <p className="mt-4 max-w-3xl text-sm text-gray-600">{t("membre.piliers.intro")}</p>
 
+        {hasQuery && visibleGroups.length === 0 && <SearchEmpty query={query} className="mt-6" />}
+
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-          {pillarGroups.map((group) => {
+          {visibleGroups.map(({ group, title, items }) => {
             const style = groupStyles[group.key];
             const GroupIcon = group.Icon;
-            const items = pillars.filter((pillar) => pillar.group === group.key);
-            const title = t(`membre.piliers.groups.${group.key}.title`);
 
             return (
               <article

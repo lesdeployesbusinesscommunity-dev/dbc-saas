@@ -4,6 +4,7 @@ import { getCommunityRanks } from "../Coins/mockData";
 import { levels } from "app/pages/Simulateur/data";
 import { currentMember } from "../currentMember";
 import { getMlmStats, getNetworkMembers } from "../Mlm/mockData";
+import { getAccountOverrides } from "../accountData";
 
 // ----------------------------------------------------------------------
 // Données de démonstration pour "Mon Réseau" — à remplacer par de vrais
@@ -50,6 +51,8 @@ function withRank(member) {
 
 // Les parrains au-dessus du membre, du plus haut vers le plus proche.
 export function getSponsorChain() {
+  const own = getAccountOverrides();
+  if (own) return own.network.sponsorChain;
   return [
     { member: withRank(byId.hubert), relation: "sponsorOfSponsor" },
     { member: withRank(byId.celeste), relation: "sponsor" },
@@ -58,6 +61,8 @@ export function getSponsorChain() {
 
 // Les filleuls en arbre : chaque nœud a ses propres "children".
 export function getReferralTree() {
+  const own = getAccountOverrides();
+  if (own) return own.network.referralTree;
   return [
     {
       member: withRank(byId.marie),
@@ -81,8 +86,9 @@ function countNodes(nodes) {
 // échantillon ("shown"), comme la liste de Mon MLM.
 export function getNetworkSummary() {
   const stats = getMlmStats();
+  const own = getAccountOverrides();
   return {
-    sponsor: byId.celeste,
+    sponsor: own ? own.network.sponsor : byId.celeste,
     directReferrals: stats.directReferrals,
     totalNetwork: stats.totalNetwork,
     shown: countNodes(getReferralTree()),
@@ -105,6 +111,11 @@ export function getNetworkList() {
 // jours, formaté par le composant. "upToDate" = les filleuls affichés dans
 // l'arbre moins ceux qui ont une alerte.
 export function getNetworkActivity() {
+  const own = getAccountOverrides();
+  if (own) {
+    const { alerts, total } = own.network;
+    return { alerts, total, upToDate: total - alerts.length };
+  }
   const alerts = [
     { id: "alert-jean", member: byId.jean, kind: "latePayment", days: 5 },
     { id: "alert-diane", member: byId.diane, kind: "pending", days: 12 },
@@ -121,7 +132,8 @@ export function getNetworkActivity() {
 // (mêmes noms, mêmes montants, mêmes niveaux) : ce ne sont que les 3
 // premiers de l'échantillon affiché, pas le détail des 12 membres.
 export function getNetworkEarnings() {
-  const top = [...getNetworkMembers()]
+  const top = getNetworkMembers()
+    .filter((member) => member.commission > 0)
     .sort((a, b) => b.commission - a.commission)
     .slice(0, 3)
     .map((member) => ({

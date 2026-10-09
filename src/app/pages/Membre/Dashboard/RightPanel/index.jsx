@@ -1,16 +1,16 @@
 // Local Imports
-import { currentMember } from "../../currentMember";
-import { ProfileHeader } from "./ProfileHeader";
 import { Calendar } from "app/pages/Admin/Dashboard/RightPanel/Calendar";
 import { TontineStatus } from "./TontineStatus";
 import { TrainingsInProgress } from "./TrainingsInProgress";
 
 // ----------------------------------------------------------------------
 
-// Panneau de droite du dashboard membre : profil, calendrier (composant
+// Panneau de droite du dashboard membre : calendrier (composant
 // partagé avec l'admin — purement présentationnel, aucune donnée admin
 // dedans, voir Admin/Dashboard/RightPanel/Calendar.jsx), cotisation du
-// mois, formations en cours.
+// mois, formations en cours. Le profil (menu avec Paramètres, déconnexion...)
+// et la cloche des notifications sont dans l'en-tête de la page (voir
+// TopBar.jsx), pas répétés ici.
 //
 // "lg:sticky lg:top-0 lg:self-start" : la colonne principale (actualité,
 // activités récentes, graphe, tableau comparatif...) est beaucoup plus
@@ -27,15 +27,15 @@ import { TrainingsInProgress } from "./TrainingsInProgress";
 // grand que l'écran (ex: ajout d'un futur widget) — pour qu'il reste
 // entièrement consultable (avec son propre défilement interne) plutôt que
 // coupé en bas sans moyen d'accéder au reste.
-export function RightPanel() {
+//
+// "query" : le texte de la recherche de l'en-tête (voir Dashboard/index.jsx),
+// transmis aux deux listes du panneau.
+export function RightPanel({ query = "", onMatches }) {
   return (
     <aside className="w-full shrink-0 border-black/5 bg-white p-6 lg:sticky lg:top-0 lg:w-[380px] lg:self-start lg:max-h-screen lg:overflow-y-auto lg:border-l lg:p-8">
-      <ProfileHeader member={currentMember} />
-      <div className="mt-6">
-        <Calendar />
-      </div>
-      <TontineStatus />
-      <TrainingsInProgress />
+      <Calendar />
+      <TontineStatus query={query} onMatches={onMatches} />
+      <TrainingsInProgress query={query} onMatches={onMatches} />
     </aside>
   );
 }

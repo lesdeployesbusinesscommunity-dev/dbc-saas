@@ -1,34 +1,26 @@
-// Import Dependencies
-import { BellIcon } from "@heroicons/react/24/solid";
-import { useTranslation } from "react-i18next";
-
 // Local Imports
-import { Avatar } from "../../components/Avatar";
+import { ProfileMenu } from "app/pages/Auth/ProfileMenu";
+import { NotificationsBell } from "app/pages/Notifications/NotificationsBell";
 
 // ----------------------------------------------------------------------
 
-// En-tête du panneau de droite : notification + identité de l'admin
-// connecté (photo si disponible, sinon initiales sur fond de couleur).
+// En-tête du panneau de droite : la cloche des notifications et le MENU DU
+// PROFIL de l'admin connecté (Paramètres, "Passer en mode membre", "Se
+// déconnecter" avec confirmation — le même que dans l'en-tête des autres
+// pages admin, voir Admin/components/AdminTopBar.jsx). Le dashboard n'a pas
+// d'en-tête à droite : c'est ici que ces deux éléments se trouvent.
 export function ProfileHeader({ admin }) {
-  const { t } = useTranslation();
-
   return (
     <div className="flex items-center justify-between gap-3">
-      <button
-        type="button"
-        aria-label={t("admin.topbar.notifications")}
-        className="flex size-10 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm transition-colors hover:text-[#EE7115]"
-      >
-        <BellIcon aria-hidden="true" className="size-5" />
-      </button>
-
-      <div className="flex items-center gap-3">
-        <div className="text-right leading-tight">
-          <p className="text-sm font-bold text-gray-900">{admin.name}</p>
-          <p className="text-xs text-gray-500">{admin.role}</p>
-        </div>
-        <Avatar name={admin.name} src={admin.photo} size="size-11" />
-      </div>
+      <NotificationsBell space="admin" />
+      <ProfileMenu
+        ns="admin"
+        name={admin.name}
+        subtitle={admin.role}
+        photo={admin.photo}
+        settingsTo="/admin/parametres"
+        switchTo={{ role: "membre", to: "/membre/dashboard" }}
+      />
     </div>
   );
 }
