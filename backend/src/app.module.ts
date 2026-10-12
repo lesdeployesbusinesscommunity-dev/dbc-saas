@@ -13,6 +13,7 @@ import { CommunauteDiasporaModule } from './modules/communaute-diaspora/communau
 import { GouvernanceModule } from './modules/gouvernance/gouvernance.module';
 import { FormationModule } from './modules/formation/formation.module';
 import { ContactModule } from './modules/contact/contact.module';
+import { TontineModule } from './modules/tontine/tontine.module';
 
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { ContactModule } from './modules/contact/contact.module';
     GouvernanceModule,
     FormationModule,
     ContactModule,
-    // TontineModule reste à construire (voir mémoire "Tontine : ambiguïté cycles").
+    TontineModule,
   ],
 })
 export class AppModule {}

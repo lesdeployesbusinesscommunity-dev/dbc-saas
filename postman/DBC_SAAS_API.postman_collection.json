@@ -22,7 +22,10 @@
     { "key": "accessToken", "value": "", "type": "string" },
     { "key": "demandeId", "value": "", "type": "string" },
     { "key": "achatId", "value": "", "type": "string" },
-    { "key": "antenneId", "value": "", "type": "string" }
+    { "key": "antenneId", "value": "", "type": "string" },
+    { "key": "vagueId", "value": "", "type": "string" },
+    { "key": "cotisationId", "value": "", "type": "string" },
+    { "key": "cleCotisation", "value": "", "type": "string" }
   ],
   "item": [
     {
@@ -475,6 +478,546 @@
               "options": { "raw": { "language": "json" } }
             },
             "url": { "raw": "{{baseUrl}}/paiements/webhook", "host": ["{{baseUrl}}"], "path": ["paiements", "webhook"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tontine",
+      "description": "Vagues de 11 membres max d'un même niveau. 1re cotisation pour DBC, puis bouffe par ancienneté dès que la caisse couvre la cagnotte.",
+      "item": [
+        {
+          "name": "Frais de retrait par niveau",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/frais-retrait",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "frais-retrait"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Fixer les frais de retrait (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/frais-retrait/starter",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "frais-retrait",
+                "starter"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 150\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ouvrir une vague (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/vagues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "vagues"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"levelCode\": \"starter\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.data && body.data.id) { pm.collectionVariables.set('vagueId', body.data.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lister les vagues (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/vagues?levelCode=starter",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "vagues"
+              ],
+              "query": [
+                {
+                  "key": "levelCode",
+                  "value": "starter"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tableau de bord d'une vague (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/vagues/{{vagueId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "vagues",
+                "{{vagueId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Désigner le responsable (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/vagues/{{vagueId}}/responsable",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "vagues",
+                "{{vagueId}}",
+                "responsable"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"uuid-du-membre\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rejoindre une vague",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/rejoindre",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "rejoindre"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"waitForNextWave\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const c = body && body.data && (body.data.firstContribution || body.data);",
+                  "if (c && c.idempotencyKey) {",
+                  "    pm.collectionVariables.set('cotisationId', c.id);",
+                  "    pm.collectionVariables.set('cleCotisation', c.idempotencyKey);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Payer ma prochaine cotisation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/cotisations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "cotisations"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const c = body && body.data && (body.data.firstContribution || body.data);",
+                  "if (c && c.idempotencyKey) {",
+                  "    pm.collectionVariables.set('cotisationId', c.id);",
+                  "    pm.collectionVariables.set('cleCotisation', c.idempotencyKey);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simuler le callback de la cotisation (interne)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-webhook-secret",
+                "value": "{{webhookSecret}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/paiements/webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "paiements",
+                "webhook"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{cleCotisation}}\",\n  \"success\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ma tontine",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/ma-tontine",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "ma-tontine"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mes notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "notifications"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Vagues dont je suis responsable",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/responsable/vagues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "responsable",
+                "vagues"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tableau de bord responsable",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/responsable/vagues/{{vagueId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "responsable",
+                "vagues",
+                "{{vagueId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Liste d'attente (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/liste-attente?levelCode=starter",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "liste-attente"
+              ],
+              "query": [
+                {
+                  "key": "levelCode",
+                  "value": "starter"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Rattrapage : confirmer une cotisation (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/cotisations/{{cotisationId}}/confirmer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "cotisations",
+                "{{cotisationId}}",
+                "confirmer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Attribuer la cagnotte si la caisse suffit (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/vagues/{{vagueId}}/cloturer-tour",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "vagues",
+                "{{vagueId}}",
+                "cloturer-tour"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Marquer une cagnotte versée (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tontine/tours/uuid-du-tour/verser",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tontine",
+                "tours",
+                "uuid-du-tour",
+                "verser"
+              ]
+            }
           }
         }
       ]

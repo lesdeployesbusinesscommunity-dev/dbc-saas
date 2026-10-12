@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Paiement } from '../domaine/paiement';
 import { PaiementRepositoryPort } from '../domaine/paiement.repository.port';
+import { AbonnementsPaiement } from './abonnements-paiement';
 
 export interface RecevoirCallbackPaiementCommande {
   cleIdempotence: string;
@@ -15,7 +16,10 @@ export interface RecevoirCallbackPaiementCommande {
  */
 @Injectable()
 export class RecevoirCallbackPaiementUseCase {
-  constructor(private readonly paiements: PaiementRepositoryPort) {}
+  constructor(
+    private readonly paiements: PaiementRepositoryPort,
+    private readonly abonnements: AbonnementsPaiement,
+  ) {}
 
   async executer(commande: RecevoirCallbackPaiementCommande): Promise<Paiement> {
     const paiement = await this.paiements.trouverParCleIdempotence(commande.cleIdempotence);
@@ -33,6 +37,10 @@ export class RecevoirCallbackPaiementUseCase {
       paiement.marquerEchoue();
     }
 
-    return this.paiements.sauvegarder(paiement);
+    const sauvegarde = await this.paiements.sauvegarder(paiement);
+    if (sauvegarde.statut === 'complete') {
+      await this.abonnements.publierPaiementComplete(sauvegarde.cleIdempotence);
+    }
+    return sauvegarde;
   }
 }
