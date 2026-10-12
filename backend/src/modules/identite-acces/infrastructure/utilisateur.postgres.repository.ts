@@ -19,6 +19,7 @@ export class UtilisateurPostgresRepository implements UtilisateurRepositoryPort 
       email: utilisateur.email ?? null,
       motDePasseHache: utilisateur.motDePasseHache,
       statut: utilisateur.statut,
+      role: utilisateur.role,
     });
     return this.versDomaine(ligne);
   }
@@ -40,6 +41,7 @@ export class UtilisateurPostgresRepository implements UtilisateurRepositoryPort 
       email: ligne.email ?? undefined,
       motDePasseHache: ligne.motDePasseHache,
       statut: ligne.statut,
+      role: ligne.role,
     });
   }
 }

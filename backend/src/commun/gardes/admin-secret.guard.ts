@@ -1,27 +1,50 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { timingSafeEqual } from 'crypto';
 
 /**
- * Garde temporaire pour les endpoints admin, en attendant de vrais rôles
- * (cahier de conception, module 1, cas d'utilisation 1.5 "Gérer les rôles" —
- * pas encore implémenté). À REMPLACER par un vrai contrôle de rôle une fois
- * RoleUtilisateur/Role construits ; aucune ligne appelante n'aura besoin de
- * changer, seul ce garde sera remplacé.
+ * Garde des endpoints admin. Deux façons d'y passer :
+ *  - un jeton d'accès (Authorization: Bearer ...) dont le rôle est "admin" :
+ *    c'est le cas du back-office, où l'admin se connecte comme tout membre
+ *    (voir ConnecterUtilisateurUseCase et ADMIN_TELEPHONES) ;
+ *  - le secret partagé x-admin-secret, conservé pour les outils internes
+ *    (collections Postman, scripts) — à retirer avant la mise en production.
+ *
+ * Le jeton est vérifié ici sans passer par Passport pour que tous les modules
+ * puissent utiliser ce garde sans importer Identité & accès.
  */
 @Injectable()
 export class AdminSecretGuard implements CanActivate {
-  constructor(private readonly config: ConfigService) {}
+  private readonly jwt: JwtService;
 
-  canActivate(context: ExecutionContext): boolean {
+  constructor(private readonly config: ConfigService) {
+    this.jwt = new JwtService({ secret: this.config.get<string>('jwt.secret') });
+  }
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
+
+    const entete: string | undefined = request.headers['authorization'];
+    if (entete?.startsWith('Bearer ')) {
+      try {
+        const payload = await this.jwt.verifyAsync<{ sub: string; role?: string }>(entete.slice('Bearer '.length));
+        if (payload.role === 'admin') {
+          request.adminId = payload.sub;
+          return true;
+        }
+      } catch {
+        // jeton invalide ou expiré : on retombe sur le secret, puis sur le refus
+      }
+    }
+
     const recu: string | undefined = request.headers['x-admin-secret'];
     const attendu = this.config.get<string>('admin.secret')!;
-
-    if (!recu || !this.sontEgaux(recu, attendu)) {
-      throw new UnauthorizedException('Secret admin invalide');
+    if (recu && this.sontEgaux(recu, attendu)) {
+      return true;
     }
-    return true;
+
+    throw new UnauthorizedException('Accès réservé aux administrateurs');
   }
 
   private sontEgaux(a: string, b: string): boolean {

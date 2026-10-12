@@ -2,19 +2,27 @@
  * Entité de domaine pure — aucune dépendance à NestJS, TypeORM ou tout autre
  * framework. Se teste unitairement sans base de données (voir utilisateur.spec.ts).
  * Reflète la classe "Utilisateur" du cahier de conception, module 1.
+ *
+ * Rôle : un administrateur est d'abord un membre (il garde son espace
+ * membre) ; le rôle "admin" lui ouvre en plus le back-office. Il est porté par
+ * le jeton d'accès et revérifié par le garde admin côté serveur.
  */
 import { ResultatOperation } from '../../../commun/domaine/resultat-operation';
 
 export const STATUTS_UTILISATEUR = ['en_attente', 'actif', 'suspendu'] as const;
 export type StatutUtilisateur = (typeof STATUTS_UTILISATEUR)[number];
 
+export const ROLES_UTILISATEUR = ['membre', 'admin'] as const;
+export type RoleUtilisateur = (typeof ROLES_UTILISATEUR)[number];
+
 export class Utilisateur {
   private constructor(
     public readonly id: string | undefined,
-    public readonly email: string | undefined,
+    public email: string | undefined,
     public readonly telephone: string,
     public motDePasseHache: string,
     public statut: StatutUtilisateur,
+    public role: RoleUtilisateur,
   ) {}
 
   /** Fabrique — un utilisateur naît toujours "en_attente", jamais "actif" directement. */
@@ -27,7 +35,7 @@ export class Utilisateur {
       return ResultatOperation.echec('Numéro de téléphone invalide');
     }
     return ResultatOperation.ok(
-      new Utilisateur(undefined, params.email, params.telephone, params.motDePasseHache, 'en_attente'),
+      new Utilisateur(undefined, params.email, params.telephone, params.motDePasseHache, 'en_attente', 'membre'),
     );
   }
 
@@ -45,7 +53,7 @@ export class Utilisateur {
       return ResultatOperation.echec('Numéro de téléphone invalide');
     }
     return ResultatOperation.ok(
-      new Utilisateur(undefined, params.email, params.telephone, params.motDePasseHache, 'actif'),
+      new Utilisateur(undefined, params.email, params.telephone, params.motDePasseHache, 'actif', 'membre'),
     );
   }
 
@@ -56,6 +64,7 @@ export class Utilisateur {
     telephone: string;
     motDePasseHache: string;
     statut: StatutUtilisateur;
+    role: RoleUtilisateur;
   }): Utilisateur {
     return new Utilisateur(
       donnees.id,
@@ -63,7 +72,12 @@ export class Utilisateur {
       donnees.telephone,
       donnees.motDePasseHache,
       donnees.statut,
+      donnees.role,
     );
+  }
+
+  get estAdmin(): boolean {
+    return this.role === 'admin';
   }
 
   activerApresVerification(): ResultatOperation<void> {
@@ -80,5 +94,33 @@ export class Utilisateur {
       return ResultatOperation.echec('Compte suspendu');
     }
     return ResultatOperation.ok();
+  }
+
+  suspendre(): ResultatOperation<void> {
+    if (this.statut === 'suspendu') {
+      return ResultatOperation.echec('Ce compte est déjà suspendu');
+    }
+    this.statut = 'suspendu';
+    return ResultatOperation.ok();
+  }
+
+  reactiver(): ResultatOperation<void> {
+    if (this.statut !== 'suspendu') {
+      return ResultatOperation.echec('Seul un compte suspendu peut être réactivé');
+    }
+    this.statut = 'actif';
+    return ResultatOperation.ok();
+  }
+
+  promouvoirAdmin(): void {
+    this.role = 'admin';
+  }
+
+  changerMotDePasse(nouveauHache: string): void {
+    this.motDePasseHache = nouveauHache;
+  }
+
+  changerEmail(email: string | undefined): void {
+    this.email = email;
   }
 }

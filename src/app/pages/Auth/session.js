@@ -2,7 +2,7 @@
 import { useSyncExternalStore } from "react";
 
 // ----------------------------------------------------------------------
-// Session de connexion (simulée, en attendant le backend).
+// Session de connexion, ouverte par POST /auth/login (voir Auth/index.jsx).
 //
 // Volontairement gardée EN MÉMOIRE SEULEMENT — jamais dans localStorage,
 // sessionStorage ou un cookie lisible par la page : actualiser la page (F5),
@@ -11,9 +11,10 @@ import { useSyncExternalStore } from "react";
 // informations sensibles. Naviguer d'une page à l'autre DANS l'espace
 // (sans actualiser) garde la session, donc l'usage normal n'est pas gêné.
 //
-// Quand le backend sera branché, cette session sera remplacée par un vrai
-// jeton (cookie httpOnly posé par le serveur) : les pages liront toujours
-// "useSession()" / "endSession()" sans rien changer.
+// La session porte le jeton d'accès renvoyé par le backend (joint à chaque
+// appel par api/httpClient.js, renouvelé tant que l'espace est ouvert — voir
+// SessionGuard.jsx) et le profil de l'utilisateur ("user" : nom, matricule,
+// niveau, rôle...).
 //
 // L'état garde aussi "endReason" (pourquoi la dernière session s'est
 // terminée : "expired", "logout"...) pour que la page de connexion affiche
@@ -51,19 +52,40 @@ export function useSession() {
   return useSessionState().session;
 }
 
-// role : "membre" ou "admin". "canSwitchRole" : le compte peut passer d'un
-// espace à l'autre sans se reconnecter — c'est le cas d'un administrateur,
-// qui est d'abord un membre (voir switchSessionRole).
-export function startSession({ role, name, canSwitchRole = false }) {
-  set({ session: { role, name, canSwitchRole, startedAt: Date.now() }, endReason: null });
+// role : "membre" ou "admin" (l'espace ouvert). "canSwitchRole" : le compte
+// peut passer d'un espace à l'autre sans se reconnecter — c'est le cas d'un
+// administrateur (rôle "admin" côté serveur), qui est d'abord un membre (voir
+// switchSessionRole).
+export function startSession({ role, name, canSwitchRole = false, accessToken = null, user = null }) {
+  set({
+    session: { role, name, canSwitchRole, accessToken, user, startedAt: Date.now() },
+    endReason: null,
+  });
+}
+
+// Pour api/httpClient.js : le jeton à joindre aux appels (null hors session).
+export function getAccessToken() {
+  return state.session?.accessToken ?? null;
+}
+
+// Jeton renouvelé (POST /auth/refresh) : la session continue avec le nouveau.
+export function setAccessToken(accessToken) {
+  if (!state.session) return;
+  set({ ...state, session: { ...state.session, accessToken } });
+}
+
+// Profil mis à jour (ex : Paramètres > Profil) sans rouvrir la session.
+export function updateSessionUser(user) {
+  if (!state.session) return;
+  set({ ...state, session: { ...state.session, user } });
 }
 
 // Passe la session en cours d'un espace à l'autre ("membre" <-> "admin")
 // sans nouvelle connexion : un administrateur est d'abord un membre, donc
 // il garde les deux accès. Sans effet (renvoie false) pour un compte qui n'a
 // pas ce droit — un simple membre ne peut jamais devenir administrateur par
-// ce chemin. À remplacer par le rôle fourni par le serveur une fois le
-// backend branché : c'est lui qui devra décider qui peut passer en mode admin.
+// ce chemin. Le droit vient du rôle renvoyé par le serveur à la connexion, et
+// le serveur revérifie ce rôle sur chaque appel admin.
 export function switchSessionRole(role) {
   if (!state.session?.canSwitchRole) return false;
   set({ ...state, session: { ...state.session, role } });

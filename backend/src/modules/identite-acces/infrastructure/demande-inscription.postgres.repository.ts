@@ -35,6 +35,11 @@ export class DemandeInscriptionPostgresRepository implements DemandeInscriptionR
     return ligne ? this.versDomaine(ligne) : null;
   }
 
+  async trouverParUtilisateurId(utilisateurId: string): Promise<DemandeInscription | null> {
+    const ligne = await this.repository.findOne({ where: { utilisateurId } });
+    return ligne ? this.versDomaine(ligne) : null;
+  }
+
   async trouverEnAttenteParTelephone(telephone: string): Promise<DemandeInscription | null> {
     const ligne = await this.repository.findOne({ where: { telephone, statut: 'en_attente' } });
     return ligne ? this.versDomaine(ligne) : null;

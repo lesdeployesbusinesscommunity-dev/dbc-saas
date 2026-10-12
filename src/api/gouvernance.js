@@ -1,6 +1,5 @@
 // Local Imports
 import { httpClient } from "./httpClient";
-import { adminHeaders } from "./adminHeaders";
 
 // ----------------------------------------------------------------------
 
@@ -9,17 +8,13 @@ import { adminHeaders } from "./adminHeaders";
 // antennes. ongoingTontinePots/totalTontineMembers restent null tant que
 // le module Tontine n'est pas implemente cote backend.
 export async function tableauDeBord() {
-  const { data } = await httpClient.get("/gouvernance/tableau-de-bord", {
-    headers: adminHeaders(),
-  });
+  const { data } = await httpClient.get("/gouvernance/tableau-de-bord");
   return data;
 }
 
 // GET /gouvernance/poles (admin) — pôles de gouvernance et leurs sièges.
 export async function listerPoles() {
-  const { data } = await httpClient.get("/gouvernance/poles", {
-    headers: adminHeaders(),
-  });
+  const { data } = await httpClient.get("/gouvernance/poles");
   return data;
 }
 
@@ -29,7 +24,6 @@ export async function assignerSiege(siegeId, memberId) {
   const { data } = await httpClient.post(
     `/gouvernance/sieges/${siegeId}/assigner`,
     { memberId: memberId || undefined },
-    { headers: adminHeaders() },
   );
   return data;
 }
@@ -40,7 +34,6 @@ export async function creerPole({ name, description, icon, seats }) {
   const { data } = await httpClient.post(
     "/gouvernance/poles",
     { name, description, icon, seats },
-    { headers: adminHeaders() },
   );
   return data;
 }
@@ -52,16 +45,13 @@ export async function modifierPole(poleId, { name, description, icon, seats }) {
   const { data } = await httpClient.patch(
     `/gouvernance/poles/${poleId}`,
     { name, description, icon, seats },
-    { headers: adminHeaders() },
   );
   return data;
 }
 
 // DELETE /gouvernance/poles/:id (admin).
 export async function supprimerPole(poleId) {
-  const { data } = await httpClient.delete(`/gouvernance/poles/${poleId}`, {
-    headers: adminHeaders(),
-  });
+  const { data } = await httpClient.delete(`/gouvernance/poles/${poleId}`);
   return data;
 }
 
@@ -71,7 +61,6 @@ export async function reordonnerPoles(poleIds) {
   const { data } = await httpClient.patch(
     "/gouvernance/poles/reordonner",
     { poleIds },
-    { headers: adminHeaders() },
   );
   return data;
 }

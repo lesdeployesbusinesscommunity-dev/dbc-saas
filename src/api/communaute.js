@@ -1,6 +1,5 @@
 // Local Imports
 import { httpClient } from "./httpClient";
-import { adminHeaders } from "./adminHeaders";
 
 // ----------------------------------------------------------------------
 
@@ -26,7 +25,6 @@ export async function assignerCoordinateurAntenne(antenneId, memberId) {
   const { data } = await httpClient.post(
     `/communaute/antennes/${antenneId}/coordinateur`,
     { memberId: memberId || undefined },
-    { headers: adminHeaders() },
   );
   return data;
 }

@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { Utilisateur } from '../domaine/utilisateur';
 import { UtilisateurRepositoryPort } from '../domaine/utilisateur.repository.port';
 import { HacheurMotDePassePort } from '../domaine/hacheur-mot-de-passe.port';
 import { CodeOtpRepositoryPort } from '../domaine/code-otp.repository.port';
+import { ProfilUtilisateurService } from './profil-utilisateur.service';
 
 export interface VerifierOtpConnexionCommande {
   defiOtpId: string;
@@ -22,7 +22,7 @@ export class VerifierOtpConnexionUseCase {
     private readonly codesOtp: CodeOtpRepositoryPort,
     private readonly hacheur: HacheurMotDePassePort,
     private readonly utilisateurs: UtilisateurRepositoryPort,
-    private readonly jwt: JwtService,
+    private readonly profil: ProfilUtilisateurService,
   ) {}
 
   async executer(commande: VerifierOtpConnexionCommande): Promise<JetonAcces> {
@@ -43,10 +43,12 @@ export class VerifierOtpConnexionUseCase {
       throw new UnauthorizedException('Identifiants invalides');
     }
 
-    const accessToken = await this.jwt.signAsync({
-      sub: utilisateur.id,
-      telephone: utilisateur.telephone,
-    });
+    const acces = utilisateur.verifierAccesAutorise();
+    if (!acces.succes) {
+      throw new UnauthorizedException(acces.erreur);
+    }
+
+    const accessToken = await this.profil.emettreJeton(utilisateur);
 
     return { accessToken, utilisateur };
   }

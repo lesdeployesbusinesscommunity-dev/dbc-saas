@@ -1,6 +1,9 @@
 // Import Dependencies
 import axios from "axios";
 
+// Local Imports
+import { endSession, getAccessToken } from "app/pages/Auth/session";
+
 // ----------------------------------------------------------------------
 
 // Client HTTP centralise pour tous les appels vers l'API backend (NestJS).
@@ -80,12 +83,17 @@ function normalizeError(error) {
     return { status, message: "api.errors.conflict" };
   }
 
-  // 400 / 422 etc. : erreurs de validation. On ne remonte pas le corps brut
-  // renvoye par le backend, seulement une cle de traduction generique ; un
-  // futur besoin d'afficher un message de validation precis devra passer
-  // par une whitelist explicite de champs, jamais par un affichage direct
-  // de error.response.data.
-  return { status, message: "api.errors.validation" };
+  // 400 / 422 etc. : erreurs de validation ou regle metier refusee. On ne
+  // remonte pas le corps brut renvoye par le backend, seulement une cle de
+  // traduction generique ; "detail" porte en plus le message metier du
+  // backend (ex : "Caisse insuffisante...") quand c'est une simple phrase,
+  // que la page peut choisir d'afficher.
+  const detail = error.response.data?.error?.message;
+  return {
+    status,
+    message: "api.errors.validation",
+    detail: typeof detail === "string" && detail.length <= 200 ? detail : null,
+  };
 }
 
 // Le backend enveloppe toute reponse de succes dans { data: ... } (contrat
@@ -99,5 +107,26 @@ httpClient.interceptors.response.use(
     }
     return response;
   },
-  (error) => Promise.reject(normalizeError(error)),
+  (error) => {
+    // Jeton expiré ou compte suspendu pendant la session : on ferme la
+    // session, SessionGuard renvoie vers /login avec le message "expirée".
+    // (Pas pour /auth/login lui-même, où un 401 veut dire "identifiants
+    // incorrects".)
+    const url = error.config?.url ?? "";
+    if (error.response?.status === 401 && getAccessToken() && !url.startsWith("/auth/login")) {
+      endSession("expired");
+    }
+    return Promise.reject(normalizeError(error));
+  },
 );
+
+// Le jeton de la session en cours (voir Auth/session.js, gardé en mémoire
+// seulement) est joint à chaque appel. Le backend décide seul de ce qu'il
+// autorise : membre (JwtAuthGuard) ou administrateur (rôle "admin").
+httpClient.interceptors.request.use((config) => {
+  const accessToken = getAccessToken();
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});

@@ -14,56 +14,27 @@ import {
   EyeIcon,
   EyeSlashIcon,
   InformationCircleIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/solid";
 
 // Local Imports
 import { Page } from "components/shared/Page";
 import { levels } from "app/pages/Simulateur/data";
+import { login, verifyOtp } from "api/auth";
 import { getLockRemaining, recordFailure, recordSuccess, startSession } from "./session";
 
 // ----------------------------------------------------------------------
 
-// Identifiants de test : aucun backend n'est branché pour l'instant (même
-// logique que Inscription/index.jsx — l'intégration API est mise de côté),
-// donc deux comptes sont acceptés en dur, chacun avec niveau + matricule +
-// mot de passe (le matricule, unique, est l'identifiant de connexion ; le nom
-// ne sert plus à se connecter, il n'est gardé ici que comme nom de la
-// session) :
-// - l'administrateur de démonstration (un membre déjà présent dans les
-//   données de l'espace admin, voir Admin/Membres/mockData.js) -> /admin ;
-// - le membre de démonstration de l'espace membre (voir
-//   Membre/currentMember.js : mêmes nom et matricule) -> /membre. Il
-//   cotise à plusieurs niveaux : n'importe lequel des siens est accepté.
+// Connexion réelle : POST /auth/login avec le matricule et le mot de passe
+// (voir api/auth.js). Le mot de passe est vérifié — et stocké haché — côté
+// serveur uniquement. Le serveur renvoie le profil du compte, dont son rôle :
+// un administrateur arrive dans /admin (et peut basculer vers son espace
+// membre, voir switchSessionRole), un membre dans /membre. Si la double
+// authentification est active sur le compte, un code part par WhatsApp et
+// un champ "Code de vérification" apparaît pour terminer la connexion.
 //
-// Les mots de passe ne sont PAS écrits dans le code : ils viennent du
-// fichier .env.local à la racine du projet (VITE_DEMO_ADMIN_PASSWORD et
-// VITE_DEMO_MEMBER_PASSWORD — voir .env.example), ignoré par git. Pour en
-// changer, modifier ce fichier puis relancer "npm run dev". Si une variable
-// manque, le compte correspondant est simplement inutilisable.
-// ATTENTION — démonstration seulement : Vite intègre ces valeurs dans le JS
-// envoyé au navigateur, donc quelqu'un qui inspecte le site peut encore les
-// lire. Une fois le backend branché, ce bloc disparaît : le mot de passe est
-// alors vérifié (et stocké haché) côté serveur, jamais dans le site.
-const TEST_ACCOUNTS = [
-  {
-    nom: "Hubert Wakap",
-    niveaux: ["starter"],
-    matricule: "DBC-1-0001",
-    motDePasse: import.meta.env.VITE_DEMO_ADMIN_PASSWORD,
-    role: "admin",
-    redirectTo: "/admin",
-  },
-  {
-    nom: "Thierry Mbida",
-    niveaux: ["starter", "batisseur", "batisseurPro"],
-    matricule: "DBC-1-0042",
-    motDePasse: import.meta.env.VITE_DEMO_MEMBER_PASSWORD,
-    role: "membre",
-    redirectTo: "/membre",
-  },
-];
-
-const normalize = (value) => value.trim().toLowerCase();
+// Le niveau choisi n'est pas un secret : il sert à ouvrir l'espace membre
+// sur ce niveau (voir Membre/context/MemberLevelContext.jsx).
 
 // "Se souvenir de moi sur cet appareil" — FACULTATIF, décoché par défaut.
 // Coché, il mémorise le niveau et le matricule (le navigateur ne retient pas
@@ -197,10 +168,9 @@ function FieldSelect({ label, icon: Icon, error, children, ...selectProps }) {
 // Page "Se connecter" = /login (lien présent dans PublicHeader et au bas
 // du formulaire d'inscription). Même habillage que Inscription/index.jsx
 // (écran plein sans header/footer, panneau "Afrique" à gauche, formulaire
-// à droite) mais en une seule étape : Niveau, Matricule, Mot de passe. Aucun
-// backend branché pour l'instant — voir TEST_ACCOUNTS plus haut — donc
-// la connexion redirige vers /admin ou /membre selon le compte quand les 3
-// champs correspondent, ou affiche un message d'erreur générique sinon.
+// à droite) mais en une seule étape : Niveau, Matricule, Mot de passe. La
+// connexion redirige vers /admin ou /membre selon le rôle renvoyé par le
+// serveur, ou affiche un message d'erreur générique sinon.
 // Réussie, elle ouvre une session en mémoire (voir session.js) : l'espace
 // membre la vérifie (SessionGuard.jsx) et se referme après inactivité.
 export default function Login() {
@@ -224,6 +194,9 @@ export default function Login() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [status, setStatus] = useState("idle"); // idle | checking
+  // Défi en cours quand le compte a la double authentification (le code
+  // vient d'être envoyé par WhatsApp) — voir le champ "Code de vérification".
+  const [otpChallengeId, setOtpChallengeId] = useState(null);
 
   // Compte à rebours du blocage après trop de mauvaises tentatives.
   useEffect(() => {
@@ -239,7 +212,34 @@ export default function Login() {
     if (formError) setFormError("");
   };
 
-  const handleSubmit = (event) => {
+  // Connexion réussie (mot de passe, ou code OTP) : ouvre la session en
+  // mémoire avec le jeton et le profil renvoyés par le serveur.
+  const openSession = ({ accessToken, user }, { matricule, motDePasse }) => {
+    recordSuccess();
+    const isAdmin = user.role === "admin";
+    const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.membershipNumber;
+    startSession({
+      role: isAdmin ? "admin" : "membre",
+      name,
+      canSwitchRole: isAdmin,
+      accessToken,
+      user: { ...user, selectedLevelKey: niveau },
+    });
+    if (remember) {
+      writePrefs({ matricule: matricule.trim(), niveau });
+      offerToSaveCredentials({ matricule: matricule.trim(), motDePasse });
+    } else {
+      writePrefs(null);
+    }
+    // On revient à la page demandée avant la connexion (ex : celle qui
+    // était ouverte avant l'actualisation) si elle est dans l'espace du
+    // compte ; sinon à l'accueil de l'espace.
+    const space = isAdmin ? "/admin" : "/membre";
+    const backTo = typeof from === "string" && from.startsWith(space) ? from : space;
+    navigate(backTo, { replace: true });
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (getLockRemaining() > 0) {
       setLockLeft(getLockRemaining());
@@ -251,10 +251,12 @@ export default function Login() {
     const data = new FormData(event.currentTarget);
     const matricule = String(data.get("matricule") ?? "");
     const motDePasse = String(data.get("password") ?? "");
+    const code = String(data.get("otp") ?? "").trim();
 
     const nextErrors = {};
     if (!matricule.trim()) nextErrors.matricule = "Ce champ est requis";
     if (!motDePasse) nextErrors.motDePasse = "Ce champ est requis";
+    if (otpChallengeId && !code) nextErrors.otp = "Ce champ est requis";
 
     if (Object.keys(nextErrors).length > 0) {
       setFieldErrors(nextErrors);
@@ -263,40 +265,28 @@ export default function Login() {
     }
 
     setStatus("checking");
-    setTimeout(() => {
-      const account = TEST_ACCOUNTS.find(
-        (entry) =>
-          entry.niveaux.includes(niveau) &&
-          normalize(matricule) === normalize(entry.matricule) &&
-          Boolean(entry.motDePasse) &&
-          motDePasse === entry.motDePasse,
-      );
+    try {
+      const result = otpChallengeId
+        ? await verifyOtp({ otpChallengeId, code })
+        : await login({ membershipNumber: matricule.trim(), password: motDePasse });
 
-      if (account) {
-        recordSuccess();
-        startSession({ role: account.role, name: account.nom, canSwitchRole: account.role === "admin" });
-        if (remember) {
-          writePrefs({ matricule: matricule.trim(), niveau });
-          offerToSaveCredentials({ matricule: matricule.trim(), motDePasse });
-        } else {
-          writePrefs(null);
-        }
-        // On revient à la page demandée avant la connexion (ex : celle qui
-        // était ouverte avant l'actualisation) si elle est dans l'espace du
-        // compte ; sinon à l'accueil de l'espace.
-        const backTo =
-          account.role === "membre" && typeof from === "string" && from.startsWith("/membre")
-            ? from
-            : account.redirectTo;
-        navigate(backTo, { replace: true });
+      if (result.otpRequired) {
+        setOtpChallengeId(result.otpChallengeId);
+        setStatus("idle");
         return;
       }
-
-      recordFailure();
-      setLockLeft(getLockRemaining());
+      openSession(result, { matricule, motDePasse });
+    } catch (error) {
       setStatus("idle");
-      setFormError("Identifiants incorrects");
-    }, 600);
+      if (error.status === 401) {
+        recordFailure();
+        setLockLeft(getLockRemaining());
+        setFormError(otpChallengeId ? "Code incorrect ou expiré" : "Identifiants incorrects");
+        if (otpChallengeId) setOtpChallengeId(null);
+        return;
+      }
+      setFormError(t(error.message ?? "api.errors.server"));
+    }
   };
 
   return (
@@ -443,6 +433,22 @@ export default function Login() {
                   </button>
                 }
               />
+
+              {otpChallengeId && (
+                <FieldInput
+                  label="Code de vérification"
+                  icon={ShieldCheckIcon}
+                  type="text"
+                  inputMode="numeric"
+                  name="otp"
+                  id="login-otp"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  onChange={clearError("otp")}
+                  placeholder="Code reçu par WhatsApp"
+                  error={fieldErrors.otp}
+                />
+              )}
 
               {/* Facultatif, décoché par défaut : voir PREFS_STORAGE_KEY. */}
               <label className="flex cursor-pointer items-start gap-3 text-sm text-gray-700">

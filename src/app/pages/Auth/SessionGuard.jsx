@@ -7,7 +7,8 @@ import { useTranslation } from "react-i18next";
 
 // Local Imports
 import { getPlatformSettings } from "app/pages/Admin/Parametres/platformSettings";
-import { endSession, useSessionState } from "./session";
+import { refreshToken } from "api/auth";
+import { endSession, setAccessToken, useSessionState } from "./session";
 
 // ----------------------------------------------------------------------
 
@@ -26,6 +27,11 @@ const idleLimitMs = () =>
 // (pas besoin de réagir à chaque pixel).
 const MOVE_THROTTLE_MS = 5000;
 const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"];
+
+// Le jeton d'accès du backend expire au bout de 15 min : tant que l'espace
+// est ouvert (donc que l'utilisateur n'a pas été déconnecté pour
+// inactivité), on le renouvelle avant son expiration.
+const TOKEN_REFRESH_MS = 10 * 60 * 1000;
 
 // Protège un espace (membre, admin...) : sans session du bon rôle, on
 // renvoie vers /login en retenant la page demandée (on y revient après la
@@ -58,15 +64,35 @@ export function SessionGuard({ role }) {
   return (
     <>
       <IdleWatcher />
+      <TokenRefresher />
       <Outlet />
     </>
   );
+}
+
+// Voir TOKEN_REFRESH_MS. Un échec (réseau coupé...) n'interrompt rien : la
+// tentative suivante, ou le 401 du prochain appel, réglera la situation.
+function TokenRefresher() {
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      refreshToken()
+        .then(setAccessToken)
+        .catch(() => {});
+    }, TOKEN_REFRESH_MS);
+    return () => window.clearInterval(timer);
+  }, []);
+  return null;
 }
 
 // Prête à l'emploi pour router/membre.jsx (une route ne peut pas passer de
 // propriété au composant).
 export function MembreSessionGuard() {
   return <SessionGuard role="membre" />;
+}
+
+// Même chose pour router/admin.jsx.
+export function AdminSessionGuard() {
+  return <SessionGuard role="admin" />;
 }
 
 // Déconnecte après IDLE_LIMIT_MS sans activité. Les dernières WARNING_MS,

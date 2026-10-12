@@ -1,6 +1,5 @@
 // Local Imports
 import { httpClient } from "./httpClient";
-import { adminHeaders } from "./adminHeaders";
 
 // ----------------------------------------------------------------------
 
@@ -15,9 +14,7 @@ export async function creerDemande(payload) {
 
 // GET /demandes-inscription (admin) — demandes en attente de validation.
 export async function listerEnAttente() {
-  const { data } = await httpClient.get("/demandes-inscription", {
-    headers: adminHeaders(),
-  });
+  const { data } = await httpClient.get("/demandes-inscription");
   return data;
 }
 
@@ -27,7 +24,6 @@ export async function valider(id, { temporaryPassword }) {
   const { data } = await httpClient.post(
     `/demandes-inscription/${id}/valider`,
     { temporaryPassword },
-    { headers: adminHeaders() },
   );
   return data;
 }
@@ -37,7 +33,6 @@ export async function rejeter(id) {
   const { data } = await httpClient.post(
     `/demandes-inscription/${id}/rejeter`,
     {},
-    { headers: adminHeaders() },
   );
   return data;
 }

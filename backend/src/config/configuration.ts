@@ -17,6 +17,12 @@ export default () => ({
   admin: {
     // Temporaire (voir AdminSecretGuard) en attendant de vrais rôles.
     secret: process.env.ADMIN_SECRET ?? 'change-moi-en-production',
+    // Numéros (format international, séparés par des virgules) des comptes
+    // promus administrateurs à leur prochaine connexion — voir ConnecterUtilisateurUseCase.
+    telephones: (process.env.ADMIN_TELEPHONES ?? '')
+      .split(',')
+      .map((telephone) => telephone.trim())
+      .filter((telephone) => telephone !== ''),
   },
   app: {
     // Sert à construire l'URL publique de vérification encodée dans le QR code des certificats.

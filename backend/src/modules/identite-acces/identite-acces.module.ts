@@ -12,6 +12,8 @@ import { BasculerDoubleAuthentificationUseCase } from './application/basculer-do
 import { CreerDemandeInscriptionUseCase } from './application/creer-demande-inscription.use-case';
 import { ValiderDemandeInscriptionUseCase } from './application/valider-demande-inscription.use-case';
 import { RejeterDemandeInscriptionUseCase } from './application/rejeter-demande-inscription.use-case';
+import { ChangerMotDePasseUseCase } from './application/changer-mot-de-passe.use-case';
+import { ProfilUtilisateurService } from './application/profil-utilisateur.service';
 import { ListerMembresAdminUseCase } from './application/lister-membres-admin.use-case';
 import { UtilisateurRepositoryPort } from './domaine/utilisateur.repository.port';
 import { DemandeInscriptionRepositoryPort } from './domaine/demande-inscription.repository.port';
@@ -68,6 +70,8 @@ import { FormationModule } from '../formation/formation.module';
     ValiderDemandeInscriptionUseCase,
     RejeterDemandeInscriptionUseCase,
     ListerMembresAdminUseCase,
+    ChangerMotDePasseUseCase,
+    ProfilUtilisateurService,
     JwtStrategy,
     // Le domaine/application dépend des PORTS (abstraits), jamais des implémentations.
     // Remplacer ces lignes suffira à changer de base de données / d'algo de hachage / de

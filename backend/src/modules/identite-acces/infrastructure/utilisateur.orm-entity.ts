@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { STATUTS_UTILISATEUR, StatutUtilisateur } from '../domaine/utilisateur';
+import { ROLES_UTILISATEUR, RoleUtilisateur, STATUTS_UTILISATEUR, StatutUtilisateur } from '../domaine/utilisateur';
 
 /**
  * Modèle de table Postgres — jamais utilisé en dehors de la couche infrastructure.
@@ -22,6 +22,9 @@ export class UtilisateurOrmEntity {
 
   @Column({ type: 'enum', enum: STATUTS_UTILISATEUR })
   statut: StatutUtilisateur;
+
+  @Column({ type: 'enum', enum: ROLES_UTILISATEUR, default: 'membre' })
+  role: RoleUtilisateur;
 
   @CreateDateColumn({ name: 'cree_le' })
   creeLe: Date;

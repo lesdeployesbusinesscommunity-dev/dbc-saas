@@ -1,6 +1,5 @@
 // Local Imports
 import { httpClient } from "./httpClient";
-import { adminHeaders } from "./adminHeaders";
 
 // ----------------------------------------------------------------------
 
@@ -25,7 +24,6 @@ export async function creerFormation({ code, title, requiredLevelId, pillarCode 
   const { data } = await httpClient.post(
     "/formations",
     { code, titre: title, niveauRequisId: requiredLevelId, pilierCode: pillarCode },
-    { headers: adminHeaders() },
   );
   return data;
 }

@@ -3,24 +3,20 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { ConnecterUtilisateurUseCase } from '../application/connecter-utilisateur.use-case';
 import { VerifierOtpConnexionUseCase } from '../application/verifier-otp-connexion.use-case';
 import { BasculerDoubleAuthentificationUseCase } from '../application/basculer-double-authentification.use-case';
+import { ChangerMotDePasseUseCase } from '../application/changer-mot-de-passe.use-case';
+import { ProfilUtilisateurService } from '../application/profil-utilisateur.service';
+import { SecretDoubleAuthentificationRepositoryPort } from '../domaine/secret-double-authentification.repository.port';
 import { ConnexionDto } from './dto/connexion.dto';
 import { VerifierOtpDto } from './dto/verifier-otp.dto';
+import { ChangerMotDePasseDto } from './dto/changer-mot-de-passe.dto';
 import { Utilisateur } from '../domaine/utilisateur';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UtilisateurCourant } from './utilisateur-courant.decorator';
 
-function versReponseUtilisateur(utilisateur: Utilisateur) {
-  return {
-    id: utilisateur.id,
-    telephone: utilisateur.telephone,
-    email: utilisateur.email,
-    statut: utilisateur.statut,
-  };
-}
-
 // Pas d'auto-inscription en libre-service : un visiteur soumet une demande
 // (POST /demandes-inscription), un admin la valide et crée le compte — voir
-// DemandesInscriptionController. Ce compte sert ensuite à se connecter ici.
+// DemandesInscriptionController. Ce compte sert ensuite à se connecter ici,
+// avec son matricule (écran de connexion) ou son numéro de téléphone.
 
 @ApiTags('auth')
 @Controller('auth')
@@ -29,15 +25,19 @@ export class AuthController {
     private readonly connecterUtilisateur: ConnecterUtilisateurUseCase,
     private readonly verifierOtp: VerifierOtpConnexionUseCase,
     private readonly basculerDoubleAuth: BasculerDoubleAuthentificationUseCase,
+    private readonly changerMotDePasse: ChangerMotDePasseUseCase,
+    private readonly profil: ProfilUtilisateurService,
+    private readonly secrets2fa: SecretDoubleAuthentificationRepositoryPort,
   ) {}
 
   @Post('login')
   @HttpCode(200)
-  @ApiOperation({ summary: "Authentifier un utilisateur et obtenir un jeton d'accès" })
+  @ApiOperation({ summary: "Authentifier un utilisateur (matricule ou téléphone) et obtenir un jeton d'accès" })
   @ApiResponse({ status: 200, description: 'Authentification réussie, ou défi OTP à compléter si la 2FA est active' })
   @ApiResponse({ status: 401, description: 'Identifiants invalides ou compte suspendu' })
   async seConnecter(@Body() dto: ConnexionDto) {
     const resultat = await this.connecterUtilisateur.executer({
+      matricule: dto.membershipNumber,
       telephone: dto.phoneNumber,
       motDePasse: dto.password,
     });
@@ -46,7 +46,7 @@ export class AuthController {
       return { otpRequired: true, otpChallengeId: resultat.defiOtpId };
     }
 
-    return { accessToken: resultat.accessToken, utilisateur: versReponseUtilisateur(resultat.utilisateur) };
+    return { accessToken: resultat.accessToken, user: await this.profil.construire(resultat.utilisateur) };
   }
 
   @Post('verify-otp')
@@ -60,7 +60,16 @@ export class AuthController {
       code: dto.code,
     });
 
-    return { accessToken, utilisateur: versReponseUtilisateur(utilisateur) };
+    return { accessToken, user: await this.profil.construire(utilisateur) };
+  }
+
+  @Post('refresh')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Renouveler le jeton d'accès d'une session active (appelé périodiquement par l'interface)" })
+  async renouveler(@UtilisateurCourant() utilisateur: Utilisateur) {
+    return { accessToken: await this.profil.emettreJeton(utilisateur) };
   }
 
   @Get('me')
@@ -70,7 +79,22 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Profil renvoyé' })
   @ApiResponse({ status: 401, description: 'Jeton absent, invalide ou expiré' })
   async monProfil(@UtilisateurCourant() utilisateur: Utilisateur) {
-    return versReponseUtilisateur(utilisateur);
+    const secret = await this.secrets2fa.trouverParUtilisateurId(utilisateur.id!);
+    return { ...(await this.profil.construire(utilisateur)), twoFactorEnabled: secret?.actif ?? false };
+  }
+
+  @Post('password')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Changer mon mot de passe (l’actuel est exigé)' })
+  async changerMonMotDePasse(@UtilisateurCourant() utilisateur: Utilisateur, @Body() dto: ChangerMotDePasseDto) {
+    await this.changerMotDePasse.executer({
+      utilisateur,
+      motDePasseActuel: dto.currentPassword,
+      nouveauMotDePasse: dto.newPassword,
+    });
+    return { changed: true };
   }
 
   @Post('2fa/enable')
