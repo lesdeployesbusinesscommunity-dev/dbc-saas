@@ -20,6 +20,7 @@ export class TransactionCoinsPostgresRepository implements TransactionCoinsRepos
       soldeApres: transaction.soldeApres,
       motif: transaction.motif,
       cleIdempotence: transaction.cleIdempotence,
+      libelle: transaction.libelle,
     });
     return this.versDomaine(ligne);
   }
@@ -51,6 +52,17 @@ export class TransactionCoinsPostgresRepository implements TransactionCoinsRepos
       .map((ligne) => ({ membreId: ligne.membre_id, solde: Number(ligne.solde) }));
   }
 
+  async gainsDepuis(date: Date): Promise<LigneClassement[]> {
+    const lignes: { membre_id: string; solde: string }[] = await this.repository.manager.query(
+      `SELECT membre_id, SUM(delta) AS solde
+       FROM transactions_coins
+       WHERE cree_le >= $1 AND delta > 0
+       GROUP BY membre_id`,
+      [date],
+    );
+    return lignes.map((ligne) => ({ membreId: ligne.membre_id, solde: Number(ligne.solde) }));
+  }
+
   private versDomaine(ligne: TransactionCoinsOrmEntity): TransactionCoins {
     return TransactionCoins.depuisPersistance({
       id: ligne.id,
@@ -59,6 +71,8 @@ export class TransactionCoinsPostgresRepository implements TransactionCoinsRepos
       soldeApres: ligne.soldeApres,
       motif: ligne.motif,
       cleIdempotence: ligne.cleIdempotence,
+      libelle: ligne.libelle,
+      creeLe: ligne.creeLe,
     });
   }
 }

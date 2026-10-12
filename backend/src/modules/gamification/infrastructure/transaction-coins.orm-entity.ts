@@ -20,6 +20,9 @@ export class TransactionCoinsOrmEntity {
   @Column({ name: 'cle_idempotence', type: 'varchar', unique: true })
   cleIdempotence: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  libelle: string | null;
+
   @CreateDateColumn({ name: 'cree_le' })
   creeLe: Date;
 }

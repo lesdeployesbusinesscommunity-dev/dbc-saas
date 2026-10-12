@@ -330,6 +330,7 @@ export default function Inscription() {
         desiredLevelCode: DESIRED_LEVEL_CODE_BY_KEY[form.tontine] ?? form.tontine,
         city: form.ville.trim() || undefined,
         profession: form.travail.trim() || undefined,
+        email: form.email.trim() || undefined,
       });
       setStatus("sent");
     } catch (err) {

@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsEmail, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreerDemandeInscriptionDto {
@@ -41,4 +41,9 @@ export class CreerDemandeInscriptionDto {
   @IsOptional()
   @IsString()
   profession?: string;
+
+  @ApiPropertyOptional({ example: 'hubert@example.com' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 }

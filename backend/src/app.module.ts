@@ -14,6 +14,8 @@ import { GouvernanceModule } from './modules/gouvernance/gouvernance.module';
 import { FormationModule } from './modules/formation/formation.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { TontineModule } from './modules/tontine/tontine.module';
+import { FichiersModule } from './modules/fichiers/fichiers.module';
+import { EspaceMembreModule } from './modules/espace-membre/espace-membre.module';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { TontineModule } from './modules/tontine/tontine.module';
     FormationModule,
     ContactModule,
     TontineModule,
+    FichiersModule,
+    EspaceMembreModule,
   ],
 })
 export class AppModule {}

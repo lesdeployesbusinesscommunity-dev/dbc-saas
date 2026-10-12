@@ -1,14 +1,16 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ConnecterUtilisateurUseCase } from '../application/connecter-utilisateur.use-case';
 import { VerifierOtpConnexionUseCase } from '../application/verifier-otp-connexion.use-case';
 import { BasculerDoubleAuthentificationUseCase } from '../application/basculer-double-authentification.use-case';
 import { ChangerMotDePasseUseCase } from '../application/changer-mot-de-passe.use-case';
 import { ProfilUtilisateurService } from '../application/profil-utilisateur.service';
+import { MettreAJourProfilUseCase } from '../application/mettre-a-jour-profil.use-case';
 import { SecretDoubleAuthentificationRepositoryPort } from '../domaine/secret-double-authentification.repository.port';
 import { ConnexionDto } from './dto/connexion.dto';
 import { VerifierOtpDto } from './dto/verifier-otp.dto';
 import { ChangerMotDePasseDto } from './dto/changer-mot-de-passe.dto';
+import { MettreAJourProfilDto } from './dto/mettre-a-jour-profil.dto';
 import { Utilisateur } from '../domaine/utilisateur';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UtilisateurCourant } from './utilisateur-courant.decorator';
@@ -27,6 +29,7 @@ export class AuthController {
     private readonly basculerDoubleAuth: BasculerDoubleAuthentificationUseCase,
     private readonly changerMotDePasse: ChangerMotDePasseUseCase,
     private readonly profil: ProfilUtilisateurService,
+    private readonly mettreAJourProfil: MettreAJourProfilUseCase,
     private readonly secrets2fa: SecretDoubleAuthentificationRepositoryPort,
   ) {}
 
@@ -81,6 +84,27 @@ export class AuthController {
   async monProfil(@UtilisateurCourant() utilisateur: Utilisateur) {
     const secret = await this.secrets2fa.trouverParUtilisateurId(utilisateur.id!);
     return { ...(await this.profil.construire(utilisateur)), twoFactorEnabled: secret?.actif ?? false };
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Modifier mon profil (nom, coordonnées, ville, profession, photo)' })
+  async modifierMonProfil(@UtilisateurCourant() utilisateur: Utilisateur, @Body() dto: MettreAJourProfilDto) {
+    await this.mettreAJourProfil.executer({
+      utilisateur,
+      email: dto.email,
+      telephone: dto.phoneNumber,
+      profil: {
+        prenom: dto.firstName,
+        nom: dto.lastName,
+        ville: dto.city,
+        pays: dto.country,
+        profession: dto.profession,
+        photoUrl: dto.photoUrl,
+      },
+    });
+    return this.monProfil(utilisateur);
   }
 
   @Post('password')

@@ -26,17 +26,13 @@ export class DemandeInscriptionPostgresRepository implements DemandeInscriptionR
       utilisateurId: demande.utilisateurId ?? null,
       ville: demande.ville ?? null,
       profession: demande.profession ?? null,
+      email: demande.email ?? null,
     });
     return this.versDomaine(ligne);
   }
 
   async trouverParId(id: string): Promise<DemandeInscription | null> {
     const ligne = await this.repository.findOne({ where: { id } });
-    return ligne ? this.versDomaine(ligne) : null;
-  }
-
-  async trouverParUtilisateurId(utilisateurId: string): Promise<DemandeInscription | null> {
-    const ligne = await this.repository.findOne({ where: { utilisateurId } });
     return ligne ? this.versDomaine(ligne) : null;
   }
 
@@ -69,6 +65,7 @@ export class DemandeInscriptionPostgresRepository implements DemandeInscriptionR
       utilisateurId: ligne.utilisateurId ?? undefined,
       ville: ligne.ville ?? undefined,
       profession: ligne.profession ?? undefined,
+      email: ligne.email ?? undefined,
       creeLe: ligne.creeLe,
     });
   }

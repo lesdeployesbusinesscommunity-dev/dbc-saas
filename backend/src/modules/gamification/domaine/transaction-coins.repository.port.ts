@@ -12,4 +12,6 @@ export abstract class TransactionCoinsRepositoryPort {
   abstract dernierSolde(membreId: string): Promise<number>;
   abstract listerParMembre(membreId: string): Promise<TransactionCoins[]>;
   abstract classement(limite: number): Promise<LigneClassement[]>;
+  /** Coins GAGNÉS (deltas positifs) par membre depuis une date — classement "ce mois-ci". */
+  abstract gainsDepuis(date: Date): Promise<LigneClassement[]>;
 }

@@ -1,12 +1,14 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { FiltreExceptionsGlobal } from './commun/filtres/exceptions.filter';
 import { ReponseInterceptor } from './commun/intercepteurs/reponse.interceptor';
+import { dossierFichiers } from './modules/fichiers/fichiers.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Validation automatique des DTO entrants (class-validator)
   app.useGlobalPipes(
@@ -24,6 +26,14 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
   app.enableCors();
+
+  // Fichiers téléversés (voir FichiersController), servis en lecture seule.
+  // nosniff : le navigateur respecte le type annoncé, un fichier ne peut pas
+  // se faire passer pour une page.
+  app.useStaticAssets(dossierFichiers(), {
+    prefix: '/fichiers/',
+    setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff'),
+  });
 
   const configSwagger = new DocumentBuilder()
     .setTitle('DBC SAAS API')

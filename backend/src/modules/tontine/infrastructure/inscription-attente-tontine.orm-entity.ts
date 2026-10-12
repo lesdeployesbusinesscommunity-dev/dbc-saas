@@ -1,9 +1,9 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 import { STATUTS_INSCRIPTION_ATTENTE, StatutInscriptionAttente } from '../domaine/inscription-attente-tontine';
 
-/** Un membre ne peut figurer qu'une fois sur la liste d'attente. */
+/** Un membre ne peut figurer qu'une fois sur la liste d'attente d'un même niveau. */
 @Entity({ name: 'inscriptions_attente_tontine' })
-@Index(['membreId'], { unique: true, where: `"statut" = 'en_attente'` })
+@Index(['membreId', 'niveauId'], { unique: true, where: `"statut" = 'en_attente'` })
 export class InscriptionAttenteTontineOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;

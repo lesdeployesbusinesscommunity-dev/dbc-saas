@@ -11,10 +11,12 @@ export interface ParticipationActive {
 }
 
 /**
- * Un membre participe activement à une vague tant qu'elle est en cours ET
- * qu'il n'a pas à la fois reçu la cagnotte et payé ses 12 cotisations. Un
- * membre qui a tout terminé peut donc rejoindre une nouvelle vague sans
- * attendre la fin de l'ancienne.
+ * Un membre peut cotiser à plusieurs niveaux en même temps, avec une seule
+ * vague active PAR NIVEAU (règle décidée avec l'équipe DBC). Il participe
+ * activement à une vague tant qu'elle est en cours ET qu'il n'a pas à la fois
+ * reçu la cagnotte et payé ses 12 cotisations : un membre qui a tout terminé
+ * peut rejoindre une nouvelle vague de ce niveau sans attendre la fin de
+ * l'ancienne.
  */
 @Injectable()
 export class ParticipationActiveService {
@@ -24,22 +26,26 @@ export class ParticipationActiveService {
     private readonly cotisations: CotisationTontineRepositoryPort,
   ) {}
 
-  async trouver(membreId: string): Promise<ParticipationActive | null> {
-    const participations = await this.participations.listerParMembre(membreId);
-    for (const participation of participations) {
+  /** Toutes les participations actives du membre, une par niveau au plus. */
+  async lister(membreId: string): Promise<ParticipationActive[]> {
+    const actives: ParticipationActive[] = [];
+    for (const participation of await this.participations.listerParMembre(membreId)) {
       const groupe = await this.groupes.trouverParId(participation.groupeId);
       if (!groupe || groupe.statut !== 'en_cours') {
         continue;
       }
       if (participation.aBouffe) {
         const cotisations = await this.cotisations.listerParParticipation(participation.id!);
-        const payees = cotisations.filter((c) => c.statut === 'payee').length;
-        if (payees >= COTISATIONS_PAR_MEMBRE) {
+        if (cotisations.filter((c) => c.statut === 'payee').length >= COTISATIONS_PAR_MEMBRE) {
           continue;
         }
       }
-      return { groupe, participation };
+      actives.push({ groupe, participation });
     }
-    return null;
+    return actives;
+  }
+
+  async trouver(membreId: string, niveauId: number): Promise<ParticipationActive | null> {
+    return (await this.lister(membreId)).find((active) => active.groupe.niveauId === niveauId) ?? null;
   }
 }

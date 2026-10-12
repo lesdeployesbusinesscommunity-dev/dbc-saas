@@ -13,6 +13,7 @@ export interface CreerDemandeInscriptionCommande {
   niveauSouhaiteCode: string;
   ville?: string;
   profession?: string;
+  email?: string;
 }
 
 /**

@@ -13,7 +13,9 @@ import { CreerDemandeInscriptionUseCase } from './application/creer-demande-insc
 import { ValiderDemandeInscriptionUseCase } from './application/valider-demande-inscription.use-case';
 import { RejeterDemandeInscriptionUseCase } from './application/rejeter-demande-inscription.use-case';
 import { ChangerMotDePasseUseCase } from './application/changer-mot-de-passe.use-case';
+import { MettreAJourProfilUseCase } from './application/mettre-a-jour-profil.use-case';
 import { ProfilUtilisateurService } from './application/profil-utilisateur.service';
+import { IdentiteAccesBootstrap } from './infrastructure/identite-acces.bootstrap';
 import { ListerMembresAdminUseCase } from './application/lister-membres-admin.use-case';
 import { UtilisateurRepositoryPort } from './domaine/utilisateur.repository.port';
 import { DemandeInscriptionRepositoryPort } from './domaine/demande-inscription.repository.port';
@@ -71,7 +73,9 @@ import { FormationModule } from '../formation/formation.module';
     RejeterDemandeInscriptionUseCase,
     ListerMembresAdminUseCase,
     ChangerMotDePasseUseCase,
+    MettreAJourProfilUseCase,
     ProfilUtilisateurService,
+    IdentiteAccesBootstrap,
     JwtStrategy,
     // Le domaine/application dépend des PORTS (abstraits), jamais des implémentations.
     // Remplacer ces lignes suffira à changer de base de données / d'algo de hachage / de
@@ -83,5 +87,7 @@ import { FormationModule } from '../formation/formation.module';
     { provide: HacheurMotDePassePort, useClass: HacheurBcrypt },
     { provide: EnvoyeurOtpPort, useClass: EnvoyeurOtpWhatsAppSimule },
   ],
+  // Pour l'espace membre (numéro WhatsApp des membres du réseau) — voir EspaceMembreModule.
+  exports: [UtilisateurRepositoryPort, ProfilUtilisateurService],
 })
 export class IdentiteAccesModule {}

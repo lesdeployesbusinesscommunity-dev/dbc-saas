@@ -26,6 +26,7 @@ export class AttribuerCoinsManuellementUseCase {
       soldeAvant,
       motif: commande.motif,
       cleIdempotence: `manuel:${randomUUID()}`,
+      libelle: commande.motif,
     });
     if (!resultat.succes) {
       throw new BadRequestException(resultat.erreur);

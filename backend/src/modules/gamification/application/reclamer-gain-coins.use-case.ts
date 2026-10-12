@@ -8,6 +8,8 @@ export interface ReclamerGainCoinsCommande {
   codeAction: string;
   /** Identifie l'événement déclencheur (ex. "parrainage:<membreId>") — garantit l'idempotence. */
   cleIdempotence: string;
+  /** Phrase affichée dans l'historique du membre (ex. "Parrainage de Patrick Essono"). */
+  libelle?: string;
 }
 
 /**
@@ -41,6 +43,7 @@ export class ReclamerGainCoinsUseCase {
       soldeAvant,
       motif: action.code,
       cleIdempotence: commande.cleIdempotence,
+      libelle: commande.libelle,
     });
     if (!resultat.succes) {
       throw new BadRequestException(resultat.erreur);

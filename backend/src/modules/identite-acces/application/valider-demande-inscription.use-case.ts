@@ -51,6 +51,7 @@ export class ValiderDemandeInscriptionUseCase {
     const motDePasseHache = await this.hacheur.hacher(commande.motDePasseTemporaire);
     const resultatUtilisateur = Utilisateur.creerParAdmin({
       telephone: demande.telephone,
+      email: demande.email,
       motDePasseHache,
     });
     if (!resultatUtilisateur.succes) {
@@ -61,6 +62,13 @@ export class ValiderDemandeInscriptionUseCase {
     const membre = await this.choisirNiveau.executer({
       utilisateurId: utilisateur.id!,
       codeNiveau: demande.niveauSouhaiteCode,
+      profil: {
+        prenom: demande.prenom,
+        nom: demande.nom,
+        ville: demande.ville ?? null,
+        pays: demande.pays,
+        profession: demande.profession ?? null,
+      },
     });
 
     await this.enregistrerParrainage.executer({

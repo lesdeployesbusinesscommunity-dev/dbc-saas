@@ -26,6 +26,8 @@ import { JwtAuthGuard } from '../../identite-acces/interface/jwt-auth.guard';
 import { UtilisateurCourant } from '../../identite-acces/interface/utilisateur-courant.decorator';
 import { Utilisateur } from '../../identite-acces/domaine/utilisateur';
 import { NiveauAdhesionRepositoryPort } from '../../adhesion/domaine/niveau-adhesion.repository.port';
+import { MembreRepositoryPort } from '../../adhesion/domaine/membre.repository.port';
+import { ParticipationActiveService } from '../application/participation-active.service';
 import { AdminSecretGuard } from '../../../commun/gardes/admin-secret.guard';
 
 function versReponseVague(groupe: GroupeTontine) {
@@ -124,20 +126,45 @@ export class TontineController {
     private readonly frais: FraisRetraitTontineRepositoryPort,
     private readonly notifications: NotificationTontineRepositoryPort,
     private readonly niveaux: NiveauAdhesionRepositoryPort,
+    private readonly membres: MembreRepositoryPort,
+    private readonly participationActive: ParticipationActiveService,
   ) {}
 
   // ——— Membre ———
+
+  @Get('mes-niveaux')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Les niveaux où je cotise (vague en cours) ou attends une vague, et mon niveau d'adhésion",
+  })
+  async mesNiveaux(@UtilisateurCourant() utilisateur: Utilisateur) {
+    const membre = await this.membres.trouverParId(utilisateur.id!);
+    const [actives, enAttente, tous] = await Promise.all([
+      this.participationActive.lister(utilisateur.id!),
+      this.attente.listerEnAttentePourMembre(utilisateur.id!),
+      this.niveaux.listerTous(),
+    ]);
+    const code = (niveauId: number) => tous.find((n) => n.id === niveauId)?.code ?? null;
+    return {
+      membershipLevelCode: membre ? code(membre.niveauActuelId) : null,
+      activeWaves: actives.map(({ groupe }) => ({ levelCode: code(groupe.niveauId), waveId: groupe.id })),
+      waitingLists: enAttente.map((inscription) => ({ levelCode: code(inscription.niveauId) })),
+    };
+  }
 
   @Post('rejoindre')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: "Rejoindre la vague la plus récente de mon niveau (ou la liste d'attente) — initie la 1re cotisation",
+    summary:
+      "Rejoindre la vague la plus récente d'un niveau (le mien ou inférieur), ou sa liste d'attente — initie la 1re cotisation",
   })
   async rejoindreTontine(@UtilisateurCourant() utilisateur: Utilisateur, @Body() dto: RejoindreTontineDto) {
     const resultat = await this.rejoindre.executer({
       membreId: utilisateur.id!,
       telephone: utilisateur.telephone,
+      codeNiveau: dto.levelCode,
       attendreProchaineVague: dto.waitForNextWave ?? false,
     });
     if (resultat.statut === 'liste_attente') {
@@ -155,18 +182,29 @@ export class TontineController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Payer ma prochaine cotisation (cotisation + frais de retrait) — initie le paiement' })
-  async payerCotisation(@UtilisateurCourant() utilisateur: Utilisateur) {
-    const { cotisation } = await this.cotiser.executer({ membreId: utilisateur.id!, telephone: utilisateur.telephone });
+  @ApiQuery({ name: 'levelCode', required: false, description: "Niveau de la vague ; par défaut, mon niveau d'adhésion" })
+  async payerCotisation(@UtilisateurCourant() utilisateur: Utilisateur, @Query('levelCode') codeNiveau?: string) {
+    const niveauId = await this.niveauDuMembre(utilisateur.id!, codeNiveau);
+    const { cotisation } = await this.cotiser.executer({
+      membreId: utilisateur.id!,
+      telephone: utilisateur.telephone,
+      niveauId,
+    });
     return versReponseCotisation(cotisation);
   }
 
   @Get('ma-tontine')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Ma vague en cours, mes cotisations, ma place dans la file' })
-  async maTontine(@UtilisateurCourant() utilisateur: Utilisateur) {
-    const { vague, listeAttente } = await this.consulterMaTontine.executer(utilisateur.id!);
+  @ApiQuery({ name: 'levelCode', required: false, description: "Niveau consulté ; par défaut, mon niveau d'adhésion" })
+  @ApiOperation({ summary: 'Ma vague à un niveau : membres, calendrier des bouffes, mes cotisations, ma place' })
+  async maTontine(@UtilisateurCourant() utilisateur: Utilisateur, @Query('levelCode') codeNiveau?: string) {
+    const niveauId = await this.niveauDuMembre(utilisateur.id!, codeNiveau);
+    const { niveau, vague, listeAttente, historique } = await this.consulterMaTontine.executer(utilisateur.id!, niveauId);
     return {
+      levelCode: niveau.code,
+      monthlyContribution: niveau.cotisationMensuelle,
+      payoutAmount: niveau.montantCagnotte,
       waitingList: listeAttente ? versReponseAttente(listeAttente) : null,
       wave: vague
         ? {
@@ -182,8 +220,37 @@ export class TontineController {
             nextDepositAmount: vague.montantProchainDepot,
             cashOnHand: vague.caisse,
             contributions: vague.cotisations.map(versReponseCotisation),
+            members: vague.membres.map((m) => ({
+              memberId: m.membreId,
+              name: m.nom,
+              city: m.ville,
+              rank: m.rang,
+              isMe: m.estMoi,
+              history: m.historique,
+              contributionsPaid: m.cotisationsPayees,
+              contributionsDue: m.cotisationsAttendues,
+              late: m.enRetard,
+              receivedPayoutAt: m.beneficiaireLe,
+            })),
+            calendar: vague.calendrier.map((mois) => ({
+              month: mois.numero,
+              startsOn: mois.debut,
+              status: mois.statut,
+              forDbc: mois.pourDbc,
+              projected: mois.projete,
+              beneficiaryMemberIds: mois.beneficiaires,
+            })),
           }
         : null,
+      pastWaves: historique.map((h) => ({
+        waveId: h.groupe.id,
+        number: h.groupe.numero,
+        startedAt: h.groupe.creeLe,
+        membersCount: h.nombreDeMembres,
+        myRank: h.monRang,
+        receivedPayoutAt: h.recuLe,
+        payoutAmount: h.groupe.montantCagnotte,
+      })),
     };
   }
 
@@ -344,6 +411,18 @@ export class TontineController {
   async fixerFraisRetrait(@Param('levelCode') codeNiveau: string, @Body() dto: DefinirFraisRetraitDto) {
     const frais = await this.definirFraisRetrait.executer({ codeNiveau, montant: dto.amount });
     return { levelCode: codeNiveau, withdrawalFee: frais.montant };
+  }
+
+  /** Le niveau demandé (par son code), ou à défaut le niveau d'adhésion du membre. */
+  private async niveauDuMembre(membreId: string, codeNiveau?: string): Promise<number> {
+    if (codeNiveau) {
+      return (await this.niveauIdDepuisCode(codeNiveau))!;
+    }
+    const membre = await this.membres.trouverParId(membreId);
+    if (!membre) {
+      throw new NotFoundException("Aucune adhésion pour ce compte");
+    }
+    return membre.niveauActuelId;
   }
 
   private async niveauIdDepuisCode(codeNiveau?: string): Promise<number | undefined> {

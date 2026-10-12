@@ -22,6 +22,12 @@ export class MembrePostgresRepository implements MembreRepositoryPort {
       matricule: membre.matricule,
       statut: membre.statut,
       niveauActuelId: membre.niveauActuelId,
+      prenom: membre.profil.prenom,
+      nom: membre.profil.nom,
+      ville: membre.profil.ville,
+      pays: membre.profil.pays,
+      profession: membre.profil.profession,
+      photoUrl: membre.profil.photoUrl,
     });
     return this.versDomaine(ligne);
   }
@@ -64,6 +70,15 @@ export class MembrePostgresRepository implements MembreRepositoryPort {
       matricule: ligne.matricule,
       statut: ligne.statut,
       niveauActuelId: ligne.niveauActuelId,
+      profil: {
+        prenom: ligne.prenom,
+        nom: ligne.nom,
+        ville: ligne.ville,
+        pays: ligne.pays,
+        profession: ligne.profession,
+        photoUrl: ligne.photoUrl,
+      },
+      creeLe: ligne.creeLe,
     });
   }
 }

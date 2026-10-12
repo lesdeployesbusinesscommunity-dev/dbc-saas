@@ -39,6 +39,9 @@ export class DemandeInscriptionOrmEntity {
   @Column({ type: 'varchar', nullable: true })
   profession: string | null;
 
+  @Column({ type: 'varchar', nullable: true })
+  email: string | null;
+
   @CreateDateColumn({ name: 'cree_le' })
   creeLe: Date;
 }

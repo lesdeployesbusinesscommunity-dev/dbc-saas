@@ -32,9 +32,14 @@ export class InscriptionAttenteTontinePostgresRepository implements InscriptionA
     return lignes.map((l) => this.versDomaine(l));
   }
 
-  async trouverEnAttentePourMembre(membreId: string): Promise<InscriptionAttenteTontine | null> {
-    const ligne = await this.repository.findOne({ where: { membreId, statut: 'en_attente' } });
+  async trouverEnAttentePourMembre(membreId: string, niveauId: number): Promise<InscriptionAttenteTontine | null> {
+    const ligne = await this.repository.findOne({ where: { membreId, niveauId, statut: 'en_attente' } });
     return ligne ? this.versDomaine(ligne) : null;
+  }
+
+  async listerEnAttentePourMembre(membreId: string): Promise<InscriptionAttenteTontine[]> {
+    const lignes = await this.repository.find({ where: { membreId, statut: 'en_attente' }, order: { inscritLe: 'ASC' } });
+    return lignes.map((l) => this.versDomaine(l));
   }
 
   private versDomaine(ligne: InscriptionAttenteTontineOrmEntity): InscriptionAttenteTontine {

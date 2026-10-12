@@ -42,10 +42,12 @@ export class EnregistrerParrainageUseCase {
     const parrainageSauvegarde = await this.parrainages.sauvegarder(parrainage);
 
     if (parrain && parrain.niveauActuelId >= NIVEAU_MINIMUM_POUR_GAIN_PARRAINAGE) {
+      const filleul = await this.membres.trouverParId(commande.membreId);
       await this.reclamerGainCoins.executer({
         membreId: parrain.id,
         codeAction: 'parrainage_membre_actif_niv3plus',
         cleIdempotence: `parrainage:${commande.membreId}`,
+        libelle: `Parrainage de ${filleul?.nomComplet ?? 'un nouveau membre'}`,
       });
     }
 

@@ -34,6 +34,11 @@ export class UtilisateurPostgresRepository implements UtilisateurRepositoryPort 
     return ligne ? this.versDomaine(ligne) : null;
   }
 
+  async listerTous(): Promise<Utilisateur[]> {
+    const lignes = await this.repository.find();
+    return lignes.map((ligne) => this.versDomaine(ligne));
+  }
+
   private versDomaine(ligne: UtilisateurOrmEntity): Utilisateur {
     return Utilisateur.depuisPersistance({
       id: ligne.id,

@@ -13,6 +13,8 @@ import { PaiementRepositoryPort } from '../../paiements/domaine/paiement.reposit
 export interface CotiserCommande {
   membreId: string;
   telephone: string;
+  /** Niveau de la vague pour laquelle on cotise (un membre peut en avoir plusieurs). */
+  niveauId: number;
 }
 
 /**
@@ -36,9 +38,9 @@ export class CotiserUseCase {
   ) {}
 
   async executer(commande: CotiserCommande): Promise<{ cotisation: CotisationTontine; groupe: GroupeTontine }> {
-    const active = await this.participationActive.trouver(commande.membreId);
+    const active = await this.participationActive.trouver(commande.membreId, commande.niveauId);
     if (!active) {
-      throw new NotFoundException('Vous ne faites partie d’aucune vague en cours');
+      throw new NotFoundException('Vous ne faites partie d’aucune vague en cours à ce niveau');
     }
     const { groupe, participation } = active;
 

@@ -8,4 +8,5 @@ export abstract class UtilisateurRepositoryPort {
   abstract sauvegarder(utilisateur: Utilisateur): Promise<Utilisateur>;
   abstract trouverParTelephone(telephone: string): Promise<Utilisateur | null>;
   abstract trouverParId(id: string): Promise<Utilisateur | null>;
+  abstract listerTous(): Promise<Utilisateur[]>;
 }

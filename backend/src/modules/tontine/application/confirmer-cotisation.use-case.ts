@@ -109,6 +109,7 @@ export class ConfirmerCotisationUseCase {
         membreId,
         codeAction: 'tontine_sans_echec_annuel',
         cleIdempotence: `tontine-sans-echec:${participationId}`,
+        libelle: 'Tontine : 12 cotisations sans retard',
       });
     } catch (erreur) {
       this.logger.warn(`Coins "tontine sans échec" non attribués à ${membreId} : ${(erreur as Error).message}`);

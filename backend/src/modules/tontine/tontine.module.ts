@@ -92,5 +92,7 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
     { provide: NotificationTontineRepositoryPort, useClass: NotificationTontinePostgresRepository },
     { provide: NotificateurTontinePort, useClass: NotificateurTontineWhatsAppSimule },
   ],
+  // Pour l'espace membre (niveaux du membre, retards de ses filleuls, activité) — voir EspaceMembreModule.
+  exports: [ParticipationActiveService, CotisationTontineRepositoryPort, InscriptionAttenteTontineRepositoryPort],
 })
 export class TontineModule {}

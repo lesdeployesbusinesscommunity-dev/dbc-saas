@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Utilisateur } from '../domaine/utilisateur';
-import { DemandeInscriptionRepositoryPort } from '../domaine/demande-inscription.repository.port';
 import { MembreRepositoryPort } from '../../adhesion/domaine/membre.repository.port';
 import { NiveauAdhesionRepositoryPort } from '../../adhesion/domaine/niveau-adhesion.repository.port';
 
@@ -17,6 +16,7 @@ export interface ProfilUtilisateur {
   country: string | null;
   city: string | null;
   profession: string | null;
+  photoUrl: string | null;
   level: { id: number; code: string; name: string } | null;
   joinedAt: Date | null;
 }
@@ -30,25 +30,20 @@ export interface PayloadJwt {
 
 /**
  * Profil renvoyé à la connexion et par GET /auth/me : il réunit ce que
- * l'espace membre affiche partout (nom, matricule, niveau, rôle). Le nom et
- * la localisation viennent de la demande d'inscription validée (seule trace
- * de ces données — voir ListerMembresAdminUseCase), le matricule et le niveau
- * de l'adhésion.
+ * l'espace membre affiche partout (nom, matricule, niveau, rôle). Le profil
+ * (nom, ville, profession, photo) et le niveau viennent du Membre (Adhésion),
+ * le téléphone, l'e-mail et le rôle du compte.
  */
 @Injectable()
 export class ProfilUtilisateurService {
   constructor(
-    private readonly demandes: DemandeInscriptionRepositoryPort,
     private readonly membres: MembreRepositoryPort,
     private readonly niveaux: NiveauAdhesionRepositoryPort,
     private readonly jwt: JwtService,
   ) {}
 
   async construire(utilisateur: Utilisateur): Promise<ProfilUtilisateur> {
-    const [demande, membre] = await Promise.all([
-      this.demandes.trouverParUtilisateurId(utilisateur.id!),
-      this.membres.trouverParId(utilisateur.id!),
-    ]);
+    const membre = await this.membres.trouverParId(utilisateur.id!);
     const niveau = membre ? await this.niveaux.trouverParId(membre.niveauActuelId) : null;
 
     return {
@@ -58,13 +53,14 @@ export class ProfilUtilisateurService {
       status: utilisateur.statut,
       role: utilisateur.role,
       membershipNumber: membre?.matricule ?? null,
-      firstName: demande?.prenom ?? null,
-      lastName: demande?.nom ?? null,
-      country: demande?.pays ?? null,
-      city: demande?.ville ?? null,
-      profession: demande?.profession ?? null,
+      firstName: membre?.profil.prenom ?? null,
+      lastName: membre?.profil.nom ?? null,
+      country: membre?.profil.pays ?? null,
+      city: membre?.profil.ville ?? null,
+      profession: membre?.profil.profession ?? null,
+      photoUrl: membre?.profil.photoUrl ?? null,
       level: niveau ? { id: niveau.id, code: niveau.code, name: niveau.nom } : null,
-      joinedAt: demande?.creeLe ?? null,
+      joinedAt: membre?.creeLe ?? null,
     };
   }
 

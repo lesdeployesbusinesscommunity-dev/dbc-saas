@@ -19,7 +19,7 @@ export class Utilisateur {
   private constructor(
     public readonly id: string | undefined,
     public email: string | undefined,
-    public readonly telephone: string,
+    public telephone: string,
     public motDePasseHache: string,
     public statut: StatutUtilisateur,
     public role: RoleUtilisateur,
@@ -122,5 +122,13 @@ export class Utilisateur {
 
   changerEmail(email: string | undefined): void {
     this.email = email;
+  }
+
+  changerTelephone(telephone: string): ResultatOperation<void> {
+    if (!/^\+?[0-9]{8,15}$/.test(telephone)) {
+      return ResultatOperation.echec('Numéro de téléphone invalide');
+    }
+    this.telephone = telephone;
+    return ResultatOperation.ok();
   }
 }

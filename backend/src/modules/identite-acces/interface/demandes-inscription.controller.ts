@@ -22,6 +22,7 @@ function versReponseDemande(demande: DemandeInscription) {
     status: demande.statut,
     city: demande.ville,
     profession: demande.profession,
+    email: demande.email,
     submittedAt: demande.creeLe,
   };
 }
@@ -50,6 +51,7 @@ export class DemandesInscriptionController {
       niveauSouhaiteCode: dto.desiredLevelCode,
       ville: dto.city,
       profession: dto.profession,
+      email: dto.email,
     });
     return versReponseDemande(demande);
   }

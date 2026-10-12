@@ -1,7 +1,15 @@
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RejoindreTontineDto {
+  @ApiPropertyOptional({
+    example: 'starter',
+    description: "Niveau de la vague visée (le mien ou un niveau inférieur) ; par défaut, mon niveau d'adhésion",
+  })
+  @IsOptional()
+  @IsString()
+  levelCode?: string;
+
   @ApiPropertyOptional({
     example: false,
     default: false,

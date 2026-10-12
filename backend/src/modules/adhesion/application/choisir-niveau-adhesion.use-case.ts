@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Membre } from '../domaine/membre';
+import { Membre, ProfilMembre } from '../domaine/membre';
 import { MembreRepositoryPort } from '../domaine/membre.repository.port';
 import { NiveauAdhesionRepositoryPort } from '../domaine/niveau-adhesion.repository.port';
 import { HistoriqueNiveauMembre } from '../domaine/historique-niveau-membre';
@@ -8,6 +8,8 @@ import { genererMatricule } from '../domaine/matricule';
 export interface ChoisirNiveauAdhesionCommande {
   utilisateurId: string;
   codeNiveau: string;
+  /** Recopié de la demande d'inscription validée (voir ValiderDemandeInscriptionUseCase). */
+  profil?: Partial<ProfilMembre>;
 }
 
 /**
@@ -38,7 +40,7 @@ export class ChoisirNiveauAdhesionUseCase {
     const numeroSequence = await this.membres.prochainNumeroSequenceMatricule();
     const matricule = genererMatricule(new Date().getFullYear(), numeroSequence);
 
-    const membre = Membre.creer({ id: commande.utilisateurId, matricule, niveauActuelId: niveau.id });
+    const membre = Membre.creer({ id: commande.utilisateurId, matricule, niveauActuelId: niveau.id, profil: commande.profil });
     const membreSauvegarde = await this.membres.sauvegarder(membre);
 
     await this.membres.ajouterHistorique(
