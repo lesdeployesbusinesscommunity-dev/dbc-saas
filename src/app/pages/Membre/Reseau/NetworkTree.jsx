@@ -11,7 +11,7 @@ import { LEVEL_HEX, getInitials } from "../communityMembers";
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { MemberCvModal } from "../Coins/MemberCvModal";
 import { useReportMatches } from "../components/searchSummary";
-import { getSponsorChain, getReferralTree, getNetworkList, getNetworkSummary } from "./mockData";
+import { getSponsorChain, getReferralTree, getNetworkList, getNetworkSummary } from "./reseauData";
 import { NetworkList } from "./NetworkList";
 
 // ----------------------------------------------------------------------

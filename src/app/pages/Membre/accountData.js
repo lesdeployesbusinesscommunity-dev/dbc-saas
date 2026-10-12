@@ -1,160 +1,195 @@
-// Import Dependencies
-import { initialMembersByLevel } from "app/pages/Admin/Membres/mockData";
-import { levels } from "app/pages/Simulateur/data";
-
 // Local Imports
-import { getAccountKey } from "./currentMember";
+import { levels } from "app/pages/Simulateur/data";
+import { levelKeyFromCode } from "utils/levelCodes";
+import { getMemberStore } from "./memberStore";
 
 // ----------------------------------------------------------------------
-// Données de démonstration PROPRES à l'administrateur quand il passe en
-// "mode membre". Un administrateur est d'abord un membre : il a SA page
-// membre — son historique de Coins, son réseau de filleuls, ses formations —
-// et non celle du membre de démonstration (Thierry Mbida). Ses données
-// viennent de sa fiche dans Gestion des membres (Admin/Membres/mockData.js :
-// mêmes filleuls, mêmes Coins, mêmes formations terminées), pour qu'une seule
-// source dise qui il est.
-//
-// "getAccountOverrides()" renvoie ces données pour le compte de
-// l'administrateur, et "null" pour le membre de démonstration : chaque page
-// garde alors EXACTEMENT ses données d'origine (voir Coins/mockData.js,
-// Mlm/mockData.js, Reseau/mockData.js...). Placeholder en attendant le
-// backend : chaque compte aura alors ses propres données renvoyées par l'API.
+// Les données PROPRES au compte connecté — son historique de Coins, son
+// activité, son réseau, son MLM — mises dans la forme que les pages de
+// l'espace membre lisent depuis le début (voir Coins/mockData.js,
+// Mlm/mockData.js, Reseau/mockData.js, Dashboard/RecentActivity.jsx...).
+// Elles viennent de GET /espace-membre (voir memberStore.js) : chaque compte
+// voit les siennes, jamais des données de démonstration.
 
-const ADMIN_MATRICULE = "DBC-1-0001";
+const MONTHS_FR = [
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+];
 
-const records = Object.entries(initialMembersByLevel).flatMap(([levelKey, list]) =>
-  list.map((member) => ({ ...member, levelKey })),
-);
+const STATUS_BY_ACCOUNT_STATUS = { actif: "actif", en_attente: "attente", suspendu: "desactive" };
 
-// Un membre de l'admin → la forme utilisée par "Mon Réseau" (voir
-// communityMembers.js). Le numéro est VOLONTAIREMENT invalide (+237 000...) :
-// un clic sur "Appeler" / "WhatsApp" pendant la démonstration ne joint jamais
-// une vraie personne.
-function toNetworkMember(record, index) {
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// "Il y a X jours / semaines" : le format attendu par Dashboard/RecentActivity.jsx.
+function elapsed(date) {
+  const days = Math.max(1, Math.round((Date.now() - new Date(date).getTime()) / DAY_MS));
+  return days < 7 ? { timeUnit: "days", timeCount: days } : { timeUnit: "weeks", timeCount: Math.round(days / 7) };
+}
+
+const startOfMonth = () => {
+  const date = new Date();
+  date.setDate(1);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+// Une personne telle que la décrivent "Mon Réseau", le classement et la fiche
+// "CV" (mêmes champs que l'ancien annuaire de démonstration).
+export function toCommunityMember(card, rank) {
   return {
-    id: record.id,
-    name: record.name,
-    role: record.role,
-    levelKey: record.levelKey,
-    sector: record.domain,
-    coins: record.coins,
-    status: record.status,
-    city: record.city,
-    memberSinceYear: Number(String(record.joinedAt).slice(0, 4)),
-    phone: `+2370000${String(100 + index)}`,
+    id: card.id,
+    name: card.name,
+    role: card.isAdmin ? "Administrateur" : "Membre",
+    levelKey: levelKeyFromCode(card.levelCode),
+    sector: card.profession ?? "",
+    coins: card.coins,
+    status: STATUS_BY_ACCOUNT_STATUS[card.status] ?? "actif",
+    city: card.city ?? "",
+    memberSinceYear: card.memberSince ? new Date(card.memberSince).getFullYear() : null,
+    phone: card.phoneNumber ?? "",
+    photo: card.photoUrl ?? null,
+    matricule: card.membershipNumber,
+    ...(rank != null ? { rank } : {}),
   };
 }
 
-// Ses filleuls directs (parrainés par lui) et, dessous, leurs propres
-// filleuls — tels que l'admin les voit dans Gestion des membres.
-function buildReferralTree() {
-  const directs = records.filter((member) => member.sponsorMatricule === ADMIN_MATRICULE);
-  let index = 0;
-  return directs.map((direct) => ({
-    member: toNetworkMember(direct, index++),
-    relation: "direct",
-    children: records
-      .filter((member) => member.sponsorMatricule === direct.matricule)
-      .map((child) => ({
-        member: toNetworkMember(child, index++),
-        relation: "indirect",
-        parentName: direct.name,
-        children: [],
-      })),
-  }));
+// Rang GLOBAL de chacun au classement des Coins (tous niveaux, depuis le
+// début), "à la compétition" : deux ex aequo ont le même rang.
+export function coinsRanks(space) {
+  const board = space?.coins.leaderboard ?? [];
+  return Object.fromEntries(board.map((entry) => [entry.id, 1 + board.filter((other) => other.coins > entry.coins).length]));
 }
 
-const daysSince = (isoDate) => Math.max(1, Math.round((Date.now() - new Date(isoDate).getTime()) / 86400000));
+function buildCoinsHistory(space) {
+  const groups = [];
+  space.coins.history.forEach((entry) => {
+    const date = new Date(entry.at);
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    let group = groups.find((g) => g.key === key);
+    if (!group) {
+      group = { key, month: MONTHS_FR[date.getMonth()], year: date.getFullYear(), entries: [] };
+      groups.push(group);
+    }
+    group.entries.push({ id: entry.id, label: entry.label, category: entry.category, amount: entry.amount, at: entry.at });
+  });
+  return groups;
+}
 
-const referralTree = buildReferralTree();
-const flatNetwork = (nodes) => nodes.flatMap((node) => [node, ...flatNetwork(node.children)]);
-const networkNodes = flatNetwork(referralTree);
-
-const adminOverrides = {
-  // Historique des Coins, du mois le plus récent au plus ancien. La somme est
-  // complétée automatiquement jusqu'à son solde (voir Coins/mockData.js).
-  coinsHistory: [
-    {
-      month: "Juillet",
-      entries: [
-        { id: "h1", label: "Cotisation Tontine Juillet", category: "tontine", amount: 20 },
-        { id: "h2", label: "Parrainage de Grace Owusu", category: "parrainage", amount: 30 },
-        { id: "h3", label: "Formation : Techniques de vente", category: "formations", amount: 30 },
-        { id: "h5", label: "Challenge mensuel", category: "challenges", amount: 75 },
-      ],
-    },
-    {
-      month: "Juin",
-      entries: [
-        { id: "h6", label: "Cotisation Tontine Juin", category: "tontine", amount: 20 },
-        { id: "h7", label: "Challenge mensuel", category: "challenges", amount: 75 },
-        { id: "h8", label: "Formation : Fondamentaux DBC", category: "formations", amount: 20 },
-        { id: "h9", label: "Parrainage de Samuel Okafor", category: "parrainage", amount: 30 },
-      ],
-    },
-  ],
-
-  // Dashboard : "Activités récentes", donut "ce que vous avez fait le plus ce
-  // mois-ci" et badges obtenus.
-  activity: {
-    recent: [
-      { id: "a1", kind: "cotisation", timeUnit: "days", timeCount: 3 },
-      { id: "a2", kind: "parrainage", params: { name: "Grace Owusu" }, timeUnit: "weeks", timeCount: 1 },
-      { id: "a3", kind: "coins", timeUnit: "weeks", timeCount: 2 },
-      { id: "a4", kind: "formation", params: { name: "Techniques de vente" }, timeUnit: "weeks", timeCount: 3 },
-    ],
-    categoryCoins: { tontine: [20], parrainage: [30], formations: [30], challenges: [75] },
-    // Noms insérés dans les phrases du détail (parrainage / formations).
-    names: { parrainage: ["Grace Owusu"], formations: ["Techniques de vente"] },
-    badges: ["formation", "cotisation", "parrainage"],
-  },
-
-  // Formations : l'admin a terminé les deux formations du niveau Starter (voir
-  // sa fiche : "Fondamentaux DBC" et "Techniques de vente") — il n'a donc
-  // aucune formation "en cours".
-  trainingStartProgress: { f1: 100, f2: 100 },
-
-  // "Mon MLM" / "Mon Réseau". Il cotise au niveau Starter seulement : pas de
-  // pack Longrich, donc pas de commission MLM — ses gains sont ceux de son
-  // parrainage DBC (450 000 F, voir Dashboard).
-  mlm: {
-    stats: {
-      directReferrals: referralTree.length,
-      networkLevels: 2,
-      totalNetwork: networkNodes.length,
-      personalVolume: 0,
-      monthlyCommissions: 0,
-    },
-    pack: { name: "", price: 0, pv: 0, eligibleLevelKey: null },
-    network: networkNodes.map(({ member, relation }, index) => ({
-      id: `net-${index + 1}`,
-      name: member.name,
-      type: relation,
-      levelPosition: levels.findIndex((level) => level.key === member.levelKey) + 1,
-      commission: 0,
+function buildActivity(space) {
+  const thisMonth = space.coins.history.filter((entry) => entry.amount > 0 && new Date(entry.at) >= startOfMonth());
+  const labelsOf = (category) => thisMonth.filter((entry) => entry.category === category).map((entry) => entry.label);
+  return {
+    recent: space.activity.recent.map((item) => ({
+      id: item.id,
+      kind: item.kind,
+      params: item.name ? { name: item.name } : item.kind === "cotisation" ? { month: MONTHS_FR[new Date(item.at).getMonth()] } : undefined,
+      ...elapsed(item.at),
     })),
-  },
-  network: {
-    // Le fondateur n'a pas de parrain.
-    sponsorChain: [],
-    sponsor: null,
+    categoryCoins: space.activity.monthlyCoinsByCategory,
+    names: {
+      tontine: labelsOf("tontine"),
+      parrainage: space.activity.monthlyNames.parrainage,
+      formations: space.activity.monthlyNames.formations,
+      challenges: labelsOf("challenges"),
+    },
+    badges: space.activity.badges,
+  };
+}
+
+function buildNetwork(space) {
+  const ranks = coinsRanks(space);
+  const member = (card) => toCommunityMember(card, ranks[card.id]);
+  const toNode = (node) => ({
+    member: member(node.member),
+    relation: node.relation,
+    ...(node.parentName ? { parentName: node.parentName } : {}),
+    children: node.children.map(toNode),
+  });
+  const referralTree = space.network.tree.map(toNode);
+  const sponsorChain = space.network.sponsorChain.map((entry) => ({ member: member(entry.member), relation: entry.relation }));
+  const count = (nodes) => nodes.reduce((sum, node) => sum + 1 + count(node.children), 0);
+
+  return {
+    sponsorChain,
+    sponsor: sponsorChain.find((entry) => entry.relation === "sponsor")?.member ?? null,
     referralTree,
-    shown: networkNodes.length,
-    // Les inscriptions encore "en attente" de ses filleuls.
-    alerts: networkNodes
-      .filter(({ member }) => member.status === "attente")
-      .map(({ member }) => ({
-        id: `alert-${member.id}`,
-        member,
-        kind: "pending",
-        days: daysSince(records.find((record) => record.id === member.id).joinedAt),
-      })),
-    total: networkNodes.length,
+    shown: count(referralTree),
+    alerts: space.network.alerts.map((alert) => ({ id: alert.id, member: member(alert.member), kind: alert.kind, days: alert.days })),
+    total: space.network.totalNetwork,
+  };
+}
+
+function buildMlm(space) {
+  const { mlm, network } = space;
+  return {
+    stats: {
+      directReferrals: network.directReferrals,
+      networkLevels: network.depth,
+      totalNetwork: network.totalNetwork,
+      personalVolume: mlm.personalVolume,
+      monthlyCommissions: mlm.monthlyCommissions,
+    },
+    pack: mlm.pack
+      ? {
+          name: mlm.pack.name,
+          price: mlm.pack.price,
+          pv: mlm.pack.pv,
+          eligibleLevelKey: levelKeyFromCode(mlm.pack.requiredLevelCode),
+        }
+      : { name: "", price: 0, pv: 0, eligibleLevelKey: null },
+    network: mlm.network.map((entry) => ({
+      id: entry.memberId,
+      name: entry.name,
+      type: entry.type,
+      levelPosition: levels.findIndex((level) => level.key === levelKeyFromCode(entry.levelCode)) + 1,
+      commission: entry.commission,
+    })),
+  };
+}
+
+const EMPTY = {
+  coinsHistory: [],
+  activity: { recent: [], categoryCoins: { tontine: [], parrainage: [], formations: [], challenges: [] }, names: {}, badges: [] },
+  trainingStartProgress: {},
+  mlm: {
+    stats: { directReferrals: 0, networkLevels: 0, totalNetwork: 0, personalVolume: 0, monthlyCommissions: 0 },
+    pack: { name: "", price: 0, pv: 0, eligibleLevelKey: null },
+    network: [],
   },
+  network: { sponsorChain: [], sponsor: null, referralTree: [], shown: 0, alerts: [], total: 0 },
 };
 
-// Les données propres au compte affiché, ou "null" pour le membre de
-// démonstration (il garde les données d'origine de chaque page).
+// Recalculé seulement quand les données changent (même objet entre deux
+// lectures, pour les pages qui le comparent ou le mémorisent).
+let cache = { version: -1, value: EMPTY };
+
+// Les données du compte connecté, dans la forme des pages. Avant le premier
+// chargement (ne devrait pas arriver : MembreLayout attend les données),
+// des listes vides plutôt que des données inventées.
 export function getAccountOverrides() {
-  return getAccountKey() === "admin" ? adminOverrides : null;
+  const { space, version } = getMemberStore();
+  if (!space) return EMPTY;
+  if (cache.version !== version) {
+    cache = {
+      version,
+      value: {
+        coinsHistory: buildCoinsHistory(space),
+        activity: buildActivity(space),
+        trainingStartProgress: {},
+        mlm: buildMlm(space),
+        network: buildNetwork(space),
+      },
+    };
+  }
+  return cache.value;
 }

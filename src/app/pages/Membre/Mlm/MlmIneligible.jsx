@@ -7,7 +7,7 @@ import { levels } from "app/pages/Simulateur/data";
 import { currentMember } from "../currentMember";
 import { ConfirmRequestPopover } from "../components/ConfirmRequestPopover";
 import { useMemberLevel } from "../context/MemberLevelContext";
-import { getLongrichPacks } from "./mockData";
+import { getLongrichPacks } from "./mlmData";
 
 // ----------------------------------------------------------------------
 

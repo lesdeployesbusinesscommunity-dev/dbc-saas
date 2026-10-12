@@ -6,6 +6,7 @@ import { ArrowRightIcon, PlayIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { pillarGroups } from "app/pages/Admin/Piliers/mockData";
 import { getPillarText, usePillars } from "app/pages/Admin/Piliers/pillarsStore";
@@ -29,6 +30,7 @@ import { groupStyles } from "./pillarStyles";
 // par son titre (qui montre alors tous ses programmes) ; les piliers sans
 // correspondance disparaissent.
 export default function MembrePiliers() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const pillars = usePillars().filter((pillar) => pillar.visible);
   const [query, setQuery] = useState("");

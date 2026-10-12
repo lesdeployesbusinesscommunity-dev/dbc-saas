@@ -5,6 +5,7 @@ import { ArrowLeftIcon, ArrowRightIcon, CheckCircleIcon, ChevronRightIcon, Users
 import clsx from "clsx";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { pillarGroups } from "app/pages/Admin/Piliers/mockData";
 import { getPillarText, usePillars } from "app/pages/Admin/Piliers/pillarsStore";
@@ -23,6 +24,7 @@ import { groupStyles, statusStyles } from "./pillarStyles";
 // (voir LongrichPacksTable.jsx). Les textes viennent de i18n, sauf si
 // l'admin les a modifiés (voir Admin/Piliers/pillarsStore.js).
 export default function PillarPage() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const { pillarId } = useParams();
   const pillars = usePillars();

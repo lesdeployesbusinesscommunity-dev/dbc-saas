@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowUpCircleIcon, UserPlusIcon, UsersIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
-import { getNetworkSummary } from "./mockData";
+import { getNetworkSummary } from "./reseauData";
 
 // ----------------------------------------------------------------------
 

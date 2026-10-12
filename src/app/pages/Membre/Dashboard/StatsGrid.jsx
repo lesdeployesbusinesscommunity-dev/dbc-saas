@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 // Local Imports
 import { useMemberLevel } from "../context/MemberLevelContext";
-import { getMonthlyStats } from "./mockData";
+import { getMonthlyStats } from "./dashboardData";
 
 // ----------------------------------------------------------------------
 

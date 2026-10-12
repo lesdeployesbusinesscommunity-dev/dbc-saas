@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ClockIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { currentMember } from "../currentMember";
 import { TopBar } from "../Dashboard/TopBar";
@@ -60,6 +61,7 @@ function PendingRequests() {
 // ses choix dans Paramètres > Notifications et de la configuration de la
 // plateforme côté admin (voir Notifications/feeds.js).
 export default function MembreNotifications() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
 

@@ -1220,7 +1220,9 @@
           "coins": "+75 Coins — Monthly Challenge",
           "parrainageOf": "Referred {{name}}",
           "formationNamed": "Training: {{name}}",
-          "parrainage": "Referred Patrick Essono"
+          "parrainage": "Referred Patrick Essono",
+          "cotisationOf": "Tontine contribution for {{month}}",
+          "coinsGained": "Coins earned"
         },
         "time": {
           "days_one": "{{count}} day ago",
@@ -1287,7 +1289,8 @@
       "cancel": "Cancel",
       "yes": "Yes",
       "requestConfirmation": "Thank you! We'll contact you by email about your request.",
-      "close": "Close"
+      "close": "Close",
+      "retry": "Try again"
     },
     "tontine": {
       "hero": {
@@ -1342,7 +1345,11 @@
           "late": "Late",
           "onTime": "Up to date",
           "downloadReceipt": "Download my receipt",
-          "receiptNote": "Automatically generated document for information only — pending integration of official receipts."
+          "receiptNote": "Automatically generated document for information only — pending integration of official receipts.",
+          "pay": "Pay my contribution",
+          "paying": "Payment in progress…",
+          "payInitiated": "Payment started: confirm it on your phone (Mobile Money). Your tracking updates as soon as it is received.",
+          "allPaid": "Your 12 contributions for this wave are paid."
         },
         "turn": {
           "title": "My turn",
@@ -1378,7 +1385,19 @@
           }
         ]
       },
-      "searchPlaceholder": "Search a group member…"
+      "searchPlaceholder": "Search a group member…",
+      "join": {
+        "title": "Join a {{level}} wave",
+        "description": "A wave brings together up to 11 members of the same level. Your 1st contribution goes to DBC, then you receive the pot on your turn, based on your seniority in the wave.",
+        "join": "Join the wave",
+        "wait": "Wait for the next wave",
+        "joined": "Welcome to the wave! Confirm the payment of your 1st contribution on your phone.",
+        "waiting": "You are on the waiting list for the next {{level}} wave (since {{date}}). The DBC team will add you as soon as it opens.",
+        "waitingTitle": "Waiting list"
+      },
+      "errors": {
+        "generic": "The operation could not be completed. Please try again in a moment."
+      }
     },
     "mlm": {
       "overviewTitle": "Longrich MLM Business, My tree",

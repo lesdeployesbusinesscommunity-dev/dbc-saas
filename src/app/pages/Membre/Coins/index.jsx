@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { currentMember } from "../currentMember";
 import { TopBar } from "../Dashboard/TopBar";
@@ -33,6 +34,7 @@ import { CoinsHistory } from "./CoinsHistory";
 // bougent pas. Une liste sans correspondance disparaît ; un seul message
 // s'affiche sous l'en-tête quand plus aucune ne correspond.
 export default function MembreCoins() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const { report, noResults } = useSearchSummary(query);

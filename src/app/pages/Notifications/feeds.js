@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { getContributionDay, getPlatformSettings, getReminderDays, usePlatformSettings } from "app/pages/Admin/Parametres/platformSettings";
 import { initialMembersByLevel } from "app/pages/Admin/Membres/mockData";
 import { currentMember } from "app/pages/Membre/currentMember";
-import { getCoinsHistory } from "app/pages/Membre/Coins/mockData";
+import { getCoinsHistory } from "app/pages/Membre/Coins/coinsData";
 import { getNewsSlides } from "app/pages/Membre/Dashboard/newsData";
 import { getCourseCatalog } from "app/pages/Membre/Formation/mockData";
 import { getCourseProgress } from "app/pages/Membre/Formation/progressStore";
@@ -17,7 +17,7 @@ import {
   getMyNextTurn,
   getTontineGroup,
   isCycleComplete,
-} from "app/pages/Membre/Tontine/mockData";
+} from "app/pages/Membre/Tontine/tontineData";
 import { isMine, isRead, markAllRead, markRead, useNotificationState } from "./notificationsStore";
 
 // ----------------------------------------------------------------------

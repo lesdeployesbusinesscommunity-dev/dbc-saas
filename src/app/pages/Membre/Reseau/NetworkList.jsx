@@ -8,7 +8,7 @@ import clsx from "clsx";
 import { levels } from "app/pages/Simulateur/data";
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { LEVEL_HEX, getInitials } from "../communityMembers";
-import { getNetworkList } from "./mockData";
+import { getNetworkList } from "./reseauData";
 
 // ----------------------------------------------------------------------
 

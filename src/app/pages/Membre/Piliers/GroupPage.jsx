@@ -5,6 +5,7 @@ import { AcademicCapIcon, ArrowLeftIcon, ArrowRightIcon, ChevronRightIcon } from
 import clsx from "clsx";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { pillarGroups } from "app/pages/Admin/Piliers/mockData";
 import { getPillarText, usePillars } from "app/pages/Admin/Piliers/pillarsStore";
@@ -23,6 +24,7 @@ import { groupStyles, statusStyles } from "./pillarStyles";
 // Longrich ; FORMER renvoie vers la page Formation, où se suivent les
 // formations.
 export default function GroupPage() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const { group: groupKey } = useParams();
   const group = pillarGroups.find((entry) => entry.key === groupKey);

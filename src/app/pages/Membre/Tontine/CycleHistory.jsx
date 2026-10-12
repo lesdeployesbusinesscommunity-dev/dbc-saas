@@ -5,7 +5,7 @@ import { ArchiveBoxIcon, TrophyIcon } from "@heroicons/react/24/solid";
 // Local Imports
 import { formatMoney } from "app/pages/Simulateur/data";
 import { useMemberLevel } from "../context/MemberLevelContext";
-import { getCycleHistory } from "./mockData";
+import { getCycleHistory } from "./tontineData";
 
 // ----------------------------------------------------------------------
 

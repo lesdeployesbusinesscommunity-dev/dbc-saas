@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { levels } from "app/pages/Simulateur/data";
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
@@ -47,6 +48,7 @@ import { RightPanel } from "./RightPanel";
 // aucune n'en a, un message le dit sous l'en-tête (voir
 // components/searchSummary.js).
 export default function MembreDashboard() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const { activeLevelKey } = useMemberLevel();
   const [query, setQuery] = useState("");

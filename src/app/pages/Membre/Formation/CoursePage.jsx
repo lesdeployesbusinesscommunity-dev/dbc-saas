@@ -17,6 +17,7 @@ import {
 import clsx from "clsx";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { currentMember } from "../currentMember";
 import { getDomain } from "./domains";
@@ -335,6 +336,7 @@ function CourseView({ course }) {
 }
 
 export default function MembreCoursePage() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const { trainingId } = useParams();
   const course = getCourseById(trainingId);

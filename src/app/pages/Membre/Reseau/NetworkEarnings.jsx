@@ -6,7 +6,7 @@ import { BanknotesIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 // Local Imports
 import { formatMoney } from "app/pages/Simulateur/data";
 import { LEVEL_HEX, getInitials } from "../communityMembers";
-import { getNetworkEarnings } from "./mockData";
+import { getNetworkEarnings } from "./reseauData";
 
 // ----------------------------------------------------------------------
 

@@ -6,7 +6,7 @@ import { CheckCircleIcon, UserPlusIcon, AcademicCapIcon, CircleStackIcon } from 
 import { levels } from "app/pages/Simulateur/data";
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useReportMatches } from "../components/searchSummary";
-import { getCoinsWays } from "./mockData";
+import { getCoinsWays } from "./coinsData";
 
 // ----------------------------------------------------------------------
 

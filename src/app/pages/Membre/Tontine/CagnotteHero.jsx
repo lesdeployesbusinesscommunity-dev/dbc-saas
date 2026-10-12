@@ -5,7 +5,7 @@ import { BanknotesIcon, CheckBadgeIcon } from "@heroicons/react/24/solid";
 // Local Imports
 import { formatMoney } from "app/pages/Simulateur/data";
 import { useMemberLevel } from "../context/MemberLevelContext";
-import { getCurrentTour, getMonthlyCagnotte, getTontineGroup, isCycleComplete } from "./mockData";
+import { getCurrentTour, getMonthlyCagnotte, getTontineGroup, isCycleComplete } from "./tontineData";
 
 // ----------------------------------------------------------------------
 

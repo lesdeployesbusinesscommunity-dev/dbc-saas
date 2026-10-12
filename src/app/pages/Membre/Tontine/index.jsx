@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { currentMember } from "../currentMember";
 import { TopBar } from "../Dashboard/TopBar";
@@ -42,6 +43,7 @@ import { NextStepButton } from "./NextStepButton";
 // sans correspondance disparaît ; un seul message s'affiche sous l'en-tête
 // quand plus aucune des deux ne correspond.
 export default function MembreTontine() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const { report, noResults } = useSearchSummary(query);

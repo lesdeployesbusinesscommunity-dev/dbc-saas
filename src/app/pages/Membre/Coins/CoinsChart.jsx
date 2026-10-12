@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChartBarIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
-import { getCoinsMonthly } from "./mockData";
+import { getCoinsMonthly } from "./coinsData";
 
 // ----------------------------------------------------------------------
 

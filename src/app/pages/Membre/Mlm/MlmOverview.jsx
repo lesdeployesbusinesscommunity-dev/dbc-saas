@@ -11,7 +11,7 @@ import {
 
 // Local Imports
 import { formatMoney, levels } from "app/pages/Simulateur/data";
-import { getMlmStats, getMyPack } from "./mockData";
+import { getMlmStats, getMyPack } from "./mlmData";
 
 // ----------------------------------------------------------------------
 

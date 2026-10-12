@@ -14,7 +14,7 @@ import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { currentMember } from "../currentMember";
 import { useReportMatches } from "../components/searchSummary";
 import { ConfirmRequestPopover } from "../components/ConfirmRequestPopover";
-import { getCoinsRewards } from "./mockData";
+import { getCoinsRewards } from "./coinsData";
 
 // ----------------------------------------------------------------------
 

@@ -5,6 +5,7 @@ import { CheckCircleIcon, LanguageIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { useLocaleContext } from "app/contexts/locale/context";
 import { SettingsSection } from "app/pages/Admin/Parametres/SettingsSection";
@@ -36,6 +37,7 @@ const LANGUAGES = ["fr", "en"];
 // barre du haut (voir components/shared/LanguageToggle.jsx) : les deux
 // restent donc toujours d'accord.
 export default function MembreParametres() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const { locale, updateLocale } = useLocaleContext();
   const [settings, setSettings] = useState(loadSettings);

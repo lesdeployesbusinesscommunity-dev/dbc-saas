@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { formatMoney, levels } from "app/pages/Simulateur/data";
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useReportMatches } from "../components/searchSummary";
-import { getLongrichPacks, getMyPack } from "./mockData";
+import { getLongrichPacks, getMyPack } from "./mlmData";
 
 // ----------------------------------------------------------------------
 

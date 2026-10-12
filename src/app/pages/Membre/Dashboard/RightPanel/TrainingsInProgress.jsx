@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useMemberLevel } from "../../context/MemberLevelContext";
 import { useReportMatches } from "../../components/searchSummary";
-import { getTrainingsInProgress } from "../mockData";
+import { getTrainingsInProgress } from "../dashboardData";
 
 // ----------------------------------------------------------------------
 

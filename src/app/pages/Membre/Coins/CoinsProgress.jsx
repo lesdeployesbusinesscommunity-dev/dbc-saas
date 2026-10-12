@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { FlagIcon, TrophyIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
-import { getNextRankTarget } from "./mockData";
+import { getNextRankTarget } from "./coinsData";
 
 // ----------------------------------------------------------------------
 

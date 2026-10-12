@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { currentMember } from "../currentMember";
 import { TopBar } from "../Dashboard/TopBar";
@@ -13,7 +14,7 @@ import { MlmOverview } from "./MlmOverview";
 import { PacksLadder } from "./PacksLadder";
 import { MyNetwork } from "./MyNetwork";
 import { MlmIneligible } from "./MlmIneligible";
-import { getLongrichPacks } from "./mockData";
+import { getLongrichPacks } from "./mlmData";
 
 // ----------------------------------------------------------------------
 
@@ -36,6 +37,7 @@ import { getLongrichPacks } from "./mockData";
 // pour garder la forme d'escalier). Sans aucune correspondance, un seul
 // message s'affiche sous l'en-tête.
 export default function MembreMlm() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const { report, noResults } = useSearchSummary(query);

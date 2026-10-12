@@ -1220,7 +1220,9 @@
           "coins": "+75 Coins — Challenge mensuel",
           "parrainageOf": "Parrainage de {{name}}",
           "formationNamed": "Formation {{name}}",
-          "parrainage": "Parrainage de Patrick Essono"
+          "parrainage": "Parrainage de Patrick Essono",
+          "cotisationOf": "Cotisation tontine de {{month}}",
+          "coinsGained": "Coins gagnés"
         },
         "time": {
           "days_one": "Il y a {{count}} jour",
@@ -1287,7 +1289,8 @@
       "cancel": "Annuler",
       "yes": "Oui",
       "requestConfirmation": "Merci ! Nous vous contacterons par email concernant votre demande.",
-      "close": "Fermer"
+      "close": "Fermer",
+      "retry": "Réessayer"
     },
     "tontine": {
       "hero": {
@@ -1342,7 +1345,11 @@
           "late": "En retard",
           "onTime": "À jour",
           "downloadReceipt": "Télécharger mon reçu",
-          "receiptNote": "Document généré automatiquement à titre indicatif — en attendant l'intégration des reçus officiels."
+          "receiptNote": "Document généré automatiquement à titre indicatif — en attendant l'intégration des reçus officiels.",
+          "pay": "Payer ma cotisation",
+          "paying": "Paiement en cours…",
+          "payInitiated": "Paiement lancé : confirme-le sur ton téléphone (Mobile Money). Ton suivi se met à jour dès sa réception.",
+          "allPaid": "Tes 12 cotisations de cette vague sont payées."
         },
         "turn": {
           "title": "Mon tour",
@@ -1378,7 +1385,19 @@
           }
         ]
       },
-      "searchPlaceholder": "Rechercher un membre du groupe…"
+      "searchPlaceholder": "Rechercher un membre du groupe…",
+      "join": {
+        "title": "Rejoindre une vague {{level}}",
+        "description": "Une vague réunit jusqu'à 11 membres du même niveau. Ta 1re cotisation revient à DBC, puis tu reçois la cagnotte à ton tour, selon ton ancienneté dans la vague.",
+        "join": "Rejoindre la vague",
+        "wait": "Attendre la prochaine vague",
+        "joined": "Bienvenue dans la vague ! Confirme le paiement de ta 1re cotisation sur ton téléphone.",
+        "waiting": "Tu es inscrit sur la liste d'attente de la prochaine vague {{level}} (depuis le {{date}}). L'équipe DBC t'y affectera dès son ouverture.",
+        "waitingTitle": "Liste d'attente"
+      },
+      "errors": {
+        "generic": "L'opération n'a pas pu aboutir. Réessaie dans un instant."
+      }
     },
     "mlm": {
       "overviewTitle": "Business MLM Longrich, Mon arbre",

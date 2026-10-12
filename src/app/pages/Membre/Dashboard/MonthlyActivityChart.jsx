@@ -25,18 +25,6 @@ const CATEGORY_COLORS = {
 };
 const CATEGORY_ORDER = ["tontine", "parrainage", "formations", "challenges"];
 
-// Coins gagnés ce mois-ci, détaillés par action (pas juste un total par
-// catégorie) : reflète le fil "Activités récentes" juste au-dessus. Les
-// noms des formations correspondent au catalogue "Gestion des
-// formations" (voir Admin/Formation/mockData.js). Donnée de démonstration
-// en attendant un vrai journal d'activité côté backend.
-const CATEGORY_COINS = {
-  tontine: [20],
-  parrainage: [30],
-  formations: [30, 20],
-  challenges: [75],
-};
-
 // Badges obtenus par le membre ce mois-ci, avec leur raison — mêmes
 // définitions que "Top des membres" côté admin (voir
 // Admin/Membres/mockData.js : awardDefinitions, et AwardBadge.jsx pour le
@@ -48,10 +36,6 @@ const BADGE_STYLES = {
   cotisation: { Icon: CheckBadgeIcon, className: "bg-green-50 text-green-700" },
   parrainage: { Icon: UserPlusIcon, className: "bg-[#52A2DF]/[0.12] text-[#52A2DF]" },
 };
-// Ceux du membre de démonstration ; le compte de l'administrateur a les siens
-// (voir accountData.js).
-const DEFAULT_BADGES = ["formation", "cotisation"];
-
 // Graphe "ce que vous avez fait le plus ce mois-ci" : un donut (plus
 // lisible qu'un histogramme ici, vu l'écart entre les montants) avec le
 // total au centre, une légende cliquable à droite plutôt que celle
@@ -61,9 +45,10 @@ const DEFAULT_BADGES = ["formation", "cotisation"];
 // les badges obtenus ce mois-ci avec leur raison.
 export function MonthlyActivityChart() {
   const { t } = useTranslation();
-  const own = getAccountOverrides()?.activity;
-  const categoryCoins = own?.categoryCoins ?? CATEGORY_COINS;
-  const earnedBadges = (own?.badges ?? DEFAULT_BADGES).map((key) => ({ key, ...BADGE_STYLES[key] }));
+  // Coins gagnés ce mois-ci, détaillés par action (voir accountData.js).
+  const own = getAccountOverrides().activity;
+  const categoryCoins = own.categoryCoins;
+  const earnedBadges = own.badges.map((key) => ({ key, ...BADGE_STYLES[key] }));
 
   const totalsByCategory = useMemo(
     () =>
@@ -131,12 +116,9 @@ export function MonthlyActivityChart() {
     },
   };
 
-  const ownNames = own?.names?.[selectedCategory];
-  const breakdownLabels = ownNames
-    ? ownNames.map((name) =>
-        selectedCategory === "parrainage" ? t("membre.dashboard.activity.items.parrainageOf", { name }) : name,
-      )
-    : t(`membre.dashboard.activity.breakdown.items.${selectedCategory}`, { returnObjects: true });
+  const breakdownLabels = (own.names[selectedCategory] ?? []).map((name) =>
+    selectedCategory === "parrainage" ? t("membre.dashboard.activity.items.parrainageOf", { name }) : name,
+  );
   const breakdownCoins = categoryCoins[selectedCategory];
 
   return (

@@ -9,7 +9,7 @@ import {
 // Local Imports
 import { currentMember } from "../currentMember";
 import { formatMoney } from "app/pages/Simulateur/data";
-import { getTontineGroup } from "../Tontine/mockData";
+import { getTontineGroup } from "../Tontine/tontineData";
 import { getCourseCatalog } from "../Formation/mockData";
 import { getCourseProgress } from "../Formation/progressStore";
 
@@ -35,7 +35,7 @@ import { getCourseProgress } from "../Formation/progressStore";
 // source pour le même groupe, consultée depuis deux pages différentes.
 // Ré-exporté ici (plutôt que de changer l'import dans TontineStatus.jsx)
 // pour ne pas toucher à un composant qui marche déjà.
-export { getTontineGroup } from "../Tontine/mockData";
+export { getTontineGroup } from "../Tontine/tontineData";
 
 // Formations du niveau consulté, commencées mais pas encore terminées —
 // même catalogue que la page "Formation" du membre (voir

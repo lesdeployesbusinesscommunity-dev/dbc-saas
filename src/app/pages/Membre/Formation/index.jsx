@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
+import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { currentMember } from "../currentMember";
 import { TopBar } from "../Dashboard/TopBar";
@@ -39,6 +40,7 @@ import { LockedTrainings } from "./LockedTrainings";
 // filtres suivent la recherche. Le bandeau "Reprendre" ne bouge pas : il
 // parle de la progression du membre, pas du catalogue qu'il parcourt.
 export default function MembreFormation() {
+  useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const { activeLevelKey } = useMemberLevel();
   const progressState = useProgressState();

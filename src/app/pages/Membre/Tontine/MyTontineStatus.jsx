@@ -1,19 +1,25 @@
 // Import Dependencies
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import {
   ArrowDownTrayIcon,
+  ArrowPathIcon,
+  BanknotesIcon,
   CalendarDaysIcon,
   CheckCircleIcon,
   ClockIcon,
   ExclamationTriangleIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/solid";
 
 // Local Imports
 import { formatMoney, levels } from "app/pages/Simulateur/data";
 import { currentMember } from "../currentMember";
 import { useMemberLevel } from "../context/MemberLevelContext";
-import { getMyNextPayment, getMyNextTurn } from "./mockData";
+import { loadMemberSpace } from "../memberStore";
+import { joinWave, payContribution } from "api/tontine";
+import { getMyNextPayment, getMyNextTurn, getWaveState } from "./tontineData";
 
 // ----------------------------------------------------------------------
 
@@ -67,9 +73,107 @@ function downloadReceipt(payload) {
   URL.revokeObjectURL(url);
 }
 
+// Message affiché sous les cartes après une action (paiement lancé, vague
+// rejointe...) ou une erreur renvoyée par le serveur.
+function ActionMessage({ message }) {
+  if (!message) return null;
+  return (
+    <p
+      role="status"
+      className={clsx(
+        "mt-3 rounded-lg px-4 py-3 text-sm font-medium",
+        message.tone === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700",
+      )}
+    >
+      {message.text}
+    </p>
+  );
+}
+
+// Le membre n'a pas encore de vague à ce niveau : il rejoint la plus récente
+// (sa 1re cotisation, pour DBC, est aussitôt demandée), ou s'inscrit sur la
+// liste d'attente de la prochaine. Déjà inscrit : on le lui rappelle.
+function JoinWaveCard({ levelName, state }) {
+  const { t, i18n } = useTranslation();
+  const [busy, setBusy] = useState(null); // null | "join" | "wait"
+  const [message, setMessage] = useState(null);
+  const locale = i18n.language?.startsWith("fr") ? "fr-FR" : "en-US";
+
+  const run = async (waitForNextWave) => {
+    setBusy(waitForNextWave ? "wait" : "join");
+    setMessage(null);
+    try {
+      const result = await joinWave({ levelCode: state.levelCode, waitForNextWave });
+      if (result.outcome === "joined_wave") {
+        setMessage({ tone: "success", text: t("membre.tontine.join.joined") });
+      }
+      await loadMemberSpace();
+    } catch (error) {
+      setMessage({ tone: "error", text: error.detail ?? t("membre.tontine.errors.generic") });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (state.waitingList) {
+    return (
+      <div className="mt-8 rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-2.5">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#52A2DF]/[0.1] text-[#52A2DF]">
+            <ClockIcon aria-hidden="true" className="size-5" />
+          </span>
+          <p className="text-sm font-bold text-gray-900">{t("membre.tontine.join.waitingTitle")}</p>
+        </div>
+        <p className="mt-3 text-sm text-gray-600">
+          {t("membre.tontine.join.waiting", {
+            level: levelName,
+            date: new Date(state.waitingList.registeredAt).toLocaleDateString(locale),
+          })}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-8 rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+      <div className="flex items-center gap-2.5">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#EE7115]/[0.1] text-[#EE7115]">
+          <UserGroupIcon aria-hidden="true" className="size-5" />
+        </span>
+        <p className="text-sm font-bold text-gray-900">{t("membre.tontine.join.title", { level: levelName })}</p>
+      </div>
+      <p className="mt-3 text-sm text-gray-600">{t("membre.tontine.join.description")}</p>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <button
+          type="button"
+          onClick={() => run(false)}
+          disabled={busy !== null}
+          className="flex items-center justify-center gap-2 rounded-lg bg-[#EE7115] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+        >
+          {busy === "join" && <ArrowPathIcon aria-hidden="true" className="size-4 animate-spin" />}
+          {t("membre.tontine.join.join")}
+        </button>
+        <button
+          type="button"
+          onClick={() => run(true)}
+          disabled={busy !== null}
+          className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
+        >
+          {busy === "wait" && <ArrowPathIcon aria-hidden="true" className="size-4 animate-spin" />}
+          {t("membre.tontine.join.wait")}
+        </button>
+      </div>
+      <ActionMessage message={message} />
+    </div>
+  );
+}
+
 export function MyTontineStatus() {
   const { t, i18n } = useTranslation();
   const { activeLevelKey } = useMemberLevel();
+  const [paying, setPaying] = useState(false);
+  const [message, setMessage] = useState(null);
+  const waveState = getWaveState(activeLevelKey);
   const locale = i18n.language?.startsWith("fr") ? "fr-FR" : "en-US";
   const months = t("membre.common.months", { returnObjects: true });
 
@@ -79,6 +183,27 @@ export function MyTontineStatus() {
   const levelName = level ? t(`simulateur.levels.${level.key}.name`) : "";
 
   const dueDateLabel = `${payment.dueDate.date()} ${months[payment.dueDate.month()].toLowerCase()} ${payment.dueDate.year()}`;
+
+  // Pas encore de vague à ce niveau (ou en liste d'attente) : rien à payer.
+  if (!waveState.wave) {
+    return <JoinWaveCard levelName={levelName} state={waveState} />;
+  }
+
+  // Lance le paiement Mobile Money de la prochaine cotisation ; la
+  // confirmation du fournisseur met ensuite le suivi à jour (voir backend).
+  const handlePay = async () => {
+    setPaying(true);
+    setMessage(null);
+    try {
+      await payContribution(waveState.levelCode);
+      setMessage({ tone: "success", text: t("membre.tontine.myStatus.payment.payInitiated") });
+      await loadMemberSpace();
+    } catch (error) {
+      setMessage({ tone: "error", text: error.detail ?? t("membre.tontine.errors.generic") });
+    } finally {
+      setPaying(false);
+    }
+  };
 
   const handleDownload = () => {
     downloadReceipt({
@@ -132,17 +257,36 @@ export function MyTontineStatus() {
             {formatMoney(payment.amount, locale)}
           </p>
           <p className="mt-1 text-xs text-gray-500">
-            {t("membre.tontine.myStatus.payment.dueLabel", { date: dueDateLabel })}
+            {payment.allPaid
+              ? t("membre.tontine.myStatus.payment.allPaid")
+              : t("membre.tontine.myStatus.payment.dueLabel", { date: dueDateLabel })}
           </p>
 
-          <button
-            type="button"
-            onClick={handleDownload}
-            className="mt-4 flex w-fit items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-100"
-          >
-            <ArrowDownTrayIcon aria-hidden="true" className="size-4 shrink-0" />
-            {t("membre.tontine.myStatus.payment.downloadReceipt")}
-          </button>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {!payment.allPaid && (
+              <button
+                type="button"
+                onClick={handlePay}
+                disabled={paying}
+                className="flex w-fit items-center gap-2 rounded-lg bg-[#EE7115] px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+              >
+                {paying ? (
+                  <ArrowPathIcon aria-hidden="true" className="size-4 shrink-0 animate-spin" />
+                ) : (
+                  <BanknotesIcon aria-hidden="true" className="size-4 shrink-0" />
+                )}
+                {t(paying ? "membre.tontine.myStatus.payment.paying" : "membre.tontine.myStatus.payment.pay")}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleDownload}
+              className="flex w-fit items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-100"
+            >
+              <ArrowDownTrayIcon aria-hidden="true" className="size-4 shrink-0" />
+              {t("membre.tontine.myStatus.payment.downloadReceipt")}
+            </button>
+          </div>
         </div>
 
         {/* Mon tour */}
@@ -166,6 +310,7 @@ export function MyTontineStatus() {
           )}
         </div>
       </div>
+      <ActionMessage message={message} />
     </div>
   );
 }

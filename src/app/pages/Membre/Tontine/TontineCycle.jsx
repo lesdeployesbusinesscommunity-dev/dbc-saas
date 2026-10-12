@@ -7,7 +7,7 @@ import { Avatar } from "app/pages/Admin/components/Avatar";
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useMemberLevel } from "../context/MemberLevelContext";
 import { useReportMatches } from "../components/searchSummary";
-import { getTontineCycle } from "./mockData";
+import { getTontineCycle } from "./tontineData";
 import { STATUS_STYLES } from "./statusStyles";
 
 // ----------------------------------------------------------------------

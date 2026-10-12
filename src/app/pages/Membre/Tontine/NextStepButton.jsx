@@ -10,7 +10,7 @@ import clsx from "clsx";
 import { levels } from "app/pages/Simulateur/data";
 import { submitRequest } from "app/pages/Notifications/notificationsStore";
 import { useMemberLevel } from "../context/MemberLevelContext";
-import { isCycleComplete } from "./mockData";
+import { isCycleComplete } from "./tontineData";
 
 // ----------------------------------------------------------------------
 

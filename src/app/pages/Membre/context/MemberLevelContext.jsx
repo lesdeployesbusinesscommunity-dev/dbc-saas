@@ -3,6 +3,8 @@ import { createContext, useContext, useMemo, useState } from "react";
 
 // Local Imports
 import { currentMember } from "../currentMember";
+import { useMemberData } from "../memberStore";
+import { getSessionSnapshot } from "app/pages/Auth/session";
 
 // ----------------------------------------------------------------------
 
@@ -19,15 +21,27 @@ import { currentMember } from "../currentMember";
 const MemberLevelContext = createContext(null);
 
 export function MemberLevelProvider({ children }) {
-  const [activeLevelKey, setActiveLevelKey] = useState(currentMember.levelKeys[0]);
+  const { version } = useMemberData();
+  // Au départ : le niveau choisi sur l'écran de connexion s'il fait partie
+  // des niveaux du membre, sinon le premier.
+  const [chosenLevelKey, setActiveLevelKey] = useState(() => {
+    const selected = getSessionSnapshot().session?.user?.selectedLevelKey;
+    return currentMember.levelKeys.includes(selected) ? selected : currentMember.levelKeys[0];
+  });
+  // Si le niveau choisi n'existe plus pour ce membre, on retombe sur le premier.
+  const activeLevelKey = currentMember.levelKeys.includes(chosenLevelKey) ? chosenLevelKey : currentMember.levelKeys[0];
 
+  // "version" change à chaque mise à jour des données (paiement, vague
+  // rejointe...) : le contexte change alors aussi, et toutes les parties de
+  // l'espace qui lisent le niveau se redessinent avec les données à jour.
   const value = useMemo(
     () => ({
       activeLevelKey,
       setActiveLevelKey,
       levelKeys: currentMember.levelKeys,
+      dataVersion: version,
     }),
-    [activeLevelKey],
+    [activeLevelKey, version],
   );
 
   return <MemberLevelContext.Provider value={value}>{children}</MemberLevelContext.Provider>;

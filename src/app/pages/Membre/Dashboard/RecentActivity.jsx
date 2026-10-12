@@ -14,33 +14,31 @@ import { getAccountOverrides } from "../accountData";
 
 // ----------------------------------------------------------------------
 
-// Fil des dernières actions du membre connecté — placeholder en attendant
-// un vrai journal d'activité côté backend (chaque événement aurait alors
-// un horodatage réel ; "timeUnit"/"timeCount" resteront le format attendu
-// par la tuile, seul le calcul du "il y a..." changera). Icônes choisies
+// Fil des dernières actions du membre connecté (cotisations payées, Coins
+// gagnés...), datées par le serveur (voir accountData.js). Icônes choisies
 // pour correspondre au type d'action plutôt qu'aux emojis de la maquette :
 // cotisation (✓), formation (diplôme), coins (pile de jetons), parrainage
 // (ajout d'un contact).
-const recentActivity = [
-  { id: "a1", kind: "cotisation", Icon: CheckCircleIcon, color: "#52A2DF", timeUnit: "days", timeCount: 2 },
-  { id: "a2", kind: "formation", Icon: AcademicCapIcon, color: "#EE7115", timeUnit: "days", timeCount: 5 },
-  { id: "a3", kind: "coins", Icon: CircleStackIcon, color: "#EE7115", timeUnit: "weeks", timeCount: 1 },
-  { id: "a4", kind: "parrainage", Icon: UserPlusIcon, color: "#52A2DF", timeUnit: "weeks", timeCount: 2 },
-];
-
-// Icône et couleur de chaque type d'action, pour les activités propres au
-// compte de l'administrateur (voir accountData.js).
-const KIND_STYLE = Object.fromEntries(recentActivity.map(({ kind, Icon, color }) => [kind, { Icon, color }]));
+const KIND_STYLE = {
+  cotisation: { Icon: CheckCircleIcon, color: "#52A2DF" },
+  formation: { Icon: AcademicCapIcon, color: "#EE7115" },
+  coins: { Icon: CircleStackIcon, color: "#EE7115" },
+  parrainage: { Icon: UserPlusIcon, color: "#52A2DF" },
+};
 
 export function RecentActivity({ query = "", onMatches }) {
   const { t } = useTranslation();
-  const own = getAccountOverrides()?.activity.recent;
-  const source = own ? own.map((item) => ({ ...item, ...KIND_STYLE[item.kind] })) : recentActivity;
+  const source = getAccountOverrides().activity.recent.map((item) => ({ ...item, ...KIND_STYLE[item.kind] }));
   // Texte d'une activité : certaines citent une personne ou une formation.
-  const labelOf = (item) =>
-    item.params
-      ? t(`membre.dashboard.activity.items.${item.kind === "parrainage" ? "parrainageOf" : "formationNamed"}`, item.params)
-      : t(`membre.dashboard.activity.items.${item.kind}`);
+  const labelOf = (item) => {
+    if (item.kind === "cotisation") {
+      return t("membre.dashboard.activity.items.cotisationOf", item.params);
+    }
+    if (item.params?.name) {
+      return t(`membre.dashboard.activity.items.${item.kind === "parrainage" ? "parrainageOf" : "formationNamed"}`, item.params);
+    }
+    return t("membre.dashboard.activity.items.coinsGained");
+  };
   const items = source.filter((item) => searchTextIncludes(labelOf(item), query));
   useReportMatches(onMatches, "activity", items.length);
 

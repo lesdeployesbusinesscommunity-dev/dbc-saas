@@ -6,7 +6,7 @@ import { BellAlertIcon, ExclamationTriangleIcon, ClockIcon, CheckCircleIcon } fr
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { LEVEL_HEX, getInitials } from "../communityMembers";
 import { useReportMatches } from "../components/searchSummary";
-import { getNetworkActivity } from "./mockData";
+import { getNetworkActivity } from "./reseauData";
 import { whatsappLink } from "./contactLinks";
 
 // ----------------------------------------------------------------------

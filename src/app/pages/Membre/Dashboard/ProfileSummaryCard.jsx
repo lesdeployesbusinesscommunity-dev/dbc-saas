@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Avatar } from "app/pages/Admin/components/Avatar";
 import { levels, formatMoney } from "app/pages/Simulateur/data";
 import { currentMember } from "../currentMember";
-import { getMemberCoins } from "../Coins/mockData";
+import { getMemberCoins } from "../Coins/coinsData";
 import { useMemberLevel } from "../context/MemberLevelContext";
 import { LevelSwitcherBadge } from "../components/LevelSwitcherBadge";
 

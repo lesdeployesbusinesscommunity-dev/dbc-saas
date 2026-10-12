@@ -5,7 +5,7 @@ import { CheckCircleIcon, UserPlusIcon, AcademicCapIcon, CircleStackIcon, ClockI
 // Local Imports
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useReportMatches } from "../components/searchSummary";
-import { getCoinsHistory, getCoinsStats } from "./mockData";
+import { getCoinsHistory, getCoinsStats } from "./coinsData";
 
 // ----------------------------------------------------------------------
 

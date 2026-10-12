@@ -9,7 +9,7 @@ import { levels } from "app/pages/Simulateur/data";
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useReportMatches } from "../components/searchSummary";
 import { LEVEL_HEX, getInitials } from "../communityMembers";
-import { getLeaderboard, getLeaderboardLevelKeys, getCommunityRanks } from "./mockData";
+import { getLeaderboard, getLeaderboardLevelKeys, getCommunityRanks } from "./coinsData";
 import { MemberCvModal } from "./MemberCvModal";
 import { LevelDetailModal } from "./LevelDetailModal";
 

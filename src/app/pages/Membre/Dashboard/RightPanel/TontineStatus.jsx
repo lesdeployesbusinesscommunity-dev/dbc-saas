@@ -8,7 +8,7 @@ import { Avatar } from "app/pages/Admin/components/Avatar";
 import { searchTextIncludes } from "app/pages/Admin/searchUtils";
 import { useMemberLevel } from "../../context/MemberLevelContext";
 import { useReportMatches } from "../../components/searchSummary";
-import { getTontineGroup } from "../mockData";
+import { getTontineGroup } from "../dashboardData";
 
 // ----------------------------------------------------------------------
 
