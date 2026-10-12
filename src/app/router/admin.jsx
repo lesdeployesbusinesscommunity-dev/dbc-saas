@@ -45,6 +45,12 @@ const adminRoutes = {
               }),
             },
             {
+              path: "demandes-inscription",
+              lazy: async () => ({
+                Component: (await import("app/pages/Admin/DemandesInscription")).default,
+              }),
+            },
+            {
               path: "reseau",
               lazy: async () => ({
                 Component: (await import("app/pages/Admin/Reseau")).default,

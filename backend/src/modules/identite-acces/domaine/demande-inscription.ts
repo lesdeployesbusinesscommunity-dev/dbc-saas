@@ -22,6 +22,12 @@ export class DemandeInscription {
     public readonly niveauSouhaiteCode: string,
     public statut: StatutDemandeInscription,
     public utilisateurId: string | undefined,
+    // Ajoutés après coup pour la fiche membre admin (voir ListerMembresAdminUseCase)
+    // — optionnels pour ne pas invalider les demandes déjà soumises avant leur ajout.
+    public readonly ville: string | undefined,
+    public readonly profession: string | undefined,
+    // undefined avant persistance (horodatage généré en base) — comme Paiement.creeLe.
+    public readonly creeLe: Date | undefined,
   ) {}
 
   static creer(params: {
@@ -32,6 +38,8 @@ export class DemandeInscription {
     telephone: string;
     codeParrain?: string;
     niveauSouhaiteCode: string;
+    ville?: string;
+    profession?: string;
   }): ResultatOperation<DemandeInscription> {
     if (!/^\+?[0-9]{8,15}$/.test(params.telephone)) {
       return ResultatOperation.echec('Numéro de téléphone invalide');
@@ -51,6 +59,9 @@ export class DemandeInscription {
         params.niveauSouhaiteCode,
         'en_attente',
         undefined,
+        params.ville,
+        params.profession,
+        undefined,
       ),
     );
   }
@@ -66,6 +77,9 @@ export class DemandeInscription {
     niveauSouhaiteCode: string;
     statut: StatutDemandeInscription;
     utilisateurId: string | undefined;
+    ville: string | undefined;
+    profession: string | undefined;
+    creeLe: Date;
   }): DemandeInscription {
     return new DemandeInscription(
       donnees.id,
@@ -78,6 +92,9 @@ export class DemandeInscription {
       donnees.niveauSouhaiteCode,
       donnees.statut,
       donnees.utilisateurId,
+      donnees.ville,
+      donnees.profession,
+      donnees.creeLe,
     );
   }
 

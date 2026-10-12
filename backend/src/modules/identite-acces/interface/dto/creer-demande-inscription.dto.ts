@@ -31,4 +31,14 @@ export class CreerDemandeInscriptionDto {
   @ApiProperty({ example: 'starter', description: "Code du niveau souhaité (voir GET /adhesion/niveaux)" })
   @IsString()
   desiredLevelCode: string;
+
+  @ApiPropertyOptional({ example: 'Douala' })
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @ApiPropertyOptional({ example: 'Consultante Marketing' })
+  @IsOptional()
+  @IsString()
+  profession?: string;
 }

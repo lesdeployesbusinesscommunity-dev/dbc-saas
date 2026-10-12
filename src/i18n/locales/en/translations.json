@@ -5,6 +5,7 @@
       "server": "A server error occurred. Please try again shortly.",
       "unauthorized": "Incorrect credentials or expired session.",
       "notFound": "Resource not found.",
+      "conflict": "An account or request already exists with this information. Try logging in, or check your phone number.",
       "validation": "Some of the information you entered is invalid."
     }
   },
@@ -419,6 +420,7 @@
     "nav": {
       "dashboard": "Dashboard",
       "membres": "Member Management",
+      "demandesInscription": "Signup Requests",
       "reseau": "Network Management",
       "gouvernance": "Governance",
       "finance": "Finance",
@@ -475,6 +477,37 @@
         "next": "Next trainings"
       },
       "level": "Level {{n}}"
+    },
+    "demandesInscription": {
+      "title": "Signup Requests",
+      "searchPlaceholder": "Search by name or phone…",
+      "empty": "No pending requests.",
+      "validate": "Approve",
+      "reject": "Reject",
+      "columns": {
+        "name": "Name",
+        "phone": "Phone",
+        "location": "Location",
+        "level": "Desired level",
+        "sponsor": "Sponsor"
+      },
+      "confirmReject": {
+        "title": "Reject this request?",
+        "description": "{{name}}'s request will be rejected — this does not create any account.",
+        "confirmLabel": "Reject"
+      },
+      "validateModal": {
+        "title": "Approve {{name}}'s request",
+        "hint": "A temporary password is generated automatically — share it with the member over WhatsApp after approval.",
+        "temporaryPassword": "Temporary password",
+        "regenerate": "Regenerate",
+        "confirm": "Create account",
+        "successTitle": "Account created",
+        "successHint": "Share this information with the member over WhatsApp.",
+        "membershipNumber": "Membership number",
+        "copied": "Copied!",
+        "close": "Close"
+      }
     },
     "membres": {
       "title": "Member Management",
@@ -658,7 +691,7 @@
     },
     "reseau": {
       "title": "Network management",
-      "searchPlaceholder": "Search a branch or a leader…",
+      "searchPlaceholder": "Search a member or a membership number…",
       "levels": {
         "national": "National",
         "region": "Region",
@@ -678,13 +711,13 @@
         "hint": "Regions where DBC is already represented (branch created in the tree alongside)."
       },
       "search": {
-        "noResults": "No branch or leader matches “{{query}}”."
+        "noResults": "No member matches “{{query}}”."
       },
       "hasNetwork": "Active network",
       "noNetworkYet": "No network yet",
       "empty": {
-        "title": "No network for this country yet",
-        "description": "Create the National Supervisor position for {{country}} to start its network.",
+        "title": "No members for this country yet",
+        "description": "No member from {{country}} has a recorded referral yet.",
         "cta": "Start the network"
       },
       "picker": {
@@ -813,6 +846,9 @@
       "noSearchResults": "No training matches “{{query}}”.",
       "modal": {
         "close": "Close",
+        "noModules": "No modules yet.",
+        "hasQuiz": "Quiz",
+        "noLessons": "No lessons yet.",
         "globalObjectives": "Overall objectives",
         "outcomes": "By the end of this training, the member will be able to",
         "addTitle": "New training",

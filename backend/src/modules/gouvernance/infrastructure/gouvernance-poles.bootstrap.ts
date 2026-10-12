@@ -18,6 +18,7 @@ const POLES = [
     nom: 'Founding Leadership',
     description: 'Founder & CEO — Overall strategic vision and final arbitration',
     ordre: 1,
+    icone: 'sparkles',
     sieges: [{ titre: 'Founder & CEO', ordre: 1 }],
   },
   {
@@ -25,6 +26,7 @@ const POLES = [
     nom: 'Executive Committee',
     description: '5 Directors: Operations, Finance, Training, Digital Marketing, Diaspora',
     ordre: 2,
+    icone: 'briefcase',
     sieges: [
       { titre: 'Operations Director', ordre: 1 },
       { titre: 'Finance Director', ordre: 2 },
@@ -58,6 +60,7 @@ export class GouvernancePolesBootstrap implements OnModuleInit {
         nom: pole.nom,
         description: pole.description,
         ordre: pole.ordre,
+        icone: pole.icone,
       });
       await this.sieges.save(
         pole.sieges.map((siege) => ({

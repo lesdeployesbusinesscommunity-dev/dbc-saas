@@ -24,6 +24,8 @@ export class DemandeInscriptionPostgresRepository implements DemandeInscriptionR
       niveauSouhaiteCode: demande.niveauSouhaiteCode,
       statut: demande.statut,
       utilisateurId: demande.utilisateurId ?? null,
+      ville: demande.ville ?? null,
+      profession: demande.profession ?? null,
     });
     return this.versDomaine(ligne);
   }
@@ -60,6 +62,9 @@ export class DemandeInscriptionPostgresRepository implements DemandeInscriptionR
       niveauSouhaiteCode: ligne.niveauSouhaiteCode,
       statut: ligne.statut,
       utilisateurId: ligne.utilisateurId ?? undefined,
+      ville: ligne.ville ?? undefined,
+      profession: ligne.profession ?? undefined,
+      creeLe: ligne.creeLe,
     });
   }
 }

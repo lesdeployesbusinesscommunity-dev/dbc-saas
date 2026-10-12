@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommunauteController } from './interface/communaute.controller';
 import { CreerAntenneUseCase } from './application/creer-antenne.use-case';
 import { RejoindreAntenneUseCase } from './application/rejoindre-antenne.use-case';
+import { AssignerCoordinateurAntenneUseCase } from './application/assigner-coordinateur-antenne.use-case';
 import { ZoneRepositoryPort } from './domaine/zone.repository.port';
 import { AntenneRepositoryPort } from './domaine/antenne.repository.port';
 import { MembreAntenneRepositoryPort } from './domaine/membre-antenne.repository.port';
@@ -21,6 +22,7 @@ import { CommunauteBootstrap } from './infrastructure/communaute.bootstrap';
   providers: [
     CreerAntenneUseCase,
     RejoindreAntenneUseCase,
+    AssignerCoordinateurAntenneUseCase,
     CommunauteBootstrap,
     { provide: ZoneRepositoryPort, useClass: ZonePostgresRepository },
     { provide: AntenneRepositoryPort, useClass: AntennePostgresRepository },

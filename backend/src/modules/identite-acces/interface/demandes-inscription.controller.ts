@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreerDemandeInscriptionUseCase } from '../application/creer-demande-inscription.use-case';
 import { ValiderDemandeInscriptionUseCase } from '../application/valider-demande-inscription.use-case';
+import { RejeterDemandeInscriptionUseCase } from '../application/rejeter-demande-inscription.use-case';
 import { DemandeInscriptionRepositoryPort } from '../domaine/demande-inscription.repository.port';
 import { CreerDemandeInscriptionDto } from './dto/creer-demande-inscription.dto';
 import { ValiderDemandeInscriptionDto } from './dto/valider-demande-inscription.dto';
@@ -19,6 +20,9 @@ function versReponseDemande(demande: DemandeInscription) {
     sponsorCode: demande.codeParrain,
     desiredLevelCode: demande.niveauSouhaiteCode,
     status: demande.statut,
+    city: demande.ville,
+    profession: demande.profession,
+    submittedAt: demande.creeLe,
   };
 }
 
@@ -28,6 +32,7 @@ export class DemandesInscriptionController {
   constructor(
     private readonly creerDemande: CreerDemandeInscriptionUseCase,
     private readonly validerDemande: ValiderDemandeInscriptionUseCase,
+    private readonly rejeterDemande: RejeterDemandeInscriptionUseCase,
     private readonly demandes: DemandeInscriptionRepositoryPort,
   ) {}
 
@@ -43,6 +48,8 @@ export class DemandesInscriptionController {
       telephone: dto.phoneNumber,
       codeParrain: dto.sponsorCode,
       niveauSouhaiteCode: dto.desiredLevelCode,
+      ville: dto.city,
+      profession: dto.profession,
     });
     return versReponseDemande(demande);
   }
@@ -72,5 +79,14 @@ export class DemandesInscriptionController {
       membershipNumber: membre.matricule,
       currentLevelId: membre.niveauActuelId,
     };
+  }
+
+  @Post(':id/rejeter')
+  @UseGuards(AdminSecretGuard)
+  @ApiHeader({ name: 'x-admin-secret', required: true })
+  @ApiOperation({ summary: 'Rejeter une demande (admin)' })
+  async rejeter(@Param('id') id: string) {
+    const demande = await this.rejeterDemande.executer(id);
+    return versReponseDemande(demande);
   }
 }

@@ -1,46 +1,17 @@
 // Import Dependencies
-import { useTranslation } from "react-i18next";
-import { PlusIcon } from "@heroicons/react/24/solid";
-
-// Local Imports
 import { NodeCard } from "./NodeCard";
-import { resolveLevelLabel } from "./mockData";
 import "./orgTree.css";
 
 // ----------------------------------------------------------------------
 
-// Un nœud de l'arbre + son propre sous-arbre. Le rond bleu "+" (ajouter une
-// branche) est toujours affiché, quelle que soit la profondeur — il n'y a
-// plus de dernier échelon fixe : l'admin peut empiler autant de branches
-// qu'il veut (voir le popover "Ajouter une branche", qui permet aussi
-// d'insérer une nouvelle branche au-dessus d'une branche existante plutôt
-// que juste en dessous).
-function TreeNode({
-  node,
-  depth,
-  levelTitles,
-  onAssign,
-  onAddChild,
-  onRenameLevel,
-  onViewMember,
-  searchMatches,
-}) {
-  const { t } = useTranslation();
-  // Le badge affiche le TITRE DE RÔLE de cet échelon (ex: "Le Visionnaire",
-  // "Responsable Régional"), pas le nom propre de la branche — celui-ci
-  // (ex: "Centre", "Littoral") est affiché juste en dessous de l'avatar
-  // (voir NodeCard.jsx). Le titre de rôle est commun à toutes les branches
-  // de même profondeur dans ce pays et peut être renommé en cliquant
-  // dessus ; tant qu'il n'a pas encore été nommé, il retombe sur un
-  // libellé générique (resolveLevelLabel, dans mockData.js).
-  const levelLabel = resolveLevelLabel(depth, levelTitles, t);
-
-  // "searchMatches" (voir getTreeSearchMatches dans mockData.js) est null
-  // quand aucune recherche n'est en cours -> rendu normal. Sinon, un nœud
-  // est soit un résultat direct ("match", mis en évidence), soit gardé
-  // visible normalement parce qu'il mène à un résultat ou en descend
-  // ("keepIds" sans être dans "matchIds"), soit estompé (ni l'un ni
-  // l'autre) pour que les résultats ressortent.
+// Un nœud de l'arbre + son propre sous-arbre.
+function TreeNode({ node, depth, onViewMember, searchMatches }) {
+  // "searchMatches" (voir getTreeSearchMatches, calculé par
+  // Reseau/index.jsx) est null quand aucune recherche n'est en cours ->
+  // rendu normal. Sinon, un nœud est soit un résultat direct ("match", mis
+  // en évidence), soit gardé visible normalement parce qu'il mène à un
+  // résultat ou en descend ("keepIds" sans être dans "matchIds"), soit
+  // estompé (ni l'un ni l'autre) pour que les résultats ressortent.
   const matchState = !searchMatches
     ? undefined
     : searchMatches.matchIds.has(node.id)
@@ -51,83 +22,41 @@ function TreeNode({
 
   return (
     <li>
-      <NodeCard
-        node={node}
-        depth={depth}
-        levelLabel={levelLabel}
-        onAssign={() => onAssign(node, depth)}
-        onRenameLevel={(title) => onRenameLevel(depth, title)}
-        onViewMember={() => onViewMember(node, depth)}
-        matchState={matchState}
-      />
-
-      <div className="dbc-tree-stem">
-        <button
-          type="button"
-          onClick={() => onAddChild(node, depth)}
-          aria-label={t("admin.reseau.addBranch")}
-          title={t("admin.reseau.addBranch")}
-          className="dbc-tree-add-btn flex size-8 items-center justify-center rounded-full bg-[#52A2DF] text-white shadow-md ring-4 ring-white transition-transform hover:scale-110 hover:bg-[#3d8bc9]"
-        >
-          <PlusIcon aria-hidden="true" className="size-4" />
-        </button>
-      </div>
+      <NodeCard node={node} depth={depth} onViewMember={() => onViewMember(node, depth)} matchState={matchState} />
 
       {node.children.length > 0 && (
-        <ul>
-          {node.children.map((child) => (
-            <TreeNode
-              key={child.id}
-              node={child}
-              depth={depth + 1}
-              levelTitles={levelTitles}
-              onAssign={onAssign}
-              onAddChild={onAddChild}
-              onRenameLevel={onRenameLevel}
-              onViewMember={onViewMember}
-              searchMatches={searchMatches}
-            />
-          ))}
-        </ul>
+        <>
+          <div className="dbc-tree-stem" />
+          <ul>
+            {node.children.map((child) => (
+              <TreeNode
+                key={child.id}
+                node={child}
+                depth={depth + 1}
+                onViewMember={onViewMember}
+                searchMatches={searchMatches}
+              />
+            ))}
+          </ul>
+        </>
       )}
     </li>
   );
 }
 
-// Arbre généalogique du réseau d'un pays. "onAssign(node, depth)" est
-// appelé quand on clique sur un poste vacant (assigner un membre déjà
-// existant, sans créer de nouvelle branche) ; "onAddChild(node, depth)"
-// quand on clique sur un rond "+" (créer une nouvelle branche enfant de
-// "node", avec son nom + le membre qui l'occupe — voir Reseau/index.jsx) ;
-// "onRenameLevel(depth, title)" quand on clique sur le badge d'une carte
-// pour renommer le titre de rôle de tout un échelon ; "onViewMember(node,
-// depth)" quand on clique sur un poste déjà pourvu, pour ouvrir la fiche
-// complète de son responsable. "searchMatches" (voir getTreeSearchMatches
-// dans mockData.js, calculé par Reseau/index.jsx) met en évidence/estompe
-// les cartes selon la recherche en cours dans AdminTopBar — null quand il
-// n'y a pas de recherche, l'arbre reste alors identique à avant.
-export function OrgTree({
-  root,
-  levelTitles,
-  onAssign,
-  onAddChild,
-  onRenameLevel,
-  onViewMember,
-  searchMatches = null,
-}) {
+// Arbre (en réalité une forêt : voir Reseau/index.jsx, plusieurs racines
+// possibles par pays) de parrainage réel d'un pays. "onViewMember(node,
+// depth)" est appelé au clic sur une carte, pour ouvrir la fiche complète
+// de son titulaire. "searchMatches" (calculé par Reseau/index.jsx) met en
+// évidence/estompe les cartes selon la recherche en cours dans
+// AdminTopBar — null quand il n'y a pas de recherche.
+export function OrgTree({ roots, onViewMember, searchMatches = null }) {
   return (
     <div className="dbc-tree">
-      <ul>
-        <TreeNode
-          node={root}
-          depth={0}
-          levelTitles={levelTitles}
-          onAssign={onAssign}
-          onAddChild={onAddChild}
-          onRenameLevel={onRenameLevel}
-          onViewMember={onViewMember}
-          searchMatches={searchMatches}
-        />
+      <ul className="dbc-tree-forest">
+        {roots.map((root) => (
+          <TreeNode key={root.id} node={root} depth={0} onViewMember={onViewMember} searchMatches={searchMatches} />
+        ))}
       </ul>
     </div>
   );

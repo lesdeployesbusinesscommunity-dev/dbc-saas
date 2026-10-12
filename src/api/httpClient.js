@@ -73,6 +73,13 @@ function normalizeError(error) {
     return { status, message: "api.errors.notFound" };
   }
 
+  if (status === 409) {
+    // Conflit (ex: numero de telephone deja utilise) : distinct d'une
+    // erreur de saisie invalide, sinon l'utilisateur cherche a tort une
+    // faute dans son formulaire alors que ses informations sont correctes.
+    return { status, message: "api.errors.conflict" };
+  }
+
   // 400 / 422 etc. : erreurs de validation. On ne remonte pas le corps brut
   // renvoye par le backend, seulement une cle de traduction generique ; un
   // futur besoin d'afficher un message de validation precis devra passer

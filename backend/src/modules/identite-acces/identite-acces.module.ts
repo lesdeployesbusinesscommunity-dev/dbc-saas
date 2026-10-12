@@ -11,6 +11,7 @@ import { VerifierOtpConnexionUseCase } from './application/verifier-otp-connexio
 import { BasculerDoubleAuthentificationUseCase } from './application/basculer-double-authentification.use-case';
 import { CreerDemandeInscriptionUseCase } from './application/creer-demande-inscription.use-case';
 import { ValiderDemandeInscriptionUseCase } from './application/valider-demande-inscription.use-case';
+import { RejeterDemandeInscriptionUseCase } from './application/rejeter-demande-inscription.use-case';
 import { ListerMembresAdminUseCase } from './application/lister-membres-admin.use-case';
 import { UtilisateurRepositoryPort } from './domaine/utilisateur.repository.port';
 import { DemandeInscriptionRepositoryPort } from './domaine/demande-inscription.repository.port';
@@ -32,6 +33,7 @@ import { JwtStrategy } from './infrastructure/jwt.strategy';
 import { AdhesionModule } from '../adhesion/adhesion.module';
 import { ReseauMlmModule } from '../reseau-mlm/reseau-mlm.module';
 import { GouvernanceModule } from '../gouvernance/gouvernance.module';
+import { FormationModule } from '../formation/formation.module';
 
 @Module({
   imports: [
@@ -45,6 +47,7 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
     AdhesionModule, // ValiderDemandeInscriptionUseCase orchestre Identité + Adhésion + Réseau MLM — voir ce use-case.
     ReseauMlmModule,
     GouvernanceModule,
+    FormationModule, // ListerMembresAdminUseCase agrège les formations suivies par membre.
     // ConfigModule est global (voir AppModule) : ConfigService est déjà disponible ici.
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -63,6 +66,7 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
     BasculerDoubleAuthentificationUseCase,
     CreerDemandeInscriptionUseCase,
     ValiderDemandeInscriptionUseCase,
+    RejeterDemandeInscriptionUseCase,
     ListerMembresAdminUseCase,
     JwtStrategy,
     // Le domaine/application dépend des PORTS (abstraits), jamais des implémentations.

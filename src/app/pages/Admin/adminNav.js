@@ -2,6 +2,7 @@
 import {
   Squares2X2Icon,
   UserGroupIcon,
+  UserPlusIcon,
   ShareIcon,
   BoltIcon,
   BanknotesIcon,
@@ -22,6 +23,12 @@ export const adminNavItems = [
     labelKey: "admin.nav.membres",
     to: "/admin/membres",
     Icon: UserGroupIcon,
+  },
+  {
+    key: "demandesInscription",
+    labelKey: "admin.nav.demandesInscription",
+    to: "/admin/demandes-inscription",
+    Icon: UserPlusIcon,
   },
   {
     key: "reseau",

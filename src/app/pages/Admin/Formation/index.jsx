@@ -1,104 +1,120 @@
 // Import Dependencies
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import { PlusIcon } from "@heroicons/react/24/solid";
+import { PlusIcon, ArrowPathIcon, ExclamationCircleIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
 import { Page } from "components/shared/Page";
 import { levels } from "app/pages/Simulateur/data";
+import { levelKeyFromCode } from "../Membres/viewModel";
 import { AdminTopBar } from "../components/AdminTopBar";
 import { LevelFilter } from "./LevelFilter";
 import { TrainingCard } from "./TrainingCard";
 import { TrainingDetailsModal } from "./TrainingDetailsModal";
 import { AddTrainingModal } from "./AddTrainingModal";
-import { initialTrainingsByLevel } from "./mockData";
 import { normalizeSearchText } from "../searchUtils";
+import { listerFormations } from "api/formations";
+import { listerNiveaux } from "api/adhesion";
+import { listerPiliers } from "api/programmes";
 
 // ----------------------------------------------------------------------
 
-// Page "Gestion des formations" (/admin/formation) : une carte par
-// formation (nom, affiche, formateur, date de début, durée), organisées
-// par niveau — on filtre avec la rangée d'onglets en haut (ou "Tous les
-// niveaux" pour tout voir d'un coup), et chaque carte se termine par une
-// barre qui mesure l'avancement de cette formation (voir TrainingCard.jsx).
-// Cliquer une carte ouvre sa fiche détaillée (objectifs généraux, un
-// chapitre par carte, puis ce que le membre saura faire à l'issue de la
-// formation — voir TrainingDetailsModal.jsx). "Ajouter une formation"
-// (voir AddTrainingModal.jsx) construit une nouvelle formation avec
-// exactement cette même structure, pour qu'elle s'affiche et s'ouvre
-// ensuite comme les autres. Tout est en local pour l'instant (voir
-// mockData.js), comme le reste de l'admin, en attendant les vrais
-// endpoints.
+// Page "Gestion des formations" (/admin/formation) : le vrai catalogue
+// (GET /formations) — une carte par formation, organisées par niveau requis
+// (filtrable avec la rangée d'onglets, ou "Tous les niveaux"). Cliquer une
+// carte ouvre sa fiche détaillée avec les vrais modules/leçons du LMS déjà
+// codé (GET /formations/:id — voir TrainingDetailsModal.jsx). Plus simple
+// que l'ancienne maquette (pas de formateur/date/durée/avancement/objectifs
+// narratifs, qui n'ont pas d'équivalent côté backend) : voir mémoire
+// "project_frontend_backend_ecart_admin".
 export default function Formation() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const [trainingsByLevel, setTrainingsByLevel] = useState(initialTrainingsByLevel);
+  const [formations, setFormations] = useState([]);
+  const [niveaux, setNiveaux] = useState([]);
+  const [piliers, setPiliers] = useState([]);
+  const [status, setStatus] = useState("loading"); // loading | ready | error
   const [activeKey, setActiveKey] = useState("all");
   // Recherche pilotée depuis l'en-tête partagé (voir AdminTopBar) : filtre
-  // les cartes déjà retenues par l'onglet de niveau (ci-dessous), par nom
-  // de formation OU nom du formateur — les deux filtres se cumulent plutôt
-  // que de s'exclure.
+  // les cartes déjà retenues par l'onglet de niveau.
   const [search, setSearch] = useState("");
-  const [viewing, setViewing] = useState(null); // { training, level } | null
+  const [viewingId, setViewingId] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  const charger = useCallback(async () => {
+    setStatus((prev) => (prev === "ready" ? prev : "loading"));
+    try {
+      const [formationsData, niveauxData, piliersData] = await Promise.all([
+        listerFormations(),
+        listerNiveaux(),
+        listerPiliers(),
+      ]);
+      setFormations(formationsData);
+      setNiveaux(niveauxData);
+      setPiliers(piliersData);
+      setStatus("ready");
+    } catch {
+      setStatus("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    charger();
+  }, [charger]);
+
+  // "Niveau requis" (requiredLevelId, id numérique du niveau) -> "level"
+  // Simulateur/data.js (icône/couleurs), pour rester cohérent avec le
+  // reste de l'admin. Même écart snake_case/camelCase que Gestion des
+  // membres — voir levelKeyFromCode.
+  const levelByNiveauId = useMemo(() => {
+    const map = new Map();
+    for (const niveau of niveaux) {
+      const level = levels.find((candidate) => candidate.key === levelKeyFromCode(niveau.code));
+      if (level) map.set(niveau.id, level);
+    }
+    return map;
+  }, [niveaux]);
+
+  const pillarNameByCode = useMemo(
+    () => new Map(piliers.map((pilier) => [pilier.code, pilier.name])),
+    [piliers],
+  );
 
   // Arrivée depuis le carrousel "Formations" du Dashboard (voir
   // Dashboard/RightPanel/TrainingsCarousel.jsx) : la carte cliquée passe
   // l'id de sa formation via l'état de navigation, on ouvre alors
-  // directement sa fiche détaillée (objectifs, chapitres...) au lieu de
-  // laisser l'admin la rechercher dans la grille. L'état est nettoyé
-  // aussitôt après pour ne pas rouvrir la même fiche si l'admin revient
-  // sur cette page plus tard (retour navigateur, nouvelle visite...).
+  // directement sa fiche détaillée au lieu de laisser l'admin la
+  // rechercher dans la grille. L'état est nettoyé aussitôt après pour ne
+  // pas rouvrir la même fiche si l'admin revient sur cette page plus tard.
   useEffect(() => {
+    if (status !== "ready") return;
     const openTrainingId = location.state?.openTrainingId;
     if (!openTrainingId) return;
-
-    for (const level of levels) {
-      const training = (trainingsByLevel[level.key] ?? []).find(
-        (candidate) => candidate.id === openTrainingId,
-      );
-      if (training) {
-        setViewing({ training, level });
-        break;
-      }
+    if (formations.some((formation) => formation.id === openTrainingId)) {
+      setViewingId(openTrainingId);
     }
     navigate(location.pathname, { replace: true, state: null });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state]);
+  }, [status, location.state]);
 
   const cards = useMemo(() => {
     const byLevel =
       activeKey === "all"
-        ? levels.flatMap((level) =>
-            (trainingsByLevel[level.key] ?? []).map((training) => ({ training, level })),
-          )
-        : (() => {
-            const level = levels.find((candidate) => candidate.key === activeKey);
-            return (trainingsByLevel[activeKey] ?? []).map((training) => ({ training, level }));
-          })();
+        ? formations
+        : formations.filter((formation) => levelByNiveauId.get(formation.requiredLevelId)?.key === activeKey);
 
     // normalizeSearchText tolère accents/casse/tirets des deux côtés (voir
-    // searchUtils.js) — un clavier réglé en anglais retrouve "Aïcha Konaté"
-    // en tapant "aicha konate".
+    // searchUtils.js).
     const query = normalizeSearchText(search);
     if (!query) return byLevel;
-    return byLevel.filter(
-      ({ training }) =>
-        normalizeSearchText(training.name).includes(query) ||
-        normalizeSearchText(training.trainer).includes(query),
-    );
-  }, [trainingsByLevel, activeKey, search]);
+    return byLevel.filter((formation) => normalizeSearchText(formation.name).includes(query));
+  }, [formations, activeKey, search, levelByNiveauId]);
 
-  const handleAddTraining = (levelKey, payload) => {
-    setTrainingsByLevel((prev) => {
-      const existing = prev[levelKey] ?? [];
-      const newTraining = { id: `f-${Date.now()}`, ...payload };
-      return { ...prev, [levelKey]: [...existing, newTraining] };
-    });
-    setShowAddModal(false);
-  };
+  const viewingTraining = viewingId ? formations.find((formation) => formation.id === viewingId) : null;
+  const viewingLevel = viewingTraining ? levelByNiveauId.get(viewingTraining.requiredLevelId) : null;
+  const viewingPillarName = viewingTraining ? pillarNameByCode.get(viewingTraining.pillarCode) : null;
 
   return (
     <Page title={`Admin – ${t("admin.formation.title")}`}>
@@ -123,38 +139,61 @@ export default function Formation() {
           </button>
         </div>
 
-        {cards.length === 0 ? (
-          <p className="mt-8 rounded-2xl bg-gray-50 px-4 py-10 text-center text-sm text-gray-400">
-            {search.trim()
-              ? t("admin.formation.noSearchResults", { query: search.trim() })
-              : t("admin.formation.empty")}
-          </p>
-        ) : (
-          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {cards.map(({ training, level }) => (
-              <TrainingCard
-                key={training.id}
-                training={training}
-                level={level}
-                onClick={() => setViewing({ training, level })}
-              />
-            ))}
+        {status === "loading" && (
+          <div className="mt-10 flex items-center justify-center text-gray-400">
+            <ArrowPathIcon aria-hidden="true" className="size-6 animate-spin" />
           </div>
         )}
+
+        {status === "error" && (
+          <div className="mt-6 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+            Impossible de charger les formations pour le moment.
+          </div>
+        )}
+
+        {status === "ready" &&
+          (cards.length === 0 ? (
+            <p className="mt-8 rounded-2xl bg-gray-50 px-4 py-10 text-center text-sm text-gray-400">
+              {search.trim()
+                ? t("admin.formation.noSearchResults", { query: search.trim() })
+                : t("admin.formation.empty")}
+            </p>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {cards.map((formation) => (
+                <TrainingCard
+                  key={formation.id}
+                  training={formation}
+                  level={levelByNiveauId.get(formation.requiredLevelId)}
+                  pillarName={pillarNameByCode.get(formation.pillarCode)}
+                  onClick={() => setViewingId(formation.id)}
+                />
+              ))}
+            </div>
+          ))}
       </div>
 
       <TrainingDetailsModal
-        training={viewing?.training}
-        level={viewing?.level}
-        open={!!viewing}
-        onClose={() => setViewing(null)}
+        training={viewingTraining}
+        level={viewingLevel}
+        pillarName={viewingPillarName}
+        open={!!viewingId}
+        onClose={() => setViewingId(null)}
       />
 
       <AddTrainingModal
         open={showAddModal}
-        defaultLevel={activeKey !== "all" ? activeKey : undefined}
+        niveaux={niveaux}
+        piliers={piliers}
+        defaultLevelId={
+          activeKey !== "all" ? niveaux.find((n) => levelKeyFromCode(n.code) === activeKey)?.id : undefined
+        }
         onClose={() => setShowAddModal(false)}
-        onSubmit={handleAddTraining}
+        onCreated={() => {
+          setShowAddModal(false);
+          charger();
+        }}
       />
     </Page>
   );

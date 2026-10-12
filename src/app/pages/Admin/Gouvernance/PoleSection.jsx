@@ -70,32 +70,47 @@ function PoleHeader({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-0.5">
-        <HeaderIconButton
-          Icon={ChevronUpIcon}
-          label={t("admin.gouvernance.moveUp")}
-          onClick={onMoveUp}
-          disabled={!canMoveUp}
-        />
-        <HeaderIconButton
-          Icon={ChevronDownIcon}
-          label={t("admin.gouvernance.moveDown")}
-          onClick={onMoveDown}
-          disabled={!canMoveDown}
-        />
-        <HeaderIconButton
-          Icon={PencilIcon}
-          label={t("admin.gouvernance.edit")}
-          onClick={onEdit}
-          hoverClassName="hover:text-[#52A2DF]"
-        />
-        <HeaderIconButton
-          Icon={TrashIcon}
-          label={t("admin.gouvernance.delete")}
-          onClick={onDelete}
-          hoverClassName="hover:text-red-500"
-        />
-      </div>
+      {/* Antennes/Légendes n'ont pas de contrepartie en base (voir
+          Gouvernance/index.jsx) : ces 2 cartes sont fournies sans
+          onMoveUp/onMoveDown/onEdit/onDelete, ce qui masque entièrement ce
+          bloc plutôt que d'afficher des actions qui ne mèneraient nulle
+          part. */}
+      {(onMoveUp || onMoveDown || onEdit || onDelete) && (
+        <div className="flex shrink-0 items-center gap-0.5">
+          {(onMoveUp || onMoveDown) && (
+            <>
+              <HeaderIconButton
+                Icon={ChevronUpIcon}
+                label={t("admin.gouvernance.moveUp")}
+                onClick={onMoveUp}
+                disabled={!canMoveUp}
+              />
+              <HeaderIconButton
+                Icon={ChevronDownIcon}
+                label={t("admin.gouvernance.moveDown")}
+                onClick={onMoveDown}
+                disabled={!canMoveDown}
+              />
+            </>
+          )}
+          {onEdit && (
+            <HeaderIconButton
+              Icon={PencilIcon}
+              label={t("admin.gouvernance.edit")}
+              onClick={onEdit}
+              hoverClassName="hover:text-[#52A2DF]"
+            />
+          )}
+          {onDelete && (
+            <HeaderIconButton
+              Icon={TrashIcon}
+              label={t("admin.gouvernance.delete")}
+              onClick={onDelete}
+              hoverClassName="hover:text-red-500"
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

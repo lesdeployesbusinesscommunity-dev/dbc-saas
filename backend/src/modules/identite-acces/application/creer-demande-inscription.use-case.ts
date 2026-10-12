@@ -11,6 +11,8 @@ export interface CreerDemandeInscriptionCommande {
   telephone: string;
   codeParrain?: string;
   niveauSouhaiteCode: string;
+  ville?: string;
+  profession?: string;
 }
 
 /**

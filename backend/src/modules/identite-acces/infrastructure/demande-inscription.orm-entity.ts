@@ -33,6 +33,12 @@ export class DemandeInscriptionOrmEntity {
   @Column({ name: 'utilisateur_id', type: 'uuid', nullable: true })
   utilisateurId: string | null;
 
+  @Column({ type: 'varchar', nullable: true })
+  ville: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  profession: string | null;
+
   @CreateDateColumn({ name: 'cree_le' })
   creeLe: Date;
 }

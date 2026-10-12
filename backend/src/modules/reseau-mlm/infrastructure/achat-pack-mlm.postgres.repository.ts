@@ -29,6 +29,11 @@ export class AchatPackMlmPostgresRepository implements AchatPackMlmRepositoryPor
     return ligne ? this.versDomaine(ligne) : null;
   }
 
+  async listerParMembreId(membreId: string): Promise<AchatPackMlm[]> {
+    const lignes = await this.repository.find({ where: { membreId } });
+    return lignes.map((ligne) => this.versDomaine(ligne));
+  }
+
   private versDomaine(ligne: AchatPackMlmOrmEntity): AchatPackMlm {
     return AchatPackMlm.depuisPersistance({
       id: ligne.id,

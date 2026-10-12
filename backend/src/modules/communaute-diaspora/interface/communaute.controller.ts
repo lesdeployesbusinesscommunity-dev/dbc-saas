@@ -2,9 +2,11 @@ import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreerAntenneUseCase } from '../application/creer-antenne.use-case';
 import { RejoindreAntenneUseCase } from '../application/rejoindre-antenne.use-case';
+import { AssignerCoordinateurAntenneUseCase } from '../application/assigner-coordinateur-antenne.use-case';
 import { ZoneRepositoryPort } from '../domaine/zone.repository.port';
 import { AntenneRepositoryPort } from '../domaine/antenne.repository.port';
 import { CreerAntenneDto } from './dto/creer-antenne.dto';
+import { AssignerCoordinateurAntenneDto } from './dto/assigner-coordinateur-antenne.dto';
 import { JwtAuthGuard } from '../../identite-acces/interface/jwt-auth.guard';
 import { UtilisateurCourant } from '../../identite-acces/interface/utilisateur-courant.decorator';
 import { Utilisateur } from '../../identite-acces/domaine/utilisateur';
@@ -28,6 +30,7 @@ export class CommunauteController {
   constructor(
     private readonly creerAntenne: CreerAntenneUseCase,
     private readonly rejoindreAntenne: RejoindreAntenneUseCase,
+    private readonly assignerCoordinateur: AssignerCoordinateurAntenneUseCase,
     private readonly zones: ZoneRepositoryPort,
     private readonly antennes: AntenneRepositoryPort,
   ) {}
@@ -62,5 +65,14 @@ export class CommunauteController {
   async rejoindre(@Param('id') id: string, @UtilisateurCourant() utilisateur: Utilisateur) {
     const membreAntenne = await this.rejoindreAntenne.executer({ antenneId: id, membreId: utilisateur.id! });
     return { antenneId: membreAntenne.antenneId };
+  }
+
+  @Post('antennes/:id/coordinateur')
+  @UseGuards(AdminSecretGuard)
+  @ApiHeader({ name: 'x-admin-secret', required: true })
+  @ApiOperation({ summary: "Assigner ou libérer le coordinateur d'une antenne (admin)" })
+  async assignerCoordinateurAntenne(@Param('id') id: string, @Body() dto: AssignerCoordinateurAntenneDto) {
+    const antenne = await this.assignerCoordinateur.executer({ antenneId: id, membreId: dto.memberId ?? null });
+    return versReponseAntenne(antenne);
   }
 }

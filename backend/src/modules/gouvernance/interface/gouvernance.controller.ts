@@ -1,14 +1,38 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PublierAnnonceUseCase } from '../application/publier-annonce.use-case';
 import { ConsulterTableauDeBordUseCase } from '../application/consulter-tableau-de-bord.use-case';
-import { ConsulterPolesUseCase } from '../application/consulter-poles.use-case';
+import { ConsulterPolesUseCase, PoleAvecSieges } from '../application/consulter-poles.use-case';
 import { AssignerSiegeUseCase } from '../application/assigner-siege.use-case';
+import { CreerPoleUseCase } from '../application/creer-pole.use-case';
+import { ModifierPoleUseCase } from '../application/modifier-pole.use-case';
+import { SupprimerPoleUseCase } from '../application/supprimer-pole.use-case';
+import { ReordonnerPolesUseCase } from '../application/reordonner-poles.use-case';
 import { AnnonceRepositoryPort } from '../domaine/annonce.repository.port';
 import { JournalAuditRepositoryPort } from '../domaine/journal-audit.repository.port';
 import { PublierAnnonceDto } from './dto/publier-annonce.dto';
 import { AssignerSiegeDto } from './dto/assigner-siege.dto';
+import { CreerPoleDto, ModifierPoleDto } from './dto/pole-siege.dto';
+import { ReordonnerPolesDto } from './dto/reordonner-poles.dto';
 import { AdminSecretGuard } from '../../../commun/gardes/admin-secret.guard';
+
+function versReponsePole(pole: PoleAvecSieges) {
+  return {
+    id: pole.id,
+    code: pole.code,
+    name: pole.nom,
+    description: pole.description,
+    order: pole.ordre,
+    icon: pole.icone,
+    seats: pole.sieges.map((siege) => ({
+      id: siege.id,
+      title: siege.titre,
+      order: siege.ordre,
+      memberId: siege.membreId,
+      membershipNumber: siege.matricule,
+    })),
+  };
+}
 
 @ApiTags('gouvernance')
 @Controller('gouvernance')
@@ -18,6 +42,10 @@ export class GouvernanceController {
     private readonly consulterTableauDeBord: ConsulterTableauDeBordUseCase,
     private readonly consulterPoles: ConsulterPolesUseCase,
     private readonly assignerSiege: AssignerSiegeUseCase,
+    private readonly creerPole: CreerPoleUseCase,
+    private readonly modifierPole: ModifierPoleUseCase,
+    private readonly supprimerPole: SupprimerPoleUseCase,
+    private readonly reordonnerPoles: ReordonnerPolesUseCase,
     private readonly annonces: AnnonceRepositoryPort,
     private readonly journal: JournalAuditRepositoryPort,
   ) {}
@@ -28,19 +56,54 @@ export class GouvernanceController {
   @ApiOperation({ summary: 'Lister les pôles de gouvernance et leurs sièges (Administrateur)' })
   async poles() {
     const poles = await this.consulterPoles.executer();
-    return poles.map((pole) => ({
-      id: pole.id,
-      code: pole.code,
-      name: pole.nom,
-      description: pole.description,
-      seats: pole.sieges.map((siege) => ({
-        id: siege.id,
-        title: siege.titre,
-        order: siege.ordre,
-        memberId: siege.membreId,
-        membershipNumber: siege.matricule,
-      })),
-    }));
+    return poles.map(versReponsePole);
+  }
+
+  @Post('poles')
+  @UseGuards(AdminSecretGuard)
+  @ApiHeader({ name: 'x-admin-secret', required: true })
+  @ApiOperation({ summary: 'Créer un pôle de gouvernance, avec ses sièges nommés (Administrateur)' })
+  async creer(@Body() dto: CreerPoleDto) {
+    await this.creerPole.executer({
+      nom: dto.name,
+      description: dto.description,
+      icone: dto.icon,
+      titresSieges: dto.seats.map((s) => s.title),
+    });
+    return this.poles();
+  }
+
+  @Patch('poles/reordonner')
+  @UseGuards(AdminSecretGuard)
+  @ApiHeader({ name: 'x-admin-secret', required: true })
+  @ApiOperation({ summary: 'Réordonner les pôles de gouvernance (Administrateur)' })
+  async reordonner(@Body() dto: ReordonnerPolesDto) {
+    await this.reordonnerPoles.executer(dto.poleIds);
+    return this.poles();
+  }
+
+  @Patch('poles/:id')
+  @UseGuards(AdminSecretGuard)
+  @ApiHeader({ name: 'x-admin-secret', required: true })
+  @ApiOperation({ summary: 'Modifier un pôle de gouvernance et ses sièges (Administrateur)' })
+  async modifier(@Param('id', ParseIntPipe) id: number, @Body() dto: ModifierPoleDto) {
+    await this.modifierPole.executer({
+      poleId: id,
+      nom: dto.name,
+      description: dto.description,
+      icone: dto.icon,
+      sieges: dto.seats.map((s) => ({ id: s.id, titre: s.title })),
+    });
+    return this.poles();
+  }
+
+  @Delete('poles/:id')
+  @UseGuards(AdminSecretGuard)
+  @ApiHeader({ name: 'x-admin-secret', required: true })
+  @ApiOperation({ summary: 'Supprimer un pôle de gouvernance (Administrateur)' })
+  async supprimer(@Param('id', ParseIntPipe) id: number) {
+    await this.supprimerPole.executer(id);
+    return this.poles();
   }
 
   @Post('sieges/:id/assigner')

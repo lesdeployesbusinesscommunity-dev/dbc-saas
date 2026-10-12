@@ -9,6 +9,7 @@ import {
   CalendarDaysIcon,
   IdentificationIcon,
   GlobeAltIcon,
+  MapPinIcon,
   DevicePhoneMobileIcon,
   BanknotesIcon,
   BriefcaseIcon,
@@ -62,7 +63,7 @@ const STEP_COUNT = 3;
 // valeur par défaut — voir le state "form" — donc jamais vides).
 const REQUIRED_FIELDS_BY_STEP = {
   1: ["nom", "prenom", "email", "dateNaissance"],
-  2: ["cni", "whatsapp"],
+  2: ["cni", "whatsapp", "ville"],
   3: ["travail", "parrain"],
 };
 
@@ -234,6 +235,7 @@ export default function Inscription() {
     dateNaissance: "",
     cni: "",
     pays: countries[0],
+    ville: "",
     whatsapp: "",
     tontine: levels[0].key,
     travail: "",
@@ -317,6 +319,8 @@ export default function Inscription() {
         phoneNumber: normalizePhoneNumber(form.whatsapp),
         sponsorCode: form.parrain.trim() || undefined,
         desiredLevelCode: DESIRED_LEVEL_CODE_BY_KEY[form.tontine] ?? form.tontine,
+        city: form.ville.trim() || undefined,
+        profession: form.travail.trim() || undefined,
       });
       setStatus("sent");
     } catch (err) {
@@ -524,6 +528,15 @@ export default function Inscription() {
                           </option>
                         ))}
                       </FieldSelect>
+                      <FieldInput
+                        label="Ville"
+                        icon={MapPinIcon}
+                        type="text"
+                        value={form.ville}
+                        onChange={updateField("ville")}
+                        placeholder="Ta ville"
+                        error={fieldErrors.ville}
+                      />
                       <FieldInput
                         label="Numéro WhatsApp"
                         icon={DevicePhoneMobileIcon}

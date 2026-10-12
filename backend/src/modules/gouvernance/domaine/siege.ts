@@ -4,12 +4,16 @@
  */
 export class Siege {
   private constructor(
-    public readonly id: string,
+    public readonly id: string | undefined,
     public readonly poleId: number,
-    public readonly titre: string,
-    public readonly ordre: number,
+    public titre: string,
+    public ordre: number,
     public membreId: string | null,
   ) {}
+
+  static creer(params: { poleId: number; titre: string; ordre: number }): Siege {
+    return new Siege(undefined, params.poleId, params.titre, params.ordre, null);
+  }
 
   static depuisPersistance(donnees: {
     id: string;
@@ -27,5 +31,9 @@ export class Siege {
 
   liberer(): void {
     this.membreId = null;
+  }
+
+  renommer(titre: string): void {
+    this.titre = titre;
   }
 }

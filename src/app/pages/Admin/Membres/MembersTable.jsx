@@ -10,8 +10,8 @@ import { RowActionsMenu } from "./RowActionsMenu";
 // ----------------------------------------------------------------------
 
 const COLUMN_KEYS = [
-  "name", "matricule", "role", "domain", "level",
-  "city", "country", "sponsor", "coins", "status",
+  "name", "matricule", "domain", "level",
+  "city", "country", "sponsor", "status",
 ];
 
 // Tableau des membres du dossier ouvert (ou de "Tous les niveaux"). Le
@@ -21,7 +21,7 @@ const COLUMN_KEYS = [
 // niveau ou la vue combinée. En-tête sur fond gris clair et lignes qui
 // s'éclaircissent au survol, pour se rapprocher de la maquette de
 // référence donnée par l'utilisateur.
-export function MembersTable({ members, onUpdate, onView, onToggleStatus, onDelete }) {
+export function MembersTable({ members, onView }) {
   const { t } = useTranslation();
 
   if (members.length === 0) {
@@ -63,7 +63,6 @@ export function MembersTable({ members, onUpdate, onView, onToggleStatus, onDele
                 </div>
               </td>
               <td className="whitespace-nowrap px-3 py-3 text-gray-600">{member.matricule}</td>
-              <td className="whitespace-nowrap px-3 py-3 text-gray-600">{member.role}</td>
               <td className="px-3 py-3 text-gray-600">{member.domain}</td>
               <td className="whitespace-nowrap px-3 py-3 font-semibold text-gray-800">
                 {t(`simulateur.levels.${member.levelKey}.name`)}
@@ -82,23 +81,11 @@ export function MembersTable({ members, onUpdate, onView, onToggleStatus, onDele
                   </span>
                 )}
               </td>
-              <td className="whitespace-nowrap px-3 py-3 text-gray-800">
-                <span className="inline-flex items-center gap-1.5">
-                  <span aria-hidden="true" className="size-2.5 rounded-full bg-amber-400" />
-                  {member.coins}
-                </span>
-              </td>
               <td className="whitespace-nowrap px-3 py-3">
                 <StatusBadge status={member.status} />
               </td>
               <td className="px-3 py-3 text-right">
-                <RowActionsMenu
-                  status={member.status}
-                  onUpdate={() => onUpdate(member)}
-                  onView={() => onView(member)}
-                  onToggleStatus={() => onToggleStatus(member)}
-                  onDelete={() => onDelete(member)}
-                />
+                <RowActionsMenu status={member.status} onView={() => onView(member)} />
               </td>
             </tr>
           ))}

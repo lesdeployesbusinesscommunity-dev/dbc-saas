@@ -1,207 +1,280 @@
 // Import Dependencies
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { PlusIcon, SparklesIcon } from "@heroicons/react/24/solid";
+import {
+  PlusIcon,
+  SparklesIcon,
+  ArrowPathIcon,
+  ExclamationCircleIcon,
+} from "@heroicons/react/24/solid";
 
 // Local Imports
 import { Page } from "components/shared/Page";
 import { AdminTopBar } from "../components/AdminTopBar";
 import { MemberDetailsCard } from "../Membres/MemberDetailsCard";
 import { ConfirmDialog } from "../Membres/ConfirmDialog";
-import { useNetworkData } from "../context/NetworkDataContext";
+import { toViewMember } from "../Membres/viewModel";
 import { PoleSection } from "./PoleSection";
 import { PoleFormModal } from "./PoleFormModal";
 import { MemberSearchModal } from "./MemberSearchModal";
 import { POLE_ICON_MAP } from "./poleIcons";
 import { normalizeSearchText } from "../searchUtils";
+import { founderQuote, getPoleTitle } from "./mockData";
 import {
-  allMembers,
-  founderQuote,
-  getMember,
-  getNetworkChapters,
-  getPoleTitle,
-  getSeatTitle,
-  initialGovernanceStructure,
-} from "./mockData";
+  listerPoles,
+  creerPole,
+  modifierPole,
+  supprimerPole,
+  reordonnerPoles,
+  assignerSiege,
+} from "api/gouvernance";
+import { listerMembres } from "api/membres";
+import { listerAntennes, listerZones, assignerCoordinateurAntenne } from "api/communaute";
 
 // ----------------------------------------------------------------------
 
+// Les 2 cartes qui ne viennent pas de GET /gouvernance/poles : "Réseau des
+// Leaders d'Antennes" est dérivé des vraies antennes (module Communauté &
+// diaspora, GET /communaute/antennes — "leader" = qui a créé/rejoint
+// l'antenne en premier, en lecture seule ici ; "coordinateur" s'assigne
+// depuis cette page) et "Conseil des Légendes" des vrais membres de niveau
+// "legende" (GET /membres). Ni l'une ni l'autre n'a de ligne "pôle" en
+// base : rien à créer/modifier/supprimer/réordonner pour elles, voir
+// PoleSection (boutons masqués quand aucun handler n'est fourni).
+const ANTENNES_CARD_ID = "antennes";
+const LEGENDES_CARD_ID = "legendes";
+const LEGENDES_LEVEL_KEY = "legende";
+
 // Page "Gestion de la gouvernance" (/admin/gouvernance) : les pôles qui
-// dirigent la DBC dans son ensemble, chacun avec ses postes et qui les
-// occupe — pas juste une liste statique, on peut cliquer un poste pourvu
-// pour voir la fiche complète de son titulaire (même fiche que "Gestion
-// des membres"/"Gestion du réseau"), ou un poste vacant pour l'assigner à
-// un membre existant (sauf le Conseil des Légendes, qui se peuple tout
-// seul par niveau — voir PoleSection.jsx).
+// dirigent la DBC, chacun avec ses postes et qui les occupe — on peut
+// cliquer un poste pourvu pour voir la fiche complète de son titulaire
+// (même fiche que "Gestion des membres"/"Gestion du réseau"), ou un poste
+// vacant pour l'assigner à un membre existant (sauf le Conseil des
+// Légendes, qui se peuple tout seul par niveau).
 //
-// La page ne se limite plus aux 4 pôles fournis avec le site : "Ajouter
-// un pôle" crée une nouvelle carte "à postes nommés" (le seul type qu'on
-// peut créer soi-même — les 3 autres viennent avec un fonctionnement qui
-// leur est propre, voir mockData.js), et chaque carte peut ensuite être
-// modifiée, supprimée, ou déplacée (monter/descendre — voir PoleSection/
-// PoleHeader) pour changer sa position dans la page. Tout est géré en
-// local pour l'instant (voir mockData.js), comme le reste de l'admin.
+// "Ajouter un pôle" crée une nouvelle carte "à postes nommés" (POST
+// /gouvernance/poles) ; chaque pôle réel peut ensuite être modifié,
+// supprimé, ou déplacé (monter/descendre, PATCH /gouvernance/poles/
+// reordonner) — Antennes/Légendes restent fixes en fin de page, elles ne
+// sont pas des pôles.
 export default function Gouvernance() {
   const { t, i18n } = useTranslation();
-  const { networksByCountry } = useNetworkData();
-  const [structure, setStructure] = useState(initialGovernanceStructure);
-  // Recherche pilotée depuis l'en-tête partagé (voir AdminTopBar) : compare
-  // au titre du pôle, aux titres/titulaires de ses postes, et — pour le
-  // pôle "Réseau des Leaders d'Antennes" — aux noms de chapitres et de
-  // leurs responsables (voir poleMatchesSearch ci-dessous). Un pôle qui ne
-  // correspond pas est estompé plutôt que masqué (voir "dimmed" passé à
-  // PoleSection) : on garde le contexte de la page entière visible.
+  const [poles, setPoles] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [antennes, setAntennes] = useState([]);
+  const [zones, setZones] = useState([]);
+  const [status, setStatus] = useState("loading"); // loading | ready | error
   const [search, setSearch] = useState("");
-  // Le "Leader Légende" de chaque chapitre vient directement de Gestion du
-  // réseau (voir NetworkDataContext) — seul le "Coordinateur", propre à la
-  // gouvernance, se gère ici, par id de branche.
-  const [coordinatorsByNodeId, setCoordinatorsByNodeId] = useState({});
   const [viewingMemberId, setViewingMemberId] = useState(null);
-  // assigning = { poleId, chapterId, seatId, seatLabel } | null
+  // assigning = { kind: "pole", seatId, seatLabel } | { kind: "antenne", antenneId, seatLabel } | null
   const [assigning, setAssigning] = useState(null);
   // poleForm = { mode: "add" } | { mode: "edit", pole } | null
   const [poleForm, setPoleForm] = useState(null);
   const [deletingPole, setDeletingPole] = useState(null);
 
-  const chapters = getNetworkChapters(networksByCountry).map((chapter) => ({
-    ...chapter,
-    coordinatorMemberId: coordinatorsByNodeId[chapter.nodeId] ?? null,
-  }));
+  const charger = useCallback(async () => {
+    setStatus((prev) => (prev === "ready" ? prev : "loading"));
+    try {
+      const [polesData, membresData, antennesData, zonesData] = await Promise.all([
+        listerPoles(),
+        listerMembres(),
+        listerAntennes(),
+        listerZones(),
+      ]);
+      setPoles(polesData);
+      setMembers(membresData.map(toViewMember));
+      setAntennes(antennesData);
+      setZones(zonesData);
+      setStatus("ready");
+    } catch {
+      setStatus("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    charger();
+  }, [charger]);
+
+  const getMember = (id) => members.find((member) => member.id === id) ?? null;
+
+  const zoneNameById = useMemo(() => new Map(zones.map((zone) => [zone.id, zone.name])), [zones]);
+
+  // Une "antenne" (entité réelle) devient une carte de chapitre — plus de
+  // hiérarchie de branches sous elle (ça n'existe pas côté backend), donc
+  // "subBranches" reste toujours vide.
+  const chapters = useMemo(
+    () =>
+      antennes.map((antenne) => ({
+        nodeId: antenne.id,
+        name: antenne.city,
+        country: zoneNameById.get(antenne.zoneId) ?? "",
+        leaderMemberId: antenne.leaderMembreId,
+        coordinatorMemberId: antenne.coordinatorMembreId,
+        subBranches: [],
+      })),
+    [antennes, zoneNameById],
+  );
+
+  const legendesMembers = useMemo(
+    () => members.filter((member) => member.levelKey === LEGENDES_LEVEL_KEY),
+    [members],
+  );
+
+  // Pôles réels (triés par "order") suivis des 2 cartes synthétiques,
+  // toujours en dernière position — c'est ce tableau qui est affiché.
+  const structure = useMemo(() => {
+    const polesTries = [...poles]
+      .sort((a, b) => a.order - b.order)
+      .map((pole) => ({
+        id: pole.id,
+        kind: "assignable",
+        iconKey: pole.icon,
+        title: pole.name,
+        description: pole.description,
+        seats: pole.seats,
+      }));
+
+    return [
+      ...polesTries,
+      {
+        id: ANTENNES_CARD_ID,
+        kind: "networkChapters",
+        iconKey: "globe",
+        titleKey: "admin.gouvernance.poles.antennes.title",
+        descriptionKey: "admin.gouvernance.poles.antennes.description",
+      },
+      {
+        id: LEGENDES_CARD_ID,
+        kind: "autoLevel",
+        iconKey: "trophy",
+        titleKey: "admin.gouvernance.poles.legendes.title",
+        descriptionKey: "admin.gouvernance.poles.legendes.description",
+        levelKey: LEGENDES_LEVEL_KEY,
+      },
+    ];
+  }, [poles]);
 
   const openView = (memberId) => {
     if (memberId) setViewingMemberId(memberId);
   };
   const closeView = () => setViewingMemberId(null);
 
-  const openAssign = (poleId, chapterId, seatId, seatLabel) =>
-    setAssigning({ poleId, chapterId, seatId, seatLabel });
+  const openAssign = (poleId, chapterId, seatId, seatLabel) => {
+    if (poleId === ANTENNES_CARD_ID) {
+      setAssigning({ kind: "antenne", antenneId: chapterId, seatLabel });
+    } else {
+      setAssigning({ kind: "pole", seatId, seatLabel });
+    }
+  };
   const closeAssign = () => setAssigning(null);
 
-  const handleConfirmAssign = (memberId) => {
+  const handleConfirmAssign = async (memberId) => {
     if (!assigning) return;
-    const { poleId, chapterId, seatId } = assigning;
-
-    if (poleId === "antennes") {
-      // "chapterId" est ici l'id du nœud de branche (voir
-      // getNetworkChapters dans mockData.js) — seul le "Coordinateur" se
-      // gère depuis cette page ; le "Leader Légende" se change dans
-      // Gestion du réseau.
-      setCoordinatorsByNodeId((prev) => ({ ...prev, [chapterId]: memberId }));
-      closeAssign();
-      return;
+    if (assigning.kind === "antenne") {
+      await assignerCoordinateurAntenne(assigning.antenneId, memberId);
+    } else {
+      await assignerSiege(assigning.seatId, memberId);
     }
-
-    setStructure((prev) =>
-      prev.map((pole) => {
-        if (pole.id !== poleId) return pole;
-        if (pole.kind === "assignable") {
-          return {
-            ...pole,
-            seats: pole.seats.map((seat) => (seat.id === seatId ? { ...seat, memberId } : seat)),
-          };
-        }
-        return pole;
-      }),
-    );
-
     closeAssign();
+    await charger();
   };
 
   // Échange le pôle à "index" avec son voisin ("direction" = -1 pour
-  // monter, +1 pour descendre) — pas d'effet si déjà en haut/en bas.
-  const movePole = (index, direction) => {
-    setStructure((prev) => {
-      const target = index + direction;
-      if (target < 0 || target >= prev.length) return prev;
-      const next = [...prev];
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
+  // monter, +1 pour descendre) — seuls les pôles réels (préfixe de
+  // "structure", voir ci-dessus) sont concernés, "index" y correspond
+  // directement à leur position dans "poles" trié.
+  const movePole = async (index, direction) => {
+    const target = index + direction;
+    if (target < 0 || target >= poles.length) return;
+    const idsTries = [...poles].sort((a, b) => a.order - b.order).map((pole) => pole.id);
+    [idsTries[index], idsTries[target]] = [idsTries[target], idsTries[index]];
+    await reordonnerPoles(idsTries);
+    await charger();
   };
 
   const openAddPole = () => setPoleForm({ mode: "add" });
   const openEditPole = (pole) => setPoleForm({ mode: "edit", pole });
   const closePoleForm = () => setPoleForm(null);
 
-  const handlePoleSubmit = (payload) => {
+  const handlePoleSubmit = async (payload) => {
+    const apiPayload = {
+      name: payload.title,
+      description: payload.description,
+      icon: payload.iconKey,
+      // Un id "seat-..." est généré côté client pour un nouveau siège (voir
+      // PoleFormModal) — jamais un vrai id backend (uuid) : on l'omet pour
+      // que le backend le traite comme une création.
+      seats: payload.seats.map((seat) => ({
+        id: seat.id?.startsWith("seat-") ? undefined : seat.id,
+        title: seat.title,
+      })),
+    };
+
     if (poleForm?.mode === "edit") {
-      const targetId = poleForm.pole.id;
-      setStructure((prev) => prev.map((p) => (p.id === targetId ? { ...p, ...payload } : p)));
+      await modifierPole(poleForm.pole.id, apiPayload);
     } else {
-      setStructure((prev) => [...prev, { id: `pole-${Date.now()}`, ...payload }]);
+      await creerPole(apiPayload);
     }
     closePoleForm();
+    await charger();
   };
 
-  const confirmDeletePole = () => {
+  const confirmDeletePole = async () => {
     if (!deletingPole) return;
-    setStructure((prev) => prev.filter((p) => p.id !== deletingPole.id));
+    await supprimerPole(deletingPole.id);
     setDeletingPole(null);
+    await charger();
   };
 
   const viewingMember = viewingMemberId ? getMember(viewingMemberId) : null;
 
   // Le titre du poste + son pôle, affiché en pastille dans la fiche
-  // (ex: "Directeur Marketing Digital · Comité Exécutif") — recherché
-  // dans toute la structure plutôt que suivi à côté, pour rester juste
-  // même après une réassignation.
-  const viewingSeatBadge = (() => {
+  // (ex: "Directeur Marketing Digital · Comité Exécutif") — recherché dans
+  // toute la structure plutôt que suivi à côté, pour rester juste même
+  // après une réassignation.
+  const viewingSeatBadge = useMemo(() => {
     if (!viewingMemberId) return null;
-    for (const pole of structure) {
-      const poleTitle = getPoleTitle(pole, t);
-      if (pole.kind === "fixed" || pole.kind === "assignable") {
-        const seat = pole.seats.find((s) => s.memberId === viewingMemberId);
-        if (seat) return `${getSeatTitle(seat, t)} · ${poleTitle}`;
+
+    for (const pole of poles) {
+      const seat = pole.seats.find((s) => s.memberId === viewingMemberId);
+      if (seat) return `${seat.title} · ${pole.name}`;
+    }
+    for (const chapter of chapters) {
+      if (chapter.leaderMemberId === viewingMemberId) {
+        return `${t("admin.gouvernance.seats.leaderLegende")} · ${chapter.name}`;
       }
-      if (pole.kind === "networkChapters") {
-        for (const chapter of chapters) {
-          if (chapter.leaderMemberId === viewingMemberId) {
-            return `${t("admin.gouvernance.seats.leaderLegende")} · ${chapter.name}`;
-          }
-          if (chapter.coordinatorMemberId === viewingMemberId) {
-            return `${t("admin.gouvernance.seats.coordinateur")} · ${chapter.name}`;
-          }
-          const subBranch = chapter.subBranches.find((b) => b.memberId === viewingMemberId);
-          if (subBranch) return `${subBranch.name} · ${chapter.name}`;
-        }
-      }
-      if (pole.kind === "autoLevel") {
-        const member = getMember(viewingMemberId);
-        if (member?.levelKey === pole.levelKey) return poleTitle;
+      if (chapter.coordinatorMemberId === viewingMemberId) {
+        return `${t("admin.gouvernance.seats.coordinateur")} · ${chapter.name}`;
       }
     }
+    if (legendesMembers.some((member) => member.id === viewingMemberId)) {
+      return t(`simulateur.levels.${LEGENDES_LEVEL_KEY}.name`);
+    }
     return null;
-  })();
+  }, [viewingMemberId, poles, chapters, legendesMembers, t]);
 
-  const legendesPole = structure.find((pole) => pole.kind === "autoLevel");
-  const legendesMembers = legendesPole
-    ? allMembers.filter((member) => member.levelKey === legendesPole.levelKey)
-    : [];
-
-  // Vrai si "pole" a quelque chose qui correspond à la recherche en cours —
+  // Vrai si "item" a quelque chose qui correspond à la recherche en cours —
   // son propre titre, ou selon son type : les titres/titulaires de ses
-  // postes ("fixed"/"assignable"), les chapitres du réseau et leurs
-  // responsables/sous-branches ("networkChapters"), ou ses membres
-  // ("autoLevel", le Conseil des Légendes). Toujours vrai quand la
-  // recherche est vide (rien n'est alors estompé).
-  const poleMatchesSearch = (pole) => {
+  // sièges ("assignable"), les antennes et leurs responsables
+  // ("networkChapters"), ou ses membres ("autoLevel", le Conseil des
+  // Légendes). Toujours vrai quand la recherche est vide.
+  const itemMatchesSearch = (item) => {
     // normalizeSearchText tolère accents/casse/tirets des deux côtés (voir
-    // searchUtils.js) — un clavier réglé en anglais retrouve "Légendes" en
-    // tapant "legendes".
+    // searchUtils.js).
     const query = normalizeSearchText(search);
     if (!query) return true;
 
-    if (normalizeSearchText(getPoleTitle(pole, t)).includes(query)) return true;
+    if (normalizeSearchText(getPoleTitle(item, t)).includes(query)) return true;
 
-    if (pole.kind === "fixed" || pole.kind === "assignable") {
-      return pole.seats.some((seat) => {
-        if (normalizeSearchText(getSeatTitle(seat, t)).includes(query)) return true;
+    if (item.kind === "assignable") {
+      return item.seats.some((seat) => {
+        if (normalizeSearchText(seat.title).includes(query)) return true;
         const member = seat.memberId ? getMember(seat.memberId) : null;
         return Boolean(member && normalizeSearchText(member.name).includes(query));
       });
     }
 
-    if (pole.kind === "networkChapters") {
+    if (item.kind === "networkChapters") {
       return chapters.some((chapter) => {
         if (normalizeSearchText(chapter.name).includes(query)) return true;
         const leader = chapter.leaderMemberId ? getMember(chapter.leaderMemberId) : null;
@@ -209,16 +282,11 @@ export default function Gouvernance() {
           ? getMember(chapter.coordinatorMemberId)
           : null;
         if (leader && normalizeSearchText(leader.name).includes(query)) return true;
-        if (coordinator && normalizeSearchText(coordinator.name).includes(query)) return true;
-        return chapter.subBranches.some((branch) => {
-          if (normalizeSearchText(branch.name).includes(query)) return true;
-          const branchMember = branch.memberId ? getMember(branch.memberId) : null;
-          return Boolean(branchMember && normalizeSearchText(branchMember.name).includes(query));
-        });
+        return Boolean(coordinator && normalizeSearchText(coordinator.name).includes(query));
       });
     }
 
-    if (pole.kind === "autoLevel") {
+    if (item.kind === "autoLevel") {
       return legendesMembers.some((member) => normalizeSearchText(member.name).includes(query));
     }
 
@@ -268,32 +336,51 @@ export default function Gouvernance() {
           </button>
         </div>
 
-        <div className="mt-4 space-y-6">
-          {structure.map((pole, index) => (
-            <PoleSection
-              key={pole.id}
-              pole={pole}
-              number={index + 1}
-              Icon={POLE_ICON_MAP[pole.iconKey] ?? SparklesIcon}
-              onView={openView}
-              onAssign={openAssign}
-              autoLevelMembers={pole.kind === "autoLevel" ? legendesMembers : undefined}
-              chapters={pole.kind === "networkChapters" ? chapters : undefined}
-              onMoveUp={() => movePole(index, -1)}
-              onMoveDown={() => movePole(index, 1)}
-              canMoveUp={index > 0}
-              canMoveDown={index < structure.length - 1}
-              onEdit={() => openEditPole(pole)}
-              onDelete={() => setDeletingPole(pole)}
-              dimmed={!poleMatchesSearch(pole)}
-            />
-          ))}
-        </div>
+        {status === "loading" && (
+          <div className="mt-10 flex items-center justify-center text-gray-400">
+            <ArrowPathIcon aria-hidden="true" className="size-6 animate-spin" />
+          </div>
+        )}
+
+        {status === "error" && (
+          <div className="mt-6 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+            Impossible de charger la gouvernance pour le moment.
+          </div>
+        )}
+
+        {status === "ready" && (
+          <div className="mt-4 space-y-6">
+            {structure.map((item, index) => {
+              const isRealPole = item.kind === "assignable";
+              return (
+                <PoleSection
+                  key={item.id}
+                  pole={item}
+                  number={index + 1}
+                  Icon={POLE_ICON_MAP[item.iconKey] ?? SparklesIcon}
+                  onView={openView}
+                  onAssign={openAssign}
+                  autoLevelMembers={item.kind === "autoLevel" ? legendesMembers : undefined}
+                  chapters={item.kind === "networkChapters" ? chapters : undefined}
+                  onMoveUp={isRealPole ? () => movePole(index, -1) : undefined}
+                  onMoveDown={isRealPole ? () => movePole(index, 1) : undefined}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < poles.length - 1}
+                  onEdit={isRealPole ? () => openEditPole(item) : undefined}
+                  onDelete={isRealPole ? () => setDeletingPole(item) : undefined}
+                  dimmed={!itemMatchesSearch(item)}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <MemberSearchModal
         open={!!assigning}
         seatTitle={assigning?.seatLabel ?? ""}
+        members={members}
         onClose={closeAssign}
         onConfirm={handleConfirmAssign}
       />

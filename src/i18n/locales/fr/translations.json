@@ -5,6 +5,7 @@
       "server": "Une erreur est survenue côté serveur. Réessaie dans quelques instants.",
       "unauthorized": "Identifiants incorrects ou session expirée.",
       "notFound": "Ressource introuvable.",
+      "conflict": "Un compte ou une demande existe déjà avec ces informations. Essaie de te connecter, ou vérifie ton numéro.",
       "validation": "Certaines informations saisies sont invalides."
     }
   },
@@ -419,6 +420,7 @@
     "nav": {
       "dashboard": "Dashboard",
       "membres": "Gestion des membres",
+      "demandesInscription": "Demandes d'inscription",
       "reseau": "Gestion du réseau",
       "gouvernance": "Gouvernance",
       "finance": "Finance",
@@ -475,6 +477,37 @@
         "next": "Formations suivantes"
       },
       "level": "Niveau {{n}}"
+    },
+    "demandesInscription": {
+      "title": "Demandes d'inscription",
+      "searchPlaceholder": "Rechercher par nom ou téléphone…",
+      "empty": "Aucune demande en attente.",
+      "validate": "Valider",
+      "reject": "Rejeter",
+      "columns": {
+        "name": "Nom",
+        "phone": "Téléphone",
+        "location": "Localisation",
+        "level": "Niveau souhaité",
+        "sponsor": "Parrain"
+      },
+      "confirmReject": {
+        "title": "Rejeter cette demande ?",
+        "description": "La demande de {{name}} sera rejetée — cette action ne crée aucun compte.",
+        "confirmLabel": "Rejeter"
+      },
+      "validateModal": {
+        "title": "Valider la demande de {{name}}",
+        "hint": "Un mot de passe temporaire est généré automatiquement — à transmettre au membre par WhatsApp après validation.",
+        "temporaryPassword": "Mot de passe temporaire",
+        "regenerate": "Regénérer",
+        "confirm": "Créer le compte",
+        "successTitle": "Compte créé",
+        "successHint": "Transmets ces informations au membre par WhatsApp.",
+        "membershipNumber": "Matricule",
+        "copied": "Copié !",
+        "close": "Fermer"
+      }
     },
     "membres": {
       "title": "Gestion des membres",
@@ -658,7 +691,7 @@
     },
     "reseau": {
       "title": "Gestion du réseau",
-      "searchPlaceholder": "Rechercher une branche ou un responsable…",
+      "searchPlaceholder": "Rechercher un membre ou un matricule…",
       "levels": {
         "national": "National",
         "region": "Région",
@@ -678,13 +711,13 @@
         "hint": "Régions où la DBC est déjà représentée (branche créée dans l'arbre ci-contre)."
       },
       "search": {
-        "noResults": "Aucune branche ni responsable ne correspond à « {{query}} »."
+        "noResults": "Aucun membre ne correspond à « {{query}} »."
       },
       "hasNetwork": "Réseau actif",
       "noNetworkYet": "Pas encore de réseau",
       "empty": {
-        "title": "Aucun réseau pour ce pays",
-        "description": "Créez le poste de Superviseur National pour {{country}} afin de démarrer son réseau.",
+        "title": "Aucun membre pour ce pays",
+        "description": "Aucun membre de {{country}} n'a encore de parrainage enregistré.",
         "cta": "Créer le réseau"
       },
       "picker": {
@@ -813,6 +846,9 @@
       "noSearchResults": "Aucune formation ne correspond à « {{query}} ».",
       "modal": {
         "close": "Fermer",
+        "noModules": "Aucun module pour l'instant.",
+        "hasQuiz": "Quiz",
+        "noLessons": "Aucune leçon pour l'instant.",
         "globalObjectives": "Objectifs globaux",
         "outcomes": "À l'issue de cette formation, le membre sera capable de",
         "addTitle": "Nouvelle formation",

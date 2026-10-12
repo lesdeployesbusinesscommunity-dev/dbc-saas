@@ -1,16 +1,16 @@
 /*
- * Lignes de connexion de l'arbre généalogique de "Gestion du réseau".
+ * Lignes de connexion de l'arbre de parrainage réel de "Gestion du réseau".
  * Technique CSS classique pour un arbre organisationnel : chaque <li>
  * dessine sa propre demi-ligne horizontale (::before/::after) vers le
  * centre de son parent, et chaque <ul> imbriqué dessine la ligne
  * verticale qui descend vers sa rangée d'enfants. Fonctionne quel que
  * soit le nombre d'enfants, sans mesure JS.
  *
- * Le bouton rond "+" (ajouter une branche) n'est pas dessiné en CSS : ce
- * sont de vrais <button> positionnés en absolu au milieu du tronçon
- * vertical qui descend d'un nœud vers ses enfants (voir .dbc-tree-stem
- * dans OrgTree.jsx) — comme ça il reste cliquable et fonctionne même
- * quand un nœud n'a encore aucun enfant.
+ * L'arbre de parrainage d'un pays peut avoir plusieurs racines (des
+ * chaînes de recrutement indépendantes, sans lien de parrainage entre
+ * elles) — voir Reseau/index.jsx. La rangée de racines (.dbc-tree-forest)
+ * n'a pas de parent commun : ses demi-lignes de connexion sont supprimées
+ * pour ne pas laisser croire à un lien de parrainage qui n'existe pas.
  */
 
 .dbc-tree,
@@ -83,9 +83,20 @@
   border-radius: 10px 0 0 0;
 }
 
+/* Racines de la forêt (voir plus haut) : pas de demi-ligne vers un parent
+   qui n'existe pas, et pas d'espace réservé pour un tronçon vertical
+   au-dessus d'elles. */
+.dbc-tree-forest {
+  padding-top: 0;
+}
+
+.dbc-tree-forest > li::before,
+.dbc-tree-forest > li::after {
+  content: none;
+}
+
 /* Ligne verticale qui descend du nœud parent jusqu'à la rangée de ses
-   enfants (au-dessus du <ul>). Sa hauteur (40px) est aussi la référence
-   utilisée par .dbc-tree-add-btn pour se centrer dessus. */
+   enfants (au-dessus du <ul>). */
 .dbc-tree-stem {
   position: relative;
   display: flex;
@@ -97,12 +108,4 @@
   width: 2px;
   height: 40px;
   background: #52a2df66;
-}
-
-.dbc-tree-add-btn {
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
 }

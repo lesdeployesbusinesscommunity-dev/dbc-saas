@@ -16,6 +16,8 @@ export interface PoleAvecSieges {
   code: string;
   nom: string;
   description: string;
+  ordre: number;
+  icone: string;
   sieges: SiegeAvecMembre[];
 }
 
@@ -38,15 +40,17 @@ export class ConsulterPolesUseCase {
     const membreParId = new Map(tousMembres.map((m) => [m.id, m]));
 
     return tousPoles.map((pole) => ({
-      id: pole.id,
+      id: pole.id!,
       code: pole.code,
       nom: pole.nom,
       description: pole.description,
+      ordre: pole.ordre,
+      icone: pole.icone,
       sieges: tousSieges
         .filter((siege) => siege.poleId === pole.id)
         .sort((a, b) => a.ordre - b.ordre)
         .map((siege) => ({
-          id: siege.id,
+          id: siege.id!,
           titre: siege.titre,
           ordre: siege.ordre,
           membreId: siege.membreId,

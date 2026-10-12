@@ -6,6 +6,10 @@ import { PublierAnnonceUseCase } from './application/publier-annonce.use-case';
 import { ConsulterTableauDeBordUseCase } from './application/consulter-tableau-de-bord.use-case';
 import { ConsulterPolesUseCase } from './application/consulter-poles.use-case';
 import { AssignerSiegeUseCase } from './application/assigner-siege.use-case';
+import { CreerPoleUseCase } from './application/creer-pole.use-case';
+import { ModifierPoleUseCase } from './application/modifier-pole.use-case';
+import { SupprimerPoleUseCase } from './application/supprimer-pole.use-case';
+import { ReordonnerPolesUseCase } from './application/reordonner-poles.use-case';
 import { JournalAuditRepositoryPort } from './domaine/journal-audit.repository.port';
 import { AnnonceRepositoryPort } from './domaine/annonce.repository.port';
 import { PoleRepositoryPort } from './domaine/pole.repository.port';
@@ -48,6 +52,10 @@ import { CommunauteDiasporaModule } from '../communaute-diaspora/communaute-dias
     ConsulterTableauDeBordUseCase,
     ConsulterPolesUseCase,
     AssignerSiegeUseCase,
+    CreerPoleUseCase,
+    ModifierPoleUseCase,
+    SupprimerPoleUseCase,
+    ReordonnerPolesUseCase,
     GouvernancePolesBootstrap,
     { provide: JournalAuditRepositoryPort, useClass: JournalAuditPostgresRepository },
     { provide: AnnonceRepositoryPort, useClass: AnnoncePostgresRepository },

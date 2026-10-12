@@ -31,3 +31,13 @@ export async function valider(id, { temporaryPassword }) {
   );
   return data;
 }
+
+// POST /demandes-inscription/:id/rejeter (admin).
+export async function rejeter(id) {
+  const { data } = await httpClient.post(
+    `/demandes-inscription/${id}/rejeter`,
+    {},
+    { headers: adminHeaders() },
+  );
+  return data;
+}

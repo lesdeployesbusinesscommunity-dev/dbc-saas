@@ -22,6 +22,11 @@ export class SiegePostgresRepository implements SiegeRepositoryPort {
     return ligne ? Siege.depuisPersistance(ligne) : null;
   }
 
+  async listerParPoleId(poleId: number): Promise<Siege[]> {
+    const lignes = await this.repository.find({ where: { poleId }, order: { ordre: 'ASC' } });
+    return lignes.map((ligne) => Siege.depuisPersistance(ligne));
+  }
+
   async sauvegarder(siege: Siege): Promise<Siege> {
     const ligne = await this.repository.save({
       id: siege.id,
@@ -31,5 +36,9 @@ export class SiegePostgresRepository implements SiegeRepositoryPort {
       membreId: siege.membreId,
     });
     return Siege.depuisPersistance(ligne);
+  }
+
+  async supprimer(id: string): Promise<void> {
+    await this.repository.delete({ id });
   }
 }

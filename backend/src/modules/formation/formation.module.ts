@@ -86,5 +86,8 @@ import { ProgrammesModule } from '../programmes/programmes.module';
     { provide: CertificatRepositoryPort, useClass: CertificatPostgresRepository },
     { provide: GenerateurCertificatPdfPort, useClass: GenerateurCertificatPdfKit },
   ],
+  // Exportés pour Identité & accès (agrégation de la fiche membre admin — voir
+  // ListerMembresAdminUseCase).
+  exports: [FormationRepositoryPort, InscriptionRepositoryPort],
 })
 export class FormationModule {}

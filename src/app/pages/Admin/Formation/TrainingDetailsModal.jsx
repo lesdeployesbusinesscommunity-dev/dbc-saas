@@ -1,99 +1,89 @@
 // Import Dependencies
+import { useEffect, useState } from "react";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import {
-  AcademicCapIcon,
-  CalendarDaysIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  StarIcon,
+  ArrowPathIcon,
+  CheckBadgeIcon,
+  ExclamationCircleIcon,
+  PlayCircleIcon,
+  RectangleStackIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 
+// Local Imports
+import { obtenirFormation } from "api/formations";
+
 // ----------------------------------------------------------------------
 
-// Une liste à puces façon "syllabus" de plateforme de formation en ligne
-// reconnue (Coursera, Udemy, LinkedIn Learning...) — une icône par ligne
-// plutôt qu'un simple tiret, pour rester dans le même langage visuel que
-// la carte modèle fournie par l'utilisateur.
-function ObjectiveList({ items, Icon, iconClassName }) {
-  return (
-    <ul className="mt-2 space-y-1.5">
-      {items.map((item) => (
-        <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
-          <Icon aria-hidden="true" className={clsx("mt-0.5 size-3.5 shrink-0", iconClassName)} />
-          <span>{item}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 // Fiche détaillée d'une formation, ouverte au clic sur sa carte (voir
-// TrainingCard.jsx) : reprend l'esprit de la maquette "Sprint" fournie
-// par l'utilisateur (un bloc d'objectifs généraux en tête, puis une
-// grille de cartes — une par chapitre, chacune avec ses propres
-// objectifs), adaptée au langage visuel clair déjà utilisé partout
-// ailleurs dans l'admin plutôt qu'au thème sombre de la maquette. Une
-// dernière carte, mise en avant en vert, résume ce que le membre saura
-// faire à l'issue de la formation.
-export function TrainingDetailsModal({ training, level, open, onClose }) {
-  const { t, i18n } = useTranslation();
-  const locale = i18n.language?.startsWith("fr") ? "fr-FR" : "en-US";
+// TrainingCard.jsx) : les vrais modules et leçons du LMS (GET
+// /formations/:id, module 7 — remplace le contenu narratif inventé
+// (objectifs/chapitres/formateur) qu'affichait l'ancienne maquette, voir
+// mémoire "project_frontend_backend_ecart_admin"). Chargée à l'ouverture
+// plutôt qu'avec le catalogue : potentiellement volumineux, et inutile
+// tant que l'admin n'a pas cliqué une formation précise.
+export function TrainingDetailsModal({ training, level, pillarName, open, onClose }) {
+  const { t } = useTranslation();
+  const [detail, setDetail] = useState(null);
+  const [status, setStatus] = useState("idle"); // idle | loading | ready | error
+
+  useEffect(() => {
+    if (!open || !training) {
+      setDetail(null);
+      setStatus("idle");
+      return;
+    }
+    let cancelled = false;
+    setStatus("loading");
+    obtenirFormation(training.id)
+      .then((data) => {
+        if (!cancelled) {
+          setDetail(data);
+          setStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, training]);
 
   if (!training) return null;
-
-  const formattedDate = new Date(training.startDate).toLocaleDateString(locale, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
 
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-xl">
+        <DialogPanel className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
           <div className="flex items-start justify-between gap-4 border-b border-gray-100 bg-orange-50 p-6">
-            <div className="flex items-center gap-4">
-              <img
-                src={training.poster}
-                alt=""
-                aria-hidden="true"
-                className="size-14 shrink-0 rounded-xl object-cover shadow-sm"
-              />
-              <div>
-                <DialogTitle className="text-lg font-bold text-gray-900">
-                  {training.name}
-                </DialogTitle>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {level && (
-                    <span
-                      className={clsx(
-                        "inline-flex items-center gap-1 rounded-full border bg-white px-3 py-1 text-xs font-bold",
-                        level.borderClass,
-                        level.textClass,
-                      )}
-                    >
-                      <level.Icon aria-hidden="true" className="size-3" />
-                      {t(`simulateur.levels.${level.key}.name`)}
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-sm">
-                    <AcademicCapIcon aria-hidden="true" className="size-3.5 text-gray-400" />
-                    {training.trainer}
+            <div>
+              <DialogTitle className="text-lg font-bold text-gray-900">{training.name}</DialogTitle>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-500 shadow-sm">
+                  {training.code}
+                </span>
+                {level && (
+                  <span
+                    className={clsx(
+                      "inline-flex items-center gap-1 rounded-full border bg-white px-3 py-1 text-xs font-bold",
+                      level.borderClass,
+                      level.textClass,
+                    )}
+                  >
+                    <level.Icon aria-hidden="true" className="size-3" />
+                    {t(`simulateur.levels.${level.key}.name`)}
                   </span>
-                  <span className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-sm">
-                    <CalendarDaysIcon aria-hidden="true" className="size-3.5 text-gray-400" />
-                    {formattedDate}
+                )}
+                {pillarName && (
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-sm">
+                    {pillarName}
                   </span>
-                  <span className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-sm">
-                    <ClockIcon aria-hidden="true" className="size-3.5 text-gray-400" />
-                    {training.duration}
-                  </span>
-                </div>
+                )}
               </div>
             </div>
             <button
@@ -107,50 +97,61 @@ export function TrainingDetailsModal({ training, level, open, onClose }) {
           </div>
 
           <div className="max-h-[70vh] overflow-y-auto p-6">
-            {/* Objectifs globaux — un seul bloc, mis en avant, avant le
-                détail par chapitre. */}
-            <section className="rounded-2xl bg-[#52A2DF]/[0.06] p-5">
-              <h3 className="text-sm font-bold text-[#52A2DF]">
-                {t("admin.formation.modal.globalObjectives")}
-              </h3>
-              <ObjectiveList
-                items={training.objectives.global}
-                Icon={StarIcon}
-                iconClassName="text-[#52A2DF]"
-              />
-            </section>
+            {status === "loading" && (
+              <div className="flex items-center justify-center py-10 text-gray-400">
+                <ArrowPathIcon aria-hidden="true" className="size-6 animate-spin" />
+              </div>
+            )}
 
-            {/* Un chapitre = une carte, avec ses propres objectifs —
-                même logique de grille que la maquette de référence. */}
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {training.objectives.chapters.map((chapter) => (
-                <section
-                  key={chapter.title}
-                  className="rounded-2xl border border-gray-100 p-5"
-                >
-                  <h3 className="text-sm font-bold text-[#EE7115]">{chapter.title}</h3>
-                  <ObjectiveList
-                    items={chapter.objectives}
-                    Icon={StarIcon}
-                    iconClassName="text-amber-400"
-                  />
-                </section>
-              ))}
-            </div>
+            {status === "error" && (
+              <div className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+                Impossible de charger le contenu de cette formation.
+              </div>
+            )}
 
-            {/* Ce que le membre saura faire à l'issue de la formation —
-                dernière carte, distincte (vert + coche) pour marquer que
-                c'est l'aboutissement des chapitres précédents. */}
-            <section className="mt-4 rounded-2xl bg-green-50 p-5">
-              <h3 className="text-sm font-bold text-[#16A34A]">
-                {t("admin.formation.modal.outcomes")}
-              </h3>
-              <ObjectiveList
-                items={training.objectives.outcomes}
-                Icon={CheckCircleIcon}
-                iconClassName="text-[#16A34A]"
-              />
-            </section>
+            {status === "ready" && detail.modules.length === 0 && (
+              <p className="rounded-2xl bg-gray-50 px-4 py-10 text-center text-sm text-gray-400">
+                {t("admin.formation.modal.noModules")}
+              </p>
+            )}
+
+            {status === "ready" && detail.modules.length > 0 && (
+              <div className="space-y-4">
+                {detail.modules.map((module, index) => (
+                  <section key={module.id} className="rounded-2xl border border-gray-100 p-5">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                        <RectangleStackIcon aria-hidden="true" className="size-4 text-[#52A2DF]" />
+                        {index + 1}. {module.title}
+                      </h3>
+                      {module.hasQuiz && (
+                        <span className="flex shrink-0 items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-semibold text-green-700">
+                          <CheckBadgeIcon aria-hidden="true" className="size-3.5" />
+                          {t("admin.formation.modal.hasQuiz")}
+                        </span>
+                      )}
+                    </div>
+
+                    {module.lessons.length > 0 ? (
+                      <ul className="mt-3 space-y-1.5">
+                        {module.lessons.map((lesson) => (
+                          <li
+                            key={lesson.id}
+                            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-600"
+                          >
+                            <PlayCircleIcon aria-hidden="true" className="size-4 shrink-0 text-gray-400" />
+                            {lesson.title}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-xs text-gray-400">{t("admin.formation.modal.noLessons")}</p>
+                    )}
+                  </section>
+                ))}
+              </div>
+            )}
           </div>
         </DialogPanel>
       </div>
