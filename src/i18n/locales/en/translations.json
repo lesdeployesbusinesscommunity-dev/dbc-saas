@@ -918,7 +918,12 @@
         "noCoursePdf": "No course PDF yet.",
         "addCoursePdf": "Add the course PDF",
         "replaceCoursePdf": "Replace the course PDF",
-        "removeCoursePdf": "Remove the course PDF"
+        "removeCoursePdf": "Remove the course PDF",
+        "videoUploadHint": "The video is uploaded to the server, then offered to members of the level. It can never be downloaded.",
+        "documentUploadHint": "The PDF is uploaded to the server; members will be able to download it.",
+        "uploading": "Uploading… {{percent}}%",
+        "uploadError": "The file upload failed. Check its type (video, PDF or image) and size, then try again.",
+        "saving": "Saving…"
       },
       "addButton": "Add a training",
       "quizEditor": {

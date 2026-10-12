@@ -1,8 +1,8 @@
 // Import Dependencies
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import { PlusIcon } from "@heroicons/react/24/solid";
+import { ArrowPathIcon, ExclamationCircleIcon, PlusIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
 import { Page } from "components/shared/Page";
@@ -12,7 +12,8 @@ import { LevelFilter } from "./LevelFilter";
 import { TrainingCard } from "./TrainingCard";
 import { TrainingDetailsModal } from "./TrainingDetailsModal";
 import { AddTrainingModal } from "./AddTrainingModal";
-import { initialTrainingsByLevel } from "./mockData";
+import { creerFormation, listerFormationsAdmin, modifierFormation } from "api/formations";
+import { groupByLevel, trainingFromApi, trainingToApi } from "./trainingsApi";
 import { normalizeSearchText } from "../searchUtils";
 
 // ----------------------------------------------------------------------
@@ -34,15 +35,29 @@ import { normalizeSearchText } from "../searchUtils";
 // (téléchargeables par les membres), les quiz de validation de chaque
 // chapitre et le quiz de pré-requis de la formation s'ajoutent de la même
 // façon depuis la fiche (handleAddDocument, handleSaveQuiz...) ; les vidéos
-// ne sont, elles, jamais téléchargeables. Tout est
-// en local pour l'instant (voir mockData.js), comme le reste de l'admin,
-// en attendant les vrais endpoints — les vidéos importées ne survivent
-// donc qu'à la session en cours (voir le commentaire de handleAddVideo).
+// ne sont, elles, jamais téléchargeables. Le catalogue vient de l'API
+// (GET /formations/admin/catalogue) et chaque modification est enregistrée
+// aussitôt sur le serveur (PUT /formations/:id) ; les fichiers sont
+// téléversés avant d'être ajoutés (voir TrainingDetailsModal.jsx).
 export default function Formation() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const [trainingsByLevel, setTrainingsByLevel] = useState(initialTrainingsByLevel);
+  const [trainingsByLevel, setTrainingsByLevel] = useState({});
+  const [status, setStatus] = useState("loading"); // loading | ready | error
+  const [saveError, setSaveError] = useState("");
+  // Toujours la dernière version, pour enregistrer la formation à jour.
+  const trainingsRef = useRef(trainingsByLevel);
+  trainingsRef.current = trainingsByLevel;
+
+  useEffect(() => {
+    listerFormationsAdmin()
+      .then((trainings) => {
+        setTrainingsByLevel(groupByLevel(trainings));
+        setStatus("ready");
+      })
+      .catch(() => setStatus("error"));
+  }, []);
   const [activeKey, setActiveKey] = useState("all");
   // Recherche pilotée depuis l'en-tête partagé (voir AdminTopBar) : filtre
   // les cartes déjà retenues par l'onglet de niveau (ci-dessous), par nom
@@ -120,35 +135,30 @@ export default function Formation() {
     );
   }, [trainingsByLevel, activeKey, search]);
 
-  const handleAddTraining = (levelKey, payload) => {
-    setTrainingsByLevel((prev) => {
-      const existing = prev[levelKey] ?? [];
-      const newTraining = { id: `f-${Date.now()}`, ...payload };
-      return { ...prev, [levelKey]: [...existing, newTraining] };
-    });
-    setShowAddModal(false);
+  const handleAddTraining = async (levelKey, payload) => {
+    setSaveError("");
+    try {
+      const saved = trainingFromApi(await creerFormation(trainingToApi(levelKey, payload)));
+      setTrainingsByLevel((prev) => ({
+        ...prev,
+        [saved.levelKey]: [...(prev[saved.levelKey] ?? []), saved.training],
+      }));
+      setShowAddModal(false);
+    } catch (error) {
+      setSaveError(error.detail ?? t(error.message ?? "api.errors.server"));
+    }
   };
 
   // Ajoute une vidéo importée à un chapitre, à la position choisie par
   // l'admin (voir TrainingDetailsModal.jsx) — mise à jour immutable, comme
   // handleAddTraining ci-dessus. "position" est l'index d'insertion dans le
   // tableau "videos" du chapitre (0 = au début, videos.length = à la fin).
-  const handleAddVideo = (levelKey, trainingId, chapterIndex, position, video) => {
-    setTrainingsByLevel((prev) => {
-      const list = prev[levelKey] ?? [];
-      const updatedList = list.map((training) => {
-        if (training.id !== trainingId) return training;
-        const chapters = training.objectives.chapters.map((chapter, index) => {
-          if (index !== chapterIndex) return chapter;
-          const videos = [...(chapter.videos ?? [])];
-          videos.splice(position, 0, video);
-          return { ...chapter, videos };
-        });
-        return { ...training, objectives: { ...training.objectives, chapters } };
-      });
-      return { ...prev, [levelKey]: updatedList };
+  const handleAddVideo = (levelKey, trainingId, chapterIndex, position, video) =>
+    updateChapter(levelKey, trainingId, chapterIndex, (chapter) => {
+      const videos = [...(chapter.videos ?? [])];
+      videos.splice(position, 0, video);
+      return { ...chapter, videos };
     });
-  };
 
   // Bascule l'état "vue"/"non vue" d'une vidéo — appelé automatiquement à
   // la fin de sa lecture, ou manuellement via le bouton dédié (voir
@@ -172,15 +182,38 @@ export default function Formation() {
     });
   };
 
-  // Modifie UNE formation (immutable, comme les handlers ci-dessus) — sert
-  // aux PDF et aux quiz ci-dessous.
-  const updateTraining = (levelKey, trainingId, update) =>
-    setTrainingsByLevel((prev) => ({
-      ...prev,
-      [levelKey]: (prev[levelKey] ?? []).map((training) =>
-        training.id === trainingId ? update(training) : training,
-      ),
-    }));
+  // Modifie UNE formation (immutable) et l'enregistre sur le serveur — sert
+  // aux vidéos, aux PDF et aux quiz. L'écran change tout de suite ; la
+  // réponse du serveur (avec les identifiants des nouveaux éléments) remplace
+  // ensuite la formation, en gardant les repères "vue" de l'admin. En cas
+  // d'échec, la formation revient à son état précédent.
+  const updateTraining = async (levelKey, trainingId, update) => {
+    const previous = (trainingsRef.current[levelKey] ?? []).find((training) => training.id === trainingId);
+    if (!previous) return;
+    const next = update(previous);
+    const replace = (training) =>
+      setTrainingsByLevel((prev) => ({
+        ...prev,
+        [levelKey]: (prev[levelKey] ?? []).map((entry) => (entry.id === trainingId ? training : entry)),
+      }));
+    replace(next);
+    setSaveError("");
+    try {
+      const saved = trainingFromApi(await modifierFormation(trainingId, trainingToApi(levelKey, next))).training;
+      const watchedIds = new Set(
+        (next.objectives?.chapters ?? []).flatMap((c) => (c.videos ?? []).filter((v) => v.watched).map((v) => v.id)),
+      );
+      saved.objectives.chapters.forEach((chapter) =>
+        chapter.videos.forEach((video) => {
+          video.watched = watchedIds.has(video.id);
+        }),
+      );
+      replace(saved);
+    } catch (error) {
+      replace(previous);
+      setSaveError(error.detail ?? t(error.message ?? "api.errors.server"));
+    }
+  };
 
   const updateChapter = (levelKey, trainingId, chapterIndex, update) =>
     updateTraining(levelKey, trainingId, (training) => ({
@@ -264,7 +297,23 @@ export default function Formation() {
           </button>
         </div>
 
-        {cards.length === 0 ? (
+        {saveError && (
+          <p role="alert" className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+            {saveError}
+          </p>
+        )}
+
+        {status === "loading" ? (
+          <div className="mt-10 flex justify-center text-gray-400">
+            <ArrowPathIcon aria-hidden="true" className="size-6 animate-spin" />
+          </div>
+        ) : status === "error" ? (
+          <p className="mt-8 flex items-center justify-center gap-2 rounded-2xl bg-red-50 px-4 py-10 text-sm font-medium text-red-700">
+            <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+            {t("api.errors.server")}
+          </p>
+        ) : cards.length === 0 ? (
           <p className="mt-8 rounded-2xl bg-gray-50 px-4 py-10 text-center text-sm text-gray-400">
             {search.trim()
               ? t("admin.formation.noSearchResults", { query: search.trim() })

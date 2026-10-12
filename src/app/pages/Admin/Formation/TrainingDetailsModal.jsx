@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 
 // Local Imports
+import { televerserFichier } from "api/fichiers";
 import { QuizEditorDialog } from "./QuizEditor";
 
 // ----------------------------------------------------------------------
@@ -40,6 +41,37 @@ function ObjectiveList({ items, Icon, iconClassName }) {
       ))}
     </ul>
   );
+}
+
+// Envoi d'un fichier au serveur (POST /fichiers) avant de l'ajouter à la
+// formation : renvoie son URL publique, ou null en cas d'échec (le message
+// d'erreur s'affiche alors sous le formulaire).
+function useFileUpload() {
+  const { t } = useTranslation();
+  const [progress, setProgress] = useState(null); // null = aucun envoi en cours
+  const [error, setError] = useState("");
+
+  const upload = async (file) => {
+    setError("");
+    setProgress(0);
+    try {
+      const { url } = await televerserFichier(file, { onProgress: setProgress });
+      return url;
+    } catch (uploadError) {
+      setError(uploadError.detail ?? t("admin.formation.modal.uploadError"));
+      return null;
+    } finally {
+      setProgress(null);
+    }
+  };
+
+  // Ligne d'aide sous le formulaire : l'envoi en cours, l'erreur, ou le rappel.
+  const hint = (defaultKey) =>
+    progress !== null
+      ? t("admin.formation.modal.uploading", { percent: progress })
+      : error || t(defaultKey);
+
+  return { upload, uploading: progress !== null, error, hint };
 }
 
 // Vidéos d'un chapitre : liste avec statut "vue"/"non vue" (mis à jour
@@ -88,13 +120,17 @@ function ChapterVideos({ chapter, chapterIndex, onAddVideo, onToggleWatched, onP
     setTitle("");
   };
 
-  const handleSubmit = (event) => {
+  const { upload, uploading, hint } = useFileUpload();
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!file) return;
+    if (!file || uploading) return;
+    const url = await upload(file);
+    if (!url) return;
     onAddVideo(chapterIndex, position, {
       id: `v-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       title: title.trim() || file.name,
-      url: URL.createObjectURL(file),
+      url,
       watched: false,
     });
     closeAddForm();
@@ -183,7 +219,7 @@ function ChapterVideos({ chapter, chapterIndex, onAddVideo, onToggleWatched, onP
             </select>
           )}
           <p className="text-[11px] text-gray-400">
-            {t("admin.formation.modal.videoSessionOnlyHint")}
+            {hint("admin.formation.modal.videoUploadHint")}
           </p>
           <div className="flex justify-end gap-2">
             <button
@@ -219,8 +255,7 @@ function ChapterVideos({ chapter, chapterIndex, onAddVideo, onToggleWatched, onP
 // Support PDF de TOUTE la formation : un seul fichier qui regroupe tous les
 // chapitres, proposé au téléchargement aux membres en plus des vidéos de
 // chaque chapitre (voir Membre/Formation/CoursePdfCard.jsx). Même principe
-// que les autres envois : sans serveur d'envoi, le fichier reste local à la
-// session (URL.createObjectURL) et l'admin en est prévenu sous le formulaire.
+// que les autres envois : le fichier est d'abord téléversé (useFileUpload).
 // Ajouter un nouveau PDF remplace le précédent.
 function CoursePdfSection({ coursePdf, onSetCoursePdf }) {
   const { t } = useTranslation();
@@ -234,13 +269,17 @@ function CoursePdfSection({ coursePdf, onSetCoursePdf }) {
     setTitle("");
   };
 
-  const handleSubmit = (event) => {
+  const { upload, uploading, hint } = useFileUpload();
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!file) return;
+    if (!file || uploading) return;
+    const url = await upload(file);
+    if (!url) return;
     onSetCoursePdf({
       id: `cp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       title: title.trim() || file.name.replace(/\.pdf$/i, ""),
-      url: URL.createObjectURL(file),
+      url,
     });
     closeForm();
   };
@@ -296,7 +335,7 @@ function CoursePdfSection({ coursePdf, onSetCoursePdf }) {
             placeholder={t("admin.formation.modal.documentTitlePlaceholder")}
             className="block w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-700 outline-none focus:border-[#52A2DF]"
           />
-          <p className="text-[11px] text-gray-400">{t("admin.formation.modal.documentSessionOnlyHint")}</p>
+          <p className="text-[11px] text-gray-400">{hint("admin.formation.modal.documentUploadHint")}</p>
           <div className="flex justify-end gap-2">
             <button
               type="button"
@@ -330,9 +369,8 @@ function CoursePdfSection({ coursePdf, onSetCoursePdf }) {
 
 // Supports PDF d'un chapitre. Contrairement aux vidéos, les PDF sont
 // TÉLÉCHARGEABLES par les membres (voir Membre/Formation/PdfViewer.jsx).
-// Même principe que les vidéos : tant qu'il n'existe aucun endpoint
-// d'upload, le fichier ajouté reste local à la session (URL.createObjectURL)
-// et l'admin en est prévenu sous le formulaire.
+// Même principe que les vidéos : le fichier est d'abord téléversé
+// (useFileUpload), puis ajouté au chapitre.
 function ChapterDocuments({ chapter, chapterIndex, onAddDocument, onRemoveDocument }) {
   const { t } = useTranslation();
   const documents = chapter.documents ?? [];
@@ -346,13 +384,17 @@ function ChapterDocuments({ chapter, chapterIndex, onAddDocument, onRemoveDocume
     setTitle("");
   };
 
-  const handleSubmit = (event) => {
+  const { upload, uploading, hint } = useFileUpload();
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!file) return;
+    if (!file || uploading) return;
+    const url = await upload(file);
+    if (!url) return;
     onAddDocument(chapterIndex, {
       id: `d-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       title: title.trim() || file.name.replace(/\.pdf$/i, ""),
-      url: URL.createObjectURL(file),
+      url,
     });
     closeAddForm();
   };
@@ -417,7 +459,7 @@ function ChapterDocuments({ chapter, chapterIndex, onAddDocument, onRemoveDocume
             placeholder={t("admin.formation.modal.documentTitlePlaceholder")}
             className="block w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-700 outline-none focus:border-[#52A2DF]"
           />
-          <p className="text-[11px] text-gray-400">{t("admin.formation.modal.documentSessionOnlyHint")}</p>
+          <p className="text-[11px] text-gray-400">{hint("admin.formation.modal.documentUploadHint")}</p>
           <div className="flex justify-end gap-2">
             <button
               type="button"

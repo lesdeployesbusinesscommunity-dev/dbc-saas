@@ -19,6 +19,8 @@ export class ProgressionLeconPostgresRepository implements ProgressionLeconRepos
       leconId: progression.leconId,
       terminee: progression.terminee,
       termineeLe: progression.termineeLe,
+      meilleurScore: progression.meilleurScore,
+      tentatives: progression.tentatives,
     });
     return this.versDomaine(ligne);
   }
@@ -26,6 +28,10 @@ export class ProgressionLeconPostgresRepository implements ProgressionLeconRepos
   async trouverParInscriptionEtLecon(inscriptionId: string, leconId: string): Promise<ProgressionLecon | null> {
     const ligne = await this.repository.findOne({ where: { inscriptionId, leconId } });
     return ligne ? this.versDomaine(ligne) : null;
+  }
+
+  async supprimerParInscriptionId(inscriptionId: string): Promise<void> {
+    await this.repository.delete({ inscriptionId });
   }
 
   async listerParInscriptionId(inscriptionId: string): Promise<ProgressionLecon[]> {
@@ -40,6 +46,8 @@ export class ProgressionLeconPostgresRepository implements ProgressionLeconRepos
       leconId: ligne.leconId,
       terminee: ligne.terminee,
       termineeLe: ligne.termineeLe,
+      meilleurScore: ligne.meilleurScore,
+      tentatives: ligne.tentatives,
     });
   }
 }

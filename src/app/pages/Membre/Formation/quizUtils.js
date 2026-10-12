@@ -20,7 +20,9 @@
 //   réussi compte comme une étape terminée de la formation.
 export const DEFAULT_PASSING_SCORE = 70;
 
-export const isMultipleChoice = (question) => question.correct.length > 1;
+// Côté membre, le serveur ne donne pas les bonnes réponses : il indique
+// seulement "multiple" (cases à cocher) — voir FormationController.
+export const isMultipleChoice = (question) => question.multiple ?? question.correct.length > 1;
 
 // Corrige un quiz. "answers" : { [questionId]: [optionId, ...] }. Une
 // question est juste quand les options cochées sont EXACTEMENT les bonnes

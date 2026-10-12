@@ -1,6 +1,6 @@
 // Import Dependencies
 import { levels } from "app/pages/Simulateur/data";
-import { getCourseCatalog } from "../Formation/mockData";
+import { getCourseCatalog } from "../Formation/formationData";
 
 // ----------------------------------------------------------------------
 // Diapositives du carrousel d'actualités du bandeau d'accueil (voir

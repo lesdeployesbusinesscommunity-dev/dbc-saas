@@ -12,7 +12,7 @@ import { SearchEmpty } from "../components/SearchEmpty";
 import { useReportMatches, useSearchSummary } from "../components/searchSummary";
 import { useMemberLevel } from "../context/MemberLevelContext";
 import { formationDomains, getDomain } from "./domains";
-import { getCourseCatalog, getLockedCatalog } from "./mockData";
+import { getCourseCatalog, getLockedCatalog } from "./formationData";
 import { courseMatches } from "./searchFilter";
 import { getCourseProgress, isCourseRewarded, useProgressState, useRewards } from "./progressStore";
 import { ContinueLearning } from "./ContinueLearning";

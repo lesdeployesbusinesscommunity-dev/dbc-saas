@@ -5,7 +5,7 @@ import { Link } from "react-router";
 
 // Local Imports
 import { QuizPlayer } from "./QuizPlayer";
-import { recordPrerequisiteAttempt } from "./progressStore";
+import { submitPrerequisite } from "./progressStore";
 
 // ----------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ export function PrerequisiteGate({ course, onStart }) {
           <QuizPlayer
             quiz={course.prerequisiteQuiz}
             variant="prerequisite"
-            onResult={(percent, passed) => recordPrerequisiteAttempt(course, percent, passed)}
+            onSubmitAnswers={(answers) => submitPrerequisite(course, answers)}
             onContinue={onStart}
           />
         </div>

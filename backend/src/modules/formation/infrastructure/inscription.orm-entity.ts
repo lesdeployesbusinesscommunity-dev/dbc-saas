@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import { StatutInscription } from '../domaine/inscription';
+import { StatutInscription, ResultatPrerequis } from '../domaine/inscription';
 
 @Entity({ name: 'inscriptions_formation' })
 @Unique(['membreId', 'formationId'])
@@ -15,4 +15,10 @@ export class InscriptionOrmEntity {
 
   @Column({ type: 'varchar' })
   statut: StatutInscription;
+
+  @Column({ type: 'jsonb', default: () => `'{"reussi": false, "meilleurScore": 0, "tentatives": 0}'` })
+  prerequis: ResultatPrerequis;
+
+  @Column({ name: 'terminee_le', type: 'timestamptz', nullable: true })
+  termineeLe: Date | null;
 }

@@ -5,6 +5,7 @@ import { PlusIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
+import { televerserFichier } from "api/fichiers";
 import { levels } from "app/pages/Simulateur/data";
 
 // ----------------------------------------------------------------------
@@ -110,7 +111,7 @@ export function AddTrainingModal({ open, defaultLevel, onClose, onSubmit }) {
     if (!file) return;
     setForm((prev) => {
       if (prev.posterPreview) URL.revokeObjectURL(prev.posterPreview);
-      return { ...prev, posterPreview: URL.createObjectURL(file) };
+      return { ...prev, posterPreview: URL.createObjectURL(file), posterFile: file };
     });
   };
 
@@ -134,16 +135,35 @@ export function AddTrainingModal({ open, defaultLevel, onClose, onSubmit }) {
   const removeChapter = (index) =>
     setForm((prev) => ({ ...prev, chapters: prev.chapters.filter((_, i) => i !== index) }));
 
-  const handleSubmit = (event) => {
+  // L'affiche choisie est d'abord téléversée (POST /fichiers) : la formation
+  // est enregistrée avec son URL publique, pas avec l'aperçu local.
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
     const cleanList = (list) => list.map((item) => item.trim()).filter(Boolean);
 
-    onSubmit(level, {
+    setSubmitting(true);
+    setUploadError("");
+    let poster = "/former.jpg";
+    if (form.posterFile) {
+      try {
+        poster = (await televerserFichier(form.posterFile)).url;
+      } catch (error) {
+        setUploadError(error.detail ?? t("admin.formation.modal.uploadError"));
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    await onSubmit(level, {
       name: form.name.trim(),
       trainer: form.trainer.trim(),
       duration: formatDuration(form.durationValue, form.durationUnit, t),
       startDate: form.startDate,
-      poster: form.posterPreview || "/former.jpg",
+      poster,
       progress: 0,
       objectives: {
         global: cleanList(form.globalObjectives),
@@ -152,10 +172,13 @@ export function AddTrainingModal({ open, defaultLevel, onClose, onSubmit }) {
             title: chapter.title.trim(),
             objectives: cleanList(chapter.objectives),
           }))
-          .filter((chapter) => chapter.title || chapter.objectives.length > 0),
+          .filter((chapter) => chapter.title || chapter.objectives.length > 0)
+          // Un chapitre sans titre en reçoit un : le serveur en exige un.
+          .map((chapter, index) => ({ ...chapter, title: chapter.title || `Chapitre ${index + 1}` })),
         outcomes: cleanList(form.outcomes),
       },
     });
+    setSubmitting(false);
   };
 
   return (
@@ -358,7 +381,8 @@ export function AddTrainingModal({ open, defaultLevel, onClose, onSubmit }) {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-gray-100 p-6">
+            <div className="flex items-center justify-end gap-3 border-t border-gray-100 p-6">
+              {uploadError && <p className="mr-auto text-xs font-semibold text-red-600">{uploadError}</p>}
               <button
                 type="button"
                 onClick={onClose}
@@ -368,9 +392,10 @@ export function AddTrainingModal({ open, defaultLevel, onClose, onSubmit }) {
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-[#EE7115] px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                disabled={submitting}
+                className="rounded-lg bg-[#EE7115] px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
               >
-                {t("admin.formation.modal.add")}
+                {t(submitting ? "admin.formation.modal.saving" : "admin.formation.modal.add")}
               </button>
             </div>
           </form>

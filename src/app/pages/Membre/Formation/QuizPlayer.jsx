@@ -25,9 +25,14 @@ import { DEFAULT_PASSING_SCORE, isMultipleChoice, scoreQuiz } from "./quizUtils"
 // cases rondes, plusieurs bonnes réponses = cases à cocher), valide, et voit
 // son score avec la correction : pour chaque réponse fausse, la bonne
 // réponse est indiquée. Sous le seuil de réussite, "Réessayer" remet le quiz
-// à zéro ; il n'y a pas de limite d'essais. "onResult(percent, passed)" est
-// appelé UNE fois à chaque validation, pour que la page enregistre le
-// résultat (voir progressStore.js).
+// à zéro ; il n'y a pas de limite d'essais.
+//
+// Correction : "onSubmitAnswers(answers)" envoie les réponses au serveur, qui
+// corrige et enregistre la tentative (un membre ne reçoit jamais les bonnes
+// réponses avant d'avoir répondu) ; il renvoie le score et la correction.
+// Sans cette fonction (aperçu côté admin, qui connaît les réponses), le quiz
+// est corrigé sur place. "onResult(percent, passed)" est appelé UNE fois à
+// chaque validation.
 //
 // "alreadyPassed" : le quiz a déjà été réussi (ou fait partie de
 // l'avancement de départ) — on le dit et on propose de le repasser plutôt
@@ -38,12 +43,19 @@ export function QuizPlayer({
   alreadyPassed = false,
   bestPercent = null,
   onResult,
+  onSubmitAnswers,
   onContinue,
 }) {
   const { t } = useTranslation();
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
   const [retaking, setRetaking] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  // Bonnes réponses d'une question : connues d'avance (admin) ou révélées par
+  // le serveur une fois le quiz validé (membre).
+  const correctOf = (question) => result?.correctAnswers?.[question.id] ?? question.correct ?? [];
 
   const passingScore = quiz.passingScore ?? DEFAULT_PASSING_SCORE;
   const allAnswered = quiz.questions.every((question) => (answers[question.id] ?? []).length > 0);
@@ -61,11 +73,25 @@ export function QuizPlayer({
     });
   };
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
-    const scored = scoreQuiz(quiz, answers);
-    setResult(scored);
-    onResult?.(scored.percent, scored.passed);
+    if (!onSubmitAnswers) {
+      const scored = scoreQuiz(quiz, answers);
+      setResult(scored);
+      onResult?.(scored.percent, scored.passed);
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const scored = await onSubmitAnswers(answers);
+      setResult(scored);
+      onResult?.(scored.percent, scored.passed);
+    } catch (error) {
+      setSubmitError(error.detail ?? t(error.message ?? "api.errors.server"));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const retry = () => {
@@ -128,7 +154,7 @@ export function QuizPlayer({
                 <div className="mt-2 space-y-2">
                   {question.options.map((option) => {
                     const checked = given.includes(option.id);
-                    const isRight = question.correct.includes(option.id);
+                    const isRight = correctOf(question).includes(option.id);
                     return (
                       <label
                         key={option.id}
@@ -218,10 +244,12 @@ export function QuizPlayer({
         </div>
       ) : (
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-gray-400">{allAnswered ? "" : t("membre.formation.quiz.answerAll")}</p>
+          <p className={clsx("text-xs", submitError ? "font-semibold text-red-600" : "text-gray-400")}>
+            {submitError || (allAnswered ? "" : t("membre.formation.quiz.answerAll"))}
+          </p>
           <button
             type="submit"
-            disabled={!allAnswered}
+            disabled={!allAnswered || submitting}
             className="rounded-xl bg-[#EE7115] px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {t("membre.formation.quiz.submit")}

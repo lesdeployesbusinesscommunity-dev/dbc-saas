@@ -19,6 +19,7 @@ export class FormationPostgresRepository implements FormationRepositoryPort {
       titre: formation.titre,
       niveauRequisId: formation.niveauRequisId,
       pilierCode: formation.pilierCode,
+      ...formation.fiche,
     });
     return this.versDomaine(ligne);
   }
@@ -26,6 +27,10 @@ export class FormationPostgresRepository implements FormationRepositoryPort {
   async listerToutes(): Promise<Formation[]> {
     const lignes = await this.repository.find();
     return lignes.map((l) => this.versDomaine(l));
+  }
+
+  async supprimer(id: string): Promise<void> {
+    await this.repository.delete({ id });
   }
 
   async trouverParId(id: string): Promise<Formation | null> {
@@ -40,6 +45,18 @@ export class FormationPostgresRepository implements FormationRepositoryPort {
       titre: ligne.titre,
       niveauRequisId: ligne.niveauRequisId,
       pilierCode: ligne.pilierCode,
+      fiche: {
+        formateur: ligne.formateur,
+        afficheUrl: ligne.afficheUrl,
+        dateDebut: ligne.dateDebut,
+        duree: ligne.duree,
+        domaine: ligne.domaine,
+        coinsRecompense: ligne.coinsRecompense,
+        objectifs: ligne.objectifs,
+        resultats: ligne.resultats,
+        supportPdf: ligne.supportPdf,
+        quizPrerequis: ligne.quizPrerequis,
+      },
     });
   }
 }

@@ -1,7 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FormationController } from './interface/formation.controller';
-import { CreerFormationUseCase } from './application/creer-formation.use-case';
+import { EnregistrerFormationUseCase } from './application/enregistrer-formation.use-case';
+import { SupprimerFormationUseCase } from './application/supprimer-formation.use-case';
+import { RepondreQuizFormationUseCase } from './application/repondre-quiz-formation.use-case';
+import { RecommencerFormationUseCase } from './application/recommencer-formation.use-case';
+import { ConsulterCatalogueFormationsUseCase } from './application/consulter-catalogue-formations.use-case';
+import { ConsulterMaProgressionFormationUseCase } from './application/consulter-ma-progression-formation.use-case';
+import { ProgressionFormationService } from './application/progression-formation.service';
 import { AjouterModuleFormationUseCase } from './application/ajouter-module-formation.use-case';
 import { AjouterLeconUseCase } from './application/ajouter-lecon.use-case';
 import { AjouterQuizUseCase } from './application/ajouter-quiz.use-case';
@@ -37,6 +43,7 @@ import { QuestionQuizPostgresRepository } from './infrastructure/question-quiz.p
 import { TentativeQuizPostgresRepository } from './infrastructure/tentative-quiz.postgres.repository';
 import { CertificatPostgresRepository } from './infrastructure/certificat.postgres.repository';
 import { GenerateurCertificatPdfKit } from './infrastructure/generateur-certificat-pdfkit';
+import { GouvernanceModule } from '../gouvernance/gouvernance.module';
 import { GamificationModule } from '../gamification/gamification.module';
 import { AdhesionModule } from '../adhesion/adhesion.module';
 import { ProgrammesModule } from '../programmes/programmes.module';
@@ -65,10 +72,17 @@ import { ProgrammesModule } from '../programmes/programmes.module';
     GamificationModule,
     AdhesionModule,
     ProgrammesModule,
+    GouvernanceModule,
   ],
   controllers: [FormationController],
   providers: [
-    CreerFormationUseCase,
+    EnregistrerFormationUseCase,
+    SupprimerFormationUseCase,
+    RepondreQuizFormationUseCase,
+    RecommencerFormationUseCase,
+    ConsulterCatalogueFormationsUseCase,
+    ConsulterMaProgressionFormationUseCase,
+    ProgressionFormationService,
     AjouterModuleFormationUseCase,
     AjouterLeconUseCase,
     AjouterQuizUseCase,

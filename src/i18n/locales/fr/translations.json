@@ -918,7 +918,12 @@
         "noCoursePdf": "Aucun PDF de cours pour l'instant.",
         "addCoursePdf": "Ajouter le PDF du cours",
         "replaceCoursePdf": "Remplacer le PDF du cours",
-        "removeCoursePdf": "Supprimer le PDF du cours"
+        "removeCoursePdf": "Supprimer le PDF du cours",
+        "videoUploadHint": "La vidéo est envoyée sur le serveur, puis proposée aux membres du niveau. Elle n'est jamais téléchargeable.",
+        "documentUploadHint": "Le PDF est envoyé sur le serveur ; les membres pourront le télécharger.",
+        "uploading": "Envoi en cours… {{percent}} %",
+        "uploadError": "L'envoi du fichier a échoué. Vérifie son type (vidéo, PDF ou image) et sa taille, puis réessaie.",
+        "saving": "Enregistrement…"
       },
       "addButton": "Ajouter une formation",
       "quizEditor": {

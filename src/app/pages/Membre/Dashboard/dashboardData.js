@@ -10,7 +10,7 @@ import {
 import { currentMember } from "../currentMember";
 import { formatMoney } from "app/pages/Simulateur/data";
 import { getTontineGroup } from "../Tontine/tontineData";
-import { getCourseCatalog } from "../Formation/mockData";
+import { getCourseCatalog } from "../Formation/formationData";
 import { getCourseProgress } from "../Formation/progressStore";
 
 // ----------------------------------------------------------------------

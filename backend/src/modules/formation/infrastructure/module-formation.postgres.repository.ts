@@ -18,6 +18,7 @@ export class ModuleFormationPostgresRepository implements ModuleFormationReposit
       formationId: module.formationId,
       titre: module.titre,
       ordre: module.ordre,
+      objectifs: module.objectifs,
     });
     return this.versDomaine(ligne);
   }
@@ -25,6 +26,10 @@ export class ModuleFormationPostgresRepository implements ModuleFormationReposit
   async listerParFormationId(formationId: string): Promise<ModuleFormation[]> {
     const lignes = await this.repository.find({ where: { formationId }, order: { ordre: 'ASC' } });
     return lignes.map((l) => this.versDomaine(l));
+  }
+
+  async supprimer(id: string): Promise<void> {
+    await this.repository.delete({ id });
   }
 
   async trouverParId(id: string): Promise<ModuleFormation | null> {
@@ -38,6 +43,7 @@ export class ModuleFormationPostgresRepository implements ModuleFormationReposit
       formationId: ligne.formationId,
       titre: ligne.titre,
       ordre: ligne.ordre,
+      objectifs: ligne.objectifs,
     });
   }
 }

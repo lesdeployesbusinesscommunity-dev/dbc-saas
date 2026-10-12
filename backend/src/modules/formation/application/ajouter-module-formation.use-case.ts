@@ -9,7 +9,7 @@ export interface AjouterModuleFormationCommande {
   ordre: number;
 }
 
-/** Création de contenu (ModuleFormation) par un administrateur — voir CreerFormationUseCase. */
+/** Création de contenu (ModuleFormation) par un administrateur — voir EnregistrerFormationUseCase pour la création complète. */
 @Injectable()
 export class AjouterModuleFormationUseCase {
   constructor(

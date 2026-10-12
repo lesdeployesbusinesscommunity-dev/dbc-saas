@@ -2,243 +2,197 @@
 import { useSyncExternalStore } from "react";
 
 // Local Imports
+import { recommencerFormation, repondrePrerequis, repondreQuizLecon, terminerLecon } from "api/formations";
 import { accountStorageKey, subscribeMember } from "../currentMember";
+import { getMemberStore, refreshTrainingProgress, subscribeMemberStore } from "../memberStore";
 
 // ----------------------------------------------------------------------
-// Avancement du membre dans ses formations : quelles leçons (vidéos) il a
-// terminées et où il s'est arrêté dans chacune. C'est ce qui fait monter
-// le pourcentage au fil du visionnage — la page Formation, la page de cours
-// ET le Dashboard (voir Dashboard/mockData.js) lisent ce même magasin, donc
-// ne peuvent pas se contredire.
+// Avancement du membre dans ses formations. Il est tenu par le SERVEUR
+// (GET /formations/ma-progression, voir memberStore.js) : leçons terminées,
+// quiz tentés, quiz de pré-requis, formation terminée. Une vidéo regardée ou
+// un PDF ouvert est envoyé tout de suite (POST /formations/lecons/:id/suivre)
+// et compté aussitôt à l'écran ; les quiz sont corrigés par le serveur.
 //
-// Pas de backend pour l'instant : l'état est gardé dans le navigateur
-// (localStorage, protégé par try/catch — il peut être absent ou bloqué)
-// et partagé entre composants via useSyncExternalStore. À remplacer par de
-// vrais appels API (progression enregistrée côté serveur, par membre)
-// sans changer ce que ces fonctions renvoient.
+// Seule la position de lecture des vidéos (reprendre où on s'était arrêté)
+// reste dans le navigateur, une par compte : c'est un confort, pas un acquis.
 //
-// Forme : { [idFormation]: { watched: [idLeçon], positions: { [idLeçon]:
-// secondes }, lastLessonId, updatedAt, quizzes: { [idQuiz]: { best,
-// attempts } }, prereq: { passed, best, attempts } } }.
-//
-// "Leçon" = n'importe quel élément d'un chapitre : vidéo, PDF ou quiz de
-// validation (voir mockData.js). Une vidéo est terminée quand elle est
-// vue (voir VideoPlayer.jsx), un PDF quand le membre l'a ouvert / téléchargé
-// / marqué lu, un quiz quand il est RÉUSSI. "prereq" garde le résultat du
-// quiz de pré-requis de la formation, qui doit être réussi pour en ouvrir
-// le contenu (voir isPrerequisitePassed).
-//
-// Tant qu'un membre n'a RIEN fait dans une formation (pas d'entrée), son
-// avancement de départ est repris du catalogue ("baseProgress", le
-// "progress" statique de l'admin) : on considère les premières leçons
-// comme déjà vues, pour que le Dashboard n'affiche pas 0 % sur des
-// formations déjà commencées.
-const STORAGE_KEY = "dbc-membre-formation-progress-v1";
+// Les fonctions gardent la forme qu'attendaient les pages : un état par
+// formation { watched, positions, lastLessonId, updatedAt, quizzes, prereq }.
 
-// Coins gagnés en terminant des formations : { [idFormation]: { coins,
-// at } }. Gardés À PART de la progression (autre clé) : "Recommencer la
-// formation" remet la progression à zéro mais ne retire JAMAIS des Coins
-// déjà gagnés, et une formation ne rapporte ses Coins qu'une seule fois.
-const REWARDS_KEY = "dbc-membre-formation-rewards-v1";
+const POSITIONS_KEY = "dbc-membre-formation-positions-v1";
 
-function load(key) {
+function loadPositions() {
   try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : {};
+    return JSON.parse(window.localStorage.getItem(accountStorageKey(POSITIONS_KEY)) ?? "{}");
   } catch {
     return {};
   }
 }
 
-function save(key, value) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // stockage indisponible : l'état reste valable pour cette session
-  }
-}
-
-// Une progression PAR COMPTE (voir currentMember.js : "accountStorageKey") :
-// l'administrateur en mode membre a ses propres formations et ses propres
-// Coins de formation, séparés de ceux du membre de démonstration.
-let state = load(accountStorageKey(STORAGE_KEY));
-let rewards = load(accountStorageKey(REWARDS_KEY));
+let positions = loadPositions();
+// Leçons envoyées au serveur mais pas encore relues : affichées comme vues tout de suite.
+let pendingWatched = {};
 const listeners = new Set();
+let localVersion = 0;
 
-function setState(next, nextRewards = rewards) {
-  state = next;
-  save(accountStorageKey(STORAGE_KEY), state);
-  if (nextRewards !== rewards) {
-    rewards = nextRewards;
-    save(accountStorageKey(REWARDS_KEY), rewards);
-  }
+function emit() {
+  localVersion += 1;
   listeners.forEach((listener) => listener());
 }
 
-// Un autre compte s'affiche : on relit SA progression.
 subscribeMember(() => {
-  state = load(accountStorageKey(STORAGE_KEY));
-  rewards = load(accountStorageKey(REWARDS_KEY));
-  listeners.forEach((listener) => listener());
+  positions = loadPositions();
+  pendingWatched = {};
+  emit();
 });
+subscribeMemberStore(() => listeners.forEach((listener) => listener()));
 
 function subscribe(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
+// ----------------------------------------------------------------------
+// État dérivé (mémorisé tant que rien ne change).
+let cache = { key: "", state: {}, rewards: {} };
+
+function derive() {
+  const { trainingProgress, version } = getMemberStore();
+  const key = `${version}:${localVersion}`;
+  if (cache.key === key) return cache;
+
+  const state = {};
+  const rewards = {};
+  trainingProgress.forEach((entry) => {
+    const watched = new Set([...entry.completedLessonIds, ...(pendingWatched[entry.trainingId] ?? [])]);
+    state[entry.trainingId] = {
+      watched: [...watched],
+      positions: positions[entry.trainingId] ?? {},
+      lastLessonId: entry.lastLessonId,
+      updatedAt: entry.updatedAt ? new Date(entry.updatedAt).getTime() : 0,
+      quizzes: entry.quizzes,
+      prereq: entry.prerequisite,
+    };
+    if (entry.completedAt) {
+      rewards[entry.trainingId] = { at: new Date(entry.completedAt).getTime(), certificateCode: entry.certificateCode };
+    }
+  });
+  // Formations pas encore commencées côté serveur mais avec une leçon en cours d'envoi.
+  Object.entries(pendingWatched).forEach(([courseId, ids]) => {
+    if (!state[courseId]) {
+      state[courseId] = { watched: [...ids], positions: positions[courseId] ?? {}, lastLessonId: ids[ids.length - 1], updatedAt: Date.now(), quizzes: {} };
+    }
+  });
+  Object.entries(positions).forEach(([courseId, coursePositions]) => {
+    if (!state[courseId]) {
+      state[courseId] = { watched: [], positions: coursePositions, lastLessonId: null, updatedAt: 0, quizzes: {} };
+    }
+  });
+
+  cache = { key, state, rewards };
+  return cache;
+}
+
 export function getProgressState() {
-  return state;
+  return derive().state;
 }
 
 export function useProgressState() {
   return useSyncExternalStore(subscribe, getProgressState, getProgressState);
 }
 
-// Coins de formation. Une formation déjà TERMINÉE au départ (avancement
-// de départ à 100 %, voir "baseProgress") est considérée comme déjà
-// comptée dans le solde de départ du membre (currentMember.coins) : elle
-// n'est pas re-créditée, même après "Recommencer".
+// Formations terminées : { [idFormation]: { at, certificateCode } }.
 export function getRewards() {
-  return rewards;
+  return derive().rewards;
 }
 
 export function useRewards() {
   return useSyncExternalStore(subscribe, getRewards, getRewards);
 }
 
-export function isCourseRewarded(course, rewardsState = rewards) {
-  return Boolean(rewardsState[course.id]) || course.baseProgress >= 100;
+// La formation a-t-elle déjà été terminée (ses Coins crédités par le serveur) ?
+export function isCourseRewarded(course, rewardsState = getRewards()) {
+  return Boolean(rewardsState[course.id]);
 }
 
-// Total des Coins gagnés dans l'app via les formations (s'ajoute au solde
-// de départ : voir Coins/mockData.js "getMemberCoins").
-export function getFormationCoinsEarned(rewardsState = rewards) {
-  return Object.values(rewardsState).reduce((sum, entry) => sum + (entry.coins ?? 0), 0);
-}
+// ----------------------------------------------------------------------
+// Actions
 
-function seededWatchedIds(course) {
-  const count = Math.round((course.baseProgress / 100) * course.lessons.length);
-  return course.lessons.slice(0, count).map((lesson) => lesson.id);
-}
-
-function entryFor(course) {
-  return (
-    state[course.id] ?? {
-      watched: seededWatchedIds(course),
-      positions: {},
-      lastLessonId: null,
-      updatedAt: 0,
-      quizzes: {},
-    }
-  );
-}
-
+// Vidéo regardée jusqu'au bout ou PDF ouvert : la leçon est terminée. Un quiz
+// ne passe pas par ici (voir submitLessonQuiz).
 export function markLessonWatched(course, lessonId) {
-  const entry = entryFor(course);
-  if (entry.watched.includes(lessonId)) return;
-  const watched = [...entry.watched, lessonId];
-  const nextState = {
-    ...state,
-    [course.id]: { ...entry, watched, lastLessonId: lessonId, updatedAt: Date.now() },
-  };
+  const lesson = course.lessons.find((entry) => entry.id === lessonId);
+  if (!lesson || lesson.type === "quiz") return;
+  if ((getProgressState()[course.id]?.watched ?? []).includes(lessonId)) return;
 
-  // Dernière leçon terminée : la formation est finie, on crédite ses Coins
-  // (une seule fois — voir "isCourseRewarded").
-  const finished = course.lessons.every((lesson) => watched.includes(lesson.id));
-  if (finished && !isCourseRewarded(course)) {
-    setState(nextState, {
-      ...rewards,
-      [course.id]: { coins: course.coinsReward, at: Date.now() },
+  pendingWatched = { ...pendingWatched, [course.id]: [...(pendingWatched[course.id] ?? []), lessonId] };
+  emit();
+  terminerLecon(lessonId)
+    .then((result) => refreshTrainingProgress({ trainingCompleted: result.trainingCompleted }))
+    .catch(() => {})
+    .finally(() => {
+      pendingWatched = {
+        ...pendingWatched,
+        [course.id]: (pendingWatched[course.id] ?? []).filter((id) => id !== lessonId),
+      };
+      emit();
     });
-    return;
-  }
-  setState(nextState);
 }
 
-// Enregistre une tentative à un quiz de validation ; un quiz réussi compte
-// comme une leçon terminée.
-export function recordQuizAttempt(course, quizId, percent, passed) {
-  const entry = entryFor(course);
-  const previous = entry.quizzes?.[quizId] ?? { best: 0, attempts: 0 };
-  setState({
-    ...state,
-    [course.id]: {
-      ...entry,
-      quizzes: {
-        ...entry.quizzes,
-        [quizId]: { best: Math.max(previous.best, percent), attempts: previous.attempts + 1 },
-      },
-      lastLessonId: quizId,
-      updatedAt: Date.now(),
-    },
-  });
-  if (passed) markLessonWatched(course, quizId);
+// Réponses à un quiz de chapitre : corrigées par le serveur, qui enregistre
+// la tentative ; renvoie le résultat attendu par QuizPlayer.jsx.
+export async function submitLessonQuiz(course, lessonId, answers) {
+  const result = await repondreQuizLecon(lessonId, answers);
+  await refreshTrainingProgress({ trainingCompleted: result.trainingCompleted });
+  return result;
 }
 
-// Le quiz de pré-requis : les membres qui ont déjà commencé la formation
-// (avancement de départ > 0) sont considérés comme l'ayant déjà réussi.
-export function isPrerequisitePassed(course, progressState = state) {
+export function isPrerequisitePassed(course, progressState = getProgressState()) {
   if (!course.prerequisiteQuiz) return true;
-  return Boolean(progressState[course.id]?.prereq?.passed) || course.baseProgress > 0;
+  return Boolean(progressState[course.id]?.prereq?.passed);
 }
 
-export function recordPrerequisiteAttempt(course, percent, passed) {
-  const entry = entryFor(course);
-  const previous = entry.prereq ?? { passed: false, best: 0, attempts: 0 };
-  setState({
-    ...state,
-    [course.id]: {
-      ...entry,
-      prereq: {
-        passed: previous.passed || passed,
-        best: Math.max(previous.best, percent),
-        attempts: previous.attempts + 1,
-      },
-      updatedAt: Date.now(),
-    },
-  });
+// Réponses au quiz de pré-requis : corrigées et enregistrées par le serveur.
+export async function submitPrerequisite(course, answers) {
+  const result = await repondrePrerequis(course.id, answers);
+  await refreshTrainingProgress();
+  return result;
 }
 
+// Position de lecture d'une vidéo (secondes), pour la reprendre plus tard.
 export function saveLessonPosition(course, lessonId, seconds) {
-  const entry = entryFor(course);
-  setState({
-    ...state,
-    [course.id]: {
-      ...entry,
-      positions: { ...entry.positions, [lessonId]: Math.max(0, Math.floor(seconds)) },
-      lastLessonId: lessonId,
-      updatedAt: Date.now(),
-    },
-  });
+  positions = {
+    ...positions,
+    [course.id]: { ...(positions[course.id] ?? {}), [lessonId]: Math.max(0, Math.floor(seconds)) },
+  };
+  try {
+    window.localStorage.setItem(accountStorageKey(POSITIONS_KEY), JSON.stringify(positions));
+  } catch {
+    // stockage indisponible : la position reste valable pour cette session
+  }
+  emit();
 }
 
-// "Recommencer" : tout remettre à zéro (et non retomber sur l'avancement
-// de départ du catalogue). Le quiz de pré-requis, lui, reste réussi : le
-// membre n'a pas à le repasser. Le résultat des quiz de validation est
-// effacé avec le reste.
+// "Recommencer la formation" : l'avancement repart de zéro (le certificat et
+// les Coins déjà obtenus restent acquis).
 export function resetCourse(course) {
-  const entry = state[course.id];
-  setState({
-    ...state,
-    [course.id]: {
-      watched: [],
-      positions: {},
-      lastLessonId: null,
-      updatedAt: Date.now(),
-      quizzes: {},
-      prereq: entry?.prereq ?? (course.baseProgress > 0 && course.prerequisiteQuiz ? { passed: true, best: 100, attempts: 0 } : undefined),
-    },
-  });
+  positions = { ...positions, [course.id]: {} };
+  try {
+    window.localStorage.setItem(accountStorageKey(POSITIONS_KEY), JSON.stringify(positions));
+  } catch {
+    // voir saveLessonPosition
+  }
+  emit();
+  return recommencerFormation(course.id).then(() => refreshTrainingProgress());
 }
 
 // Tout ce que l'interface a besoin de savoir sur l'avancement d'une
 // formation : leçons vues, pourcentage, statut, et la leçon à reprendre
 // (celle où le membre s'est arrêté si elle n'est pas terminée, sinon la
 // première non terminée, sinon la toute première).
-export function getCourseProgress(course, progressState = state) {
+export function getCourseProgress(course, progressState = getProgressState()) {
   const entry = progressState[course.id];
-  const watchedIds = new Set(entry ? entry.watched : seededWatchedIds(course));
+  const watchedIds = new Set(entry?.watched ?? []);
   const total = course.lessons.length;
   const watched = course.lessons.filter((lesson) => watchedIds.has(lesson.id)).length;
   const percent = total === 0 ? 0 : Math.round((watched / total) * 100);

@@ -17,7 +17,10 @@ export class LeconPostgresRepository implements LeconRepositoryPort {
       id: lecon.id,
       moduleFormationId: lecon.moduleFormationId,
       titre: lecon.titre,
-      urlVideo: lecon.urlVideo,
+      type: lecon.type,
+      url: lecon.url,
+      quiz: lecon.quiz,
+      ordre: lecon.ordre,
     });
     return this.versDomaine(ligne);
   }
@@ -25,6 +28,10 @@ export class LeconPostgresRepository implements LeconRepositoryPort {
   async listerParModuleId(moduleFormationId: string): Promise<Lecon[]> {
     const lignes = await this.repository.find({ where: { moduleFormationId } });
     return lignes.map((l) => this.versDomaine(l));
+  }
+
+  async supprimer(id: string): Promise<void> {
+    await this.repository.delete({ id });
   }
 
   async trouverParId(id: string): Promise<Lecon | null> {
@@ -37,7 +44,10 @@ export class LeconPostgresRepository implements LeconRepositoryPort {
       id: ligne.id,
       moduleFormationId: ligne.moduleFormationId,
       titre: ligne.titre,
-      urlVideo: ligne.urlVideo,
+      type: ligne.type,
+      url: ligne.url,
+      quiz: ligne.quiz,
+      ordre: ligne.ordre,
     });
   }
 }

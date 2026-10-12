@@ -13,4 +13,7 @@ export class ModuleFormationOrmEntity {
 
   @Column({ type: 'int' })
   ordre: number;
+
+  @Column({ type: 'jsonb', default: () => "'[]'" })
+  objectifs: string[];
 }

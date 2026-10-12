@@ -21,13 +21,13 @@ import { useMemberData } from "../memberStore";
 import { Page } from "components/shared/Page";
 import { currentMember } from "../currentMember";
 import { getDomain } from "./domains";
-import { getCourseById } from "./mockData";
+import { getCourseById } from "./formationData";
 import {
   getCourseProgress,
   isCourseRewarded,
   isPrerequisitePassed,
   markLessonWatched,
-  recordQuizAttempt,
+  submitLessonQuiz,
   resetCourse,
   useProgressState,
   useRewards,
@@ -187,7 +187,7 @@ function CourseView({ course }) {
                 <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-green-800">
                   <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 ring-1 ring-green-200">
                     <CircleStackIcon aria-hidden="true" className="size-3.5" />
-                    {t("membre.coins.earn.amount", { amount: rewards[course.id].coins })}
+                    {t("membre.coins.earn.amount", { amount: course.coinsReward })}
                   </span>
                   <Link to="/membre/coins" className="underline underline-offset-2 hover:text-green-900">
                     {t("membre.formation.course.seeCoins")}
@@ -224,7 +224,7 @@ function CourseView({ course }) {
               quiz={lesson.quiz}
               alreadyPassed={progress.watchedIds.has(lesson.id)}
               bestPercent={progress.quizzes[lesson.id]?.best ?? null}
-              onResult={(percent, passed) => recordQuizAttempt(course, lesson.id, percent, passed)}
+              onSubmitAnswers={(answers) => submitLessonQuiz(course, lesson.id, answers)}
               onContinue={index < lessons.length - 1 ? () => select(lessons[index + 1].id) : undefined}
             />
           ) : (

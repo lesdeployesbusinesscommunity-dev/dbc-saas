@@ -5,6 +5,7 @@ import { useSyncExternalStore } from "react";
 import { getMemberSpace } from "api/espaceMembre";
 import { getMyTontine } from "api/tontine";
 import { listerPacks } from "api/reseauMlm";
+import { listerFormations, maProgression } from "api/formations";
 import { levels } from "app/pages/Simulateur/data";
 import { getSessionSnapshot, subscribeSession } from "app/pages/Auth/session";
 import { LEVEL_CODE_BY_KEY, levelKeyFromCode } from "utils/levelCodes";
@@ -12,8 +13,8 @@ import { LEVEL_CODE_BY_KEY, levelKeyFromCode } from "utils/levelCodes";
 // ----------------------------------------------------------------------
 // Données de l'espace membre, chargées depuis l'API pour le compte connecté :
 // GET /espace-membre (profil, Coins, réseau, MLM, activité), le catalogue des
-// packs Longrich, puis, pour chaque niveau où le membre cotise,
-// GET /tontine/ma-tontine. Les modules de chaque
+// packs Longrich, le catalogue des formations et l'avancement du membre, puis,
+// pour chaque niveau où le membre cotise, GET /tontine/ma-tontine. Les modules de chaque
 // page (currentMember.js, accountData.js, Tontine/mockData.js...) lisent cet
 // état de façon synchrone et gardent EXACTEMENT les formes de données que les
 // composants attendaient : les pages n'ont pas à changer.
@@ -21,7 +22,16 @@ import { LEVEL_CODE_BY_KEY, levelKeyFromCode } from "utils/levelCodes";
 // MembreLayout.jsx lance le chargement et n'affiche l'espace qu'une fois les
 // données là ; chaque page appelle useMemberData() pour se redessiner quand
 // elles changent (après un paiement, une modification de profil...).
-const initialState = { status: "idle", space: null, tontineByLevel: {}, packs: [], error: null, version: 0 };
+const initialState = {
+  status: "idle",
+  space: null,
+  tontineByLevel: {},
+  packs: [],
+  trainings: [],
+  trainingProgress: [],
+  error: null,
+  version: 0,
+};
 let state = initialState;
 const listeners = new Set();
 
@@ -67,12 +77,25 @@ export function loadMemberSpace() {
   set({ status: state.space ? "refreshing" : "loading" });
   inflight = (async () => {
     try {
-      const [space, packs] = await Promise.all([getMemberSpace(), listerPacks()]);
+      const [space, packs, trainings, trainingProgress] = await Promise.all([
+        getMemberSpace(),
+        listerPacks(),
+        listerFormations(),
+        maProgression(),
+      ]);
       const keys = memberLevelKeys(space);
       const entries = await Promise.all(
         keys.map(async (key) => [key, await getMyTontine(LEVEL_CODE_BY_KEY[key] ?? key)]),
       );
-      set({ status: "ready", space, packs, tontineByLevel: Object.fromEntries(entries), error: null });
+      set({
+        status: "ready",
+        space,
+        packs,
+        trainings,
+        trainingProgress,
+        tontineByLevel: Object.fromEntries(entries),
+        error: null,
+      });
     } catch (error) {
       set({ status: state.space ? "ready" : "error", error });
     } finally {
@@ -80,6 +103,16 @@ export function loadMemberSpace() {
     }
   })();
   return inflight;
+}
+
+// Après une action sur une formation (leçon terminée, quiz...) : seule la
+// progression change, sauf si la formation vient d'être terminée (des Coins
+// ont alors été gagnés : tout l'espace est rechargé).
+export async function refreshTrainingProgress({ trainingCompleted = false } = {}) {
+  if (trainingCompleted) return loadMemberSpace();
+  const trainingProgress = await maProgression();
+  set({ trainingProgress });
+  return undefined;
 }
 
 // Un autre compte se connecte (ou la session se ferme) : on oublie les

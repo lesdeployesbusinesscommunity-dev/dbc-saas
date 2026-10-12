@@ -7,7 +7,7 @@ import { initialMembersByLevel } from "app/pages/Admin/Membres/mockData";
 import { currentMember } from "app/pages/Membre/currentMember";
 import { getCoinsHistory } from "app/pages/Membre/Coins/coinsData";
 import { getNewsSlides } from "app/pages/Membre/Dashboard/newsData";
-import { getCourseCatalog } from "app/pages/Membre/Formation/mockData";
+import { getCourseCatalog } from "app/pages/Membre/Formation/formationData";
 import { getCourseProgress } from "app/pages/Membre/Formation/progressStore";
 import { loadSettings } from "app/pages/Membre/Parametres/settingsStore";
 import {

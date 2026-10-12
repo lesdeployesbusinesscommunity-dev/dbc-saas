@@ -10,6 +10,11 @@ export interface ReclamerGainCoinsCommande {
   cleIdempotence: string;
   /** Phrase affichée dans l'historique du membre (ex. "Parrainage de Patrick Essono"). */
   libelle?: string;
+  /**
+   * Montant fixé par l'administrateur pour CET événement (ex. les Coins d'une
+   * formation précise) ; à défaut, la valeur du catalogue d'actions.
+   */
+  valeurCoins?: number;
 }
 
 /**
@@ -39,7 +44,7 @@ export class ReclamerGainCoinsUseCase {
     const soldeAvant = await this.transactions.dernierSolde(commande.membreId);
     const resultat = TransactionCoins.creer({
       membreId: commande.membreId,
-      delta: action.valeurCoins,
+      delta: commande.valeurCoins ?? action.valeurCoins,
       soldeAvant,
       motif: action.code,
       cleIdempotence: commande.cleIdempotence,

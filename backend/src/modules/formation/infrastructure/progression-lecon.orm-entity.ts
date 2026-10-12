@@ -17,4 +17,10 @@ export class ProgressionLeconOrmEntity {
 
   @Column({ name: 'terminee_le', type: 'timestamptz', nullable: true })
   termineeLe: Date | null;
+
+  @Column({ name: 'meilleur_score', type: 'int', nullable: true })
+  meilleurScore: number | null;
+
+  @Column({ type: 'int', default: 0 })
+  tentatives: number;
 }

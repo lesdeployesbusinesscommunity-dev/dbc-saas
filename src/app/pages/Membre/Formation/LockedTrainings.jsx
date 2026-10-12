@@ -9,7 +9,7 @@ import { levels } from "app/pages/Simulateur/data";
 import { currentMember } from "../currentMember";
 import { LevelDetailModal } from "../Coins/LevelDetailModal";
 import { getDomain } from "./domains";
-import { getLockedCatalog } from "./mockData";
+import { getLockedCatalog } from "./formationData";
 import { courseMatches } from "./searchFilter";
 
 // ----------------------------------------------------------------------

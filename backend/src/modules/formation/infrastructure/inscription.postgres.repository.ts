@@ -18,6 +18,8 @@ export class InscriptionPostgresRepository implements InscriptionRepositoryPort 
       membreId: inscription.membreId,
       formationId: inscription.formationId,
       statut: inscription.statut,
+      prerequis: inscription.prerequis,
+      termineeLe: inscription.termineeLe,
     });
     return this.versDomaine(ligne);
   }
@@ -43,6 +45,8 @@ export class InscriptionPostgresRepository implements InscriptionRepositoryPort 
       membreId: ligne.membreId,
       formationId: ligne.formationId,
       statut: ligne.statut,
+      prerequis: ligne.prerequis,
+      termineeLe: ligne.termineeLe,
     });
   }
 }

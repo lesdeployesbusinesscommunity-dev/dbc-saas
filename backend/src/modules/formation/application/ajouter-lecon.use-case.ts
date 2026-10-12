@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Lecon } from '../domaine/lecon';
 import { LeconRepositoryPort } from '../domaine/lecon.repository.port';
 import { ModuleFormationRepositoryPort } from '../domaine/module-formation.repository.port';
@@ -9,7 +9,7 @@ export interface AjouterLeconCommande {
   urlVideo: string;
 }
 
-/** Création de contenu (Lecon) par un administrateur — voir CreerFormationUseCase. */
+/** Création de contenu (Lecon) par un administrateur — voir EnregistrerFormationUseCase pour la création complète. */
 @Injectable()
 export class AjouterLeconUseCase {
   constructor(
@@ -23,11 +23,15 @@ export class AjouterLeconUseCase {
       throw new NotFoundException('Module de formation introuvable');
     }
 
-    const lecon = Lecon.creer({
+    const resultat = Lecon.creer({
       moduleFormationId: commande.moduleFormationId,
       titre: commande.titre,
-      urlVideo: commande.urlVideo,
+      type: 'video',
+      url: commande.urlVideo,
     });
-    return this.lecons.sauvegarder(lecon);
+    if (!resultat.succes) {
+      throw new BadRequestException(resultat.erreur);
+    }
+    return this.lecons.sauvegarder(resultat.valeur!);
   }
 }

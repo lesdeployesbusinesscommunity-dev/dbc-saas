@@ -9,7 +9,7 @@ import {
 } from "@heroicons/react/24/solid";
 
 // Local Imports
-import { getTrainingProgress } from "./mockData";
+import { getTrainingProgress } from "./trainingsApi";
 
 // ----------------------------------------------------------------------
 
