@@ -1,6 +1,26 @@
 /* Basic styles */
 html {
   @apply h-full [--surface-1:--colors-dark-450] [--surface-2:--colors-dark-500] [--surface-3:--colors-dark-600] [-webkit-tap-highlight-color:transparent] [text-rendering:optimizeLegibility];
+  /* Le site n'a pas de mode sombre activable (darkMode: 'class' dans
+     tailwind.config.js, et rien dans le code n'ajoute jamais la classe
+     ".dark") — mais sans ceci, le navigateur choisit quand même le rendu
+     de son "chrome" natif (barre de défilement, listes déroulantes des
+     <select>, calendrier des <input type="date">…) selon le thème sombre/
+     clair du système d'exploitation, indépendamment des couleurs Tailwind
+     de la page. Résultat : sur un PC réglé en mode sombre, ces éléments
+     natifs s'affichaient en noir alors que le reste du site est en clair.
+     "light" ici force un rendu clair cohérent pour tout le monde, quel que
+     soit le thème système. (html.dark ci-dessous reste prioritaire si le
+     mode sombre est un jour activé pour de vrai.) */
+  color-scheme: light;
+  /* Barre de défilement par défaut (Firefox) : gris clair (#D1D5DB, le
+     gray-300 par défaut de Tailwind — en dur ici plutôt que via theme(),
+     cette fonction n'étant utilisée nulle part ailleurs dans le CSS du
+     projet) au lieu du noir natif, cohérent avec les teintes déjà
+     utilisées par .custom-scrollbar ci-dessous. "auto" garde l'épaisseur
+     normale du navigateur — seule la couleur change ; .custom-scrollbar
+     (plus fine) reste utilisée là où elle était déjà appliquée. */
+  scrollbar-color: #d1d5db transparent;
 }
 
 html[data-card-skin="bordered"] {
@@ -109,6 +129,30 @@ body.is-monochrome::before {
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-dark-300;
+  }
+}
+
+/* Barre de défilement par défaut (Chrome, Safari, Edge), partout où
+   .custom-scrollbar n'est pas explicitement utilisée : mêmes teintes que
+   .custom-scrollbar ci-dessus (gris clair) mais à l'épaisseur standard du
+   navigateur, pour remplacer le rendu noir natif. Les sélecteurs
+   .custom-scrollbar ci-dessus restent plus spécifiques et gardent donc
+   priorité là où cette classe est déjà utilisée. */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar {
+    @apply size-2.5;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-300/80 dark:bg-dark-400;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400 dark:bg-dark-300;
   }
 }

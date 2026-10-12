@@ -8,18 +8,18 @@ import clsx from "clsx";
 // Local Imports
 import { Avatar } from "../components/Avatar";
 import { levels } from "app/pages/Simulateur/data";
+import { allMembers } from "./mockData";
 import { normalizeSearchText } from "../searchUtils";
 
 // ----------------------------------------------------------------------
 
 // Popover d'assignation d'un poste de gouvernance (Comité Exécutif, ou
 // binôme d'un chapitre/antenne) : recherche + filtres pays/niveau dans le
-// même bottin que "Gestion des membres" (passé en prop par l'appelant,
-// voir Gouvernance/index.jsx — GET /membres), puis on choisit un membre
+// même bottin que "Gestion des membres", puis on choisit un membre
 // existant — pas de création ici, contrairement à "Ajouter une branche"
 // dans Gestion du réseau, un poste de gouvernance n'a pas de nom propre à
 // saisir, juste un titulaire à choisir.
-export function MemberSearchModal({ open, seatTitle, members, onClose, onConfirm }) {
+export function MemberSearchModal({ open, seatTitle, onClose, onConfirm }) {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("all");
@@ -36,10 +36,10 @@ export function MemberSearchModal({ open, seatTitle, members, onClose, onConfirm
 
   const countryOptions = useMemo(
     () =>
-      Array.from(new Set(members.map((member) => member.country).filter(Boolean))).sort((a, b) =>
+      Array.from(new Set(allMembers.map((member) => member.country))).sort((a, b) =>
         a.localeCompare(b),
       ),
-    [members],
+    [],
   );
 
   const results = useMemo(() => {
@@ -47,7 +47,7 @@ export function MemberSearchModal({ open, seatTitle, members, onClose, onConfirm
     // searchUtils.js) — un clavier réglé en anglais retrouve "Aïcha" en
     // tapant "aicha".
     const query = normalizeSearchText(search);
-    return members.filter((member) => {
+    return allMembers.filter((member) => {
       if (countryFilter !== "all" && member.country !== countryFilter) return false;
       if (levelFilter !== "all" && member.levelKey !== levelFilter) return false;
       if (
@@ -61,7 +61,7 @@ export function MemberSearchModal({ open, seatTitle, members, onClose, onConfirm
       }
       return true;
     });
-  }, [members, search, countryFilter, levelFilter]);
+  }, [search, countryFilter, levelFilter]);
 
   const handleConfirm = () => {
     if (!selectedId) return;

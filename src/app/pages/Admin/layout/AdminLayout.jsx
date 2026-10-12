@@ -24,6 +24,11 @@ import { NetworkDataProvider } from "../context/NetworkDataContext";
 // Note : cette section n'est pas encore protégée par AuthGuard — la
 // connexion admin n'est pas encore câblée côté backend. À reprendre une
 // fois l'authentification intégrée.
+//
+// Pas de footer ici : essayé (d'abord une version allégée, puis le
+// "PublicFooter" de la partie visiteur), mais retiré à la demande — les
+// footers restent propres aux pages visiteur (voir PublicLayout.jsx), pas
+// aux espaces connectés.
 export default function AdminLayout() {
   return (
     <NetworkDataProvider>

@@ -1,6 +1,6 @@
 // Import Dependencies
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import {
@@ -27,6 +27,7 @@ import { Page } from "components/shared/Page";
 import { levels, formatMoney } from "app/pages/Simulateur/data";
 import { creerDemande } from "api/demandesInscription";
 import { normalizePhoneNumber } from "utils/phone";
+import { LEVEL_CODE_BY_KEY } from "utils/levelCodes";
 
 // ----------------------------------------------------------------------
 
@@ -70,18 +71,9 @@ const REQUIRED_FIELDS_BY_STEP = {
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Le "key" utilisé côté frontend (Simulateur/data.js) ne correspond pas
-// toujours au "code" attendu par le backend (GET /adhesion/niveaux) : deux
-// niveaux sur 8 diffèrent (casse snake_case côté backend).
-const DESIRED_LEVEL_CODE_BY_KEY = {
-  starter: "starter",
-  batisseur: "batisseur",
-  batisseurPro: "batisseur_pro",
-  performer: "performer",
-  performerPro: "performer_pro",
-  stratege: "stratege",
-  elite: "elite",
-  legende: "legende",
-};
+// toujours au "code" attendu par le backend (GET /adhesion/niveaux) — voir
+// utils/levelCodes.js.
+const DESIRED_LEVEL_CODE_BY_KEY = LEVEL_CODE_BY_KEY;
 
 // Age en années révolues à partir d'une date de naissance ("YYYY-MM-DD",
 // format natif d'un <input type="date">).
@@ -94,6 +86,18 @@ function calculerAge(dateNaissance) {
     age -= 1;
   }
   return age;
+}
+
+// Matricule du parrain venu du lien de parrainage (/inscription?ref=
+// DBC-1-0042 — lien copié depuis "Mon Réseau", voir Membre/Reseau/
+// InviteCard.jsx). Le paramètre vient de l'adresse, donc on ne garde que
+// lettres, chiffres et tirets (jamais de contenu arbitraire dans le
+// formulaire) et on le met en majuscules comme les matricules admin.
+function sponsorFromLink(searchParams) {
+  return (searchParams.get("ref") ?? "")
+    .replace(/[^A-Za-z0-9-]/g, "")
+    .slice(0, 32)
+    .toUpperCase();
 }
 
 // Champ texte/email/date/tel avec icône intégrée, même style visuel que
@@ -223,6 +227,11 @@ function Stepper({ currentStep }) {
 export default function Inscription() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // "Matricule du parrain" pré-rempli quand la personne arrive par le
+  // lien de son parrain ; le champ reste modifiable (lien tronqué, erreur
+  // de copie...). Vide si on arrive sur /inscription sans lien.
+  const [sponsorFromRef] = useState(() => sponsorFromLink(searchParams));
   const [currentStep, setCurrentStep] = useState(1);
   const [status, setStatus] = useState("idle"); // idle | sending | sent
   const [showSent, setShowSent] = useState(false);
@@ -239,7 +248,7 @@ export default function Inscription() {
     whatsapp: "",
     tontine: levels[0].key,
     travail: "",
-    parrain: "",
+    parrain: sponsorFromRef,
   });
 
   const updateField = (field) => (event) => {
@@ -580,9 +589,15 @@ export default function Inscription() {
                         type="text"
                         value={form.parrain}
                         onChange={updateField("parrain")}
-                        placeholder="Ex : DBC-00123"
+                        placeholder="Ex : DBC-1-0001"
                         error={fieldErrors.parrain}
                       />
+                      {sponsorFromRef && form.parrain === sponsorFromRef && (
+                        <p className="-mt-2 flex items-center gap-1.5 text-xs font-medium text-green-700">
+                          <CheckCircleIcon aria-hidden="true" className="size-3.5 shrink-0" />
+                          Pré-rempli grâce au lien de ton parrain.
+                        </p>
+                      )}
                     </>
                   )}
 

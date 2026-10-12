@@ -7,6 +7,7 @@ import {
   BellIcon,
   CheckCircleIcon,
   Cog6ToothIcon,
+  KeyIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/solid";
 
@@ -18,19 +19,18 @@ import { Field, Select, TextInput } from "./Field";
 import { Toggle } from "./Toggle";
 import { NotificationsMatrix } from "./NotificationsMatrix";
 import {
+  MEMBER_IDLE_MINUTES_OPTIONS,
+  PASSWORD_LENGTH_BOUNDS,
+  updatePlatformSettings,
+  usePlatformSettings,
+} from "./platformSettings";
+import {
   currencyOptions,
   dateFormatOptions,
   exportFrequencyOptions,
-  initialBackupSettings,
-  initialGeneralSettings,
-  initialNotificationMatrix,
-  initialNotificationsEnabled,
-  initialSecuritySettings,
-  initialTontineSettings,
   languageOptions,
   notificationAudiences,
   notificationTypes,
-  passwordPolicyOptions,
   sessionTimeoutOptions,
   timezoneOptions,
 } from "./mockData";
@@ -43,72 +43,89 @@ import {
 // plus une matrice de notifications qui décide qui (membres, directeurs,
 // leaders d'antennes, administrateurs) reçoit quoi (nouvelle cotisation,
 // rappel d'échéance, nouvelle formation...) — voir NotificationsMatrix.jsx.
-// Tout s'applique immédiatement en local, comme le reste de l'admin (voir
-// mockData.js) : pas de bouton "Enregistrer" séparé, juste une pastille
-// de confirmation discrète à chaque changement, en attendant les vrais
-// endpoints.
+//
+// Tout s'applique immédiatement, sans bouton "Enregistrer" : une pastille
+// de confirmation discrète s'affiche à chaque changement. Les réglages sont
+// gardés dans le navigateur (voir platformSettings.js) et LUS par le reste
+// du site. Les sections marquées "Concerne les membres" agissent vraiment
+// sur l'espace membre :
+// - Tontine : le jour de cotisation et le délai de rappel alimentent
+//   "Mon prochain versement" et les rappels de cotisation ;
+// - Comptes des membres : la règle de mot de passe (Paramètres > Sécurité
+//   du membre) et la déconnexion automatique après inactivité ;
+// - Notifications : la colonne "Membres" de la matrice décide de ce qui
+//   apparaît dans les notifications du membre, la colonne "Administrateurs"
+//   de ce qui apparaît dans les vôtres.
+// Le reste (identité de la plateforme, langue, devise, durée du cycle,
+// 2FA, sauvegarde) est enregistré mais pas encore lu ailleurs : à brancher
+// avec le backend.
 export default function Parametres() {
   const { t } = useTranslation();
-  const [general, setGeneral] = useState(initialGeneralSettings);
-  const [tontine, setTontine] = useState(initialTontineSettings);
-  const [security, setSecurity] = useState(initialSecuritySettings);
-  const [backup, setBackup] = useState(initialBackupSettings);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(initialNotificationsEnabled);
-  const [notificationMatrix, setNotificationMatrix] = useState(initialNotificationMatrix);
+  const settings = usePlatformSettings();
+  const { general, tontine, security, backup, notificationsEnabled, notificationMatrix } = settings;
   const [justSaved, setJustSaved] = useState(false);
 
-  // Pastille "Enregistré ✓" — s'affiche brièvement à chaque changement,
-  // pour que la page continue à ressembler à un vrai écran de paramètres
-  // (avec confirmation) même si, comme le reste de l'admin, tout
-  // s'applique déjà instantanément en local.
+  // Pastille "Enregistré ✓" — s'affiche brièvement à chaque changement.
   useEffect(() => {
     if (!justSaved) return;
     const timeout = setTimeout(() => setJustSaved(false), 1800);
     return () => clearTimeout(timeout);
   }, [justSaved]);
 
-  const flashSaved = () => setJustSaved(true);
+  const save = (update) => {
+    updatePlatformSettings(update);
+    setJustSaved(true);
+  };
 
-  const updateGeneral = (field) => (event) => {
-    setGeneral((prev) => ({ ...prev, [field]: event.target.value }));
-    flashSaved();
+  const updateGeneral = (field) => (event) =>
+    save((prev) => ({ ...prev, general: { ...prev.general, [field]: event.target.value } }));
+  const updateTontine = (field) => (event) =>
+    save((prev) => ({ ...prev, tontine: { ...prev.tontine, [field]: Number(event.target.value) } }));
+  const updateSecurityField = (field) => (event) =>
+    save((prev) => ({ ...prev, security: { ...prev.security, [field]: event.target.value } }));
+  const updateSecurityValue = (field, value) =>
+    save((prev) => ({ ...prev, security: { ...prev.security, [field]: value } }));
+  // Longueur minimale du mot de passe. On garde la saisie en brouillon tant
+  // que le champ a le focus (taper "12" passe d'abord par "1", qui est sous
+  // le minimum) : le réglage n'est enregistré que lorsqu'il est dans les
+  // bornes, et ramené dans les bornes quand on quitte le champ.
+  const [lengthDraft, setLengthDraft] = useState(null);
+  const clampLength = (value) =>
+    Math.min(PASSWORD_LENGTH_BOUNDS.max, Math.max(PASSWORD_LENGTH_BOUNDS.min, Math.round(value)));
+  const updatePasswordLength = (event) => {
+    const raw = event.target.value;
+    setLengthDraft(raw);
+    const value = Number(raw);
+    if (raw !== "" && Number.isFinite(value) && value >= PASSWORD_LENGTH_BOUNDS.min && value <= PASSWORD_LENGTH_BOUNDS.max) {
+      updateSecurityValue("passwordMinLength", Math.round(value));
+    }
   };
-  const updateTontine = (field) => (event) => {
-    setTontine((prev) => ({ ...prev, [field]: Number(event.target.value) }));
-    flashSaved();
+  const settlePasswordLength = () => {
+    const value = Number(lengthDraft);
+    if (lengthDraft !== null && lengthDraft !== "" && Number.isFinite(value)) {
+      updateSecurityValue("passwordMinLength", clampLength(value));
+    }
+    setLengthDraft(null);
   };
-  const updateSecurityField = (field) => (event) => {
-    setSecurity((prev) => ({ ...prev, [field]: event.target.value }));
-    flashSaved();
-  };
-  const toggleTwoFactor = (value) => {
-    setSecurity((prev) => ({ ...prev, twoFactorEnabled: value }));
-    flashSaved();
-  };
-  const toggleAutoExport = (value) => {
-    setBackup((prev) => ({ ...prev, autoExportEnabled: value }));
-    flashSaved();
-  };
-  const updateExportFrequency = (event) => {
-    setBackup((prev) => ({ ...prev, exportFrequency: event.target.value }));
-    flashSaved();
-  };
-  const toggleNotificationsEnabled = (value) => {
-    setNotificationsEnabled(value);
-    flashSaved();
-  };
-  const toggleNotificationCell = (typeKey, audienceKey, value) => {
-    setNotificationMatrix((prev) => ({
+  const toggleTwoFactor = (value) => updateSecurityValue("twoFactorEnabled", value);
+  const toggleAutoExport = (value) =>
+    save((prev) => ({ ...prev, backup: { ...prev.backup, autoExportEnabled: value } }));
+  const updateExportFrequency = (event) =>
+    save((prev) => ({ ...prev, backup: { ...prev.backup, exportFrequency: event.target.value } }));
+  const toggleNotificationsEnabled = (value) => save({ notificationsEnabled: value });
+  const toggleNotificationCell = (typeKey, audienceKey, value) =>
+    save((prev) => ({
       ...prev,
-      [typeKey]: { ...prev[typeKey], [audienceKey]: value },
+      notificationMatrix: {
+        ...prev.notificationMatrix,
+        [typeKey]: { ...prev.notificationMatrix[typeKey], [audienceKey]: value },
+      },
     }));
-    flashSaved();
-  };
 
   const withLabels = (options) => options.map((option) => ({ value: option.value, label: t(option.labelKey) }));
 
   const exportSettings = () => {
-    const payload = { general, tontine, security, backup, notificationsEnabled, notificationMatrix };
+    const payload = settings;
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -181,6 +198,7 @@ export default function Parametres() {
             Icon={BanknotesIcon}
             title={t("admin.parametres.tontine.title")}
             description={t("admin.parametres.tontine.description")}
+            badge={t("admin.parametres.memberBadge")}
           >
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label={t("admin.parametres.tontine.cycleDurationMonths")}>
@@ -239,14 +257,59 @@ export default function Parametres() {
                     options={withLabels(sessionTimeoutOptions)}
                   />
                 </Field>
-                <Field label={t("admin.parametres.security.passwordPolicy")}>
+              </div>
+            </div>
+          </SettingsSection>
+
+          <SettingsSection
+            Icon={KeyIcon}
+            title={t("admin.parametres.memberAccounts.title")}
+            description={t("admin.parametres.memberAccounts.description")}
+            badge={t("admin.parametres.memberBadge")}
+          >
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label={t("admin.parametres.memberAccounts.passwordMinLength")}>
+                  <TextInput
+                    type="number"
+                    min={PASSWORD_LENGTH_BOUNDS.min}
+                    max={PASSWORD_LENGTH_BOUNDS.max}
+                    value={lengthDraft ?? security.passwordMinLength}
+                    onChange={updatePasswordLength}
+                    onBlur={settlePasswordLength}
+                  />
+                </Field>
+                <Field label={t("admin.parametres.memberAccounts.idleMinutes")}>
                   <Select
-                    value={security.passwordPolicy}
-                    onChange={updateSecurityField("passwordPolicy")}
-                    options={withLabels(passwordPolicyOptions)}
+                    value={String(security.memberIdleMinutes)}
+                    onChange={(event) => updateSecurityValue("memberIdleMinutes", Number(event.target.value))}
+                    options={MEMBER_IDLE_MINUTES_OPTIONS.map((minutes) => ({
+                      value: String(minutes),
+                      label: t("admin.parametres.memberAccounts.idleOption", { count: minutes }),
+                    }))}
                   />
                 </Field>
               </div>
+              <p className="-mt-2 text-xs text-gray-400">
+                {t("admin.parametres.memberAccounts.passwordHint", { min: PASSWORD_LENGTH_BOUNDS.min, max: PASSWORD_LENGTH_BOUNDS.max })}
+              </p>
+
+              {[
+                ["passwordRequireUpper", "requireUpper"],
+                ["passwordRequireDigit", "requireDigit"],
+                ["passwordRequireSymbol", "requireSymbol"],
+              ].map(([field, labelKey]) => (
+                <div key={field} className="flex items-center justify-between gap-4 rounded-xl bg-gray-50 px-4 py-3">
+                  <p className="text-sm font-semibold text-gray-800">
+                    {t(`admin.parametres.memberAccounts.${labelKey}`)}
+                  </p>
+                  <Toggle
+                    checked={security[field]}
+                    onChange={(value) => updateSecurityValue(field, value)}
+                    label={t(`admin.parametres.memberAccounts.${labelKey}`)}
+                  />
+                </div>
+              ))}
             </div>
           </SettingsSection>
 
@@ -254,6 +317,7 @@ export default function Parametres() {
             Icon={BellIcon}
             title={t("admin.parametres.notifications.title")}
             description={t("admin.parametres.notifications.description")}
+            badge={t("admin.parametres.memberBadge")}
           >
             <div className="flex items-center justify-between gap-4 rounded-xl bg-gray-50 px-4 py-3">
               <p className="text-sm font-semibold text-gray-800">

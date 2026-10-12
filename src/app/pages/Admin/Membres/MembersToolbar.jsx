@@ -69,16 +69,14 @@ export function MembersToolbar({
           {t("admin.membres.export")}
         </button>
 
-        {onAddMember && (
-          <button
-            type="button"
-            onClick={onAddMember}
-            className="flex items-center gap-2 rounded-lg bg-[#52A2DF] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            <UserPlusIcon aria-hidden="true" className="size-4" />
-            {t("admin.membres.addMember")}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onAddMember}
+          className="flex items-center gap-2 rounded-lg bg-[#52A2DF] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        >
+          <UserPlusIcon aria-hidden="true" className="size-4" />
+          {t("admin.membres.addMember")}
+        </button>
       </div>
     </div>
   );

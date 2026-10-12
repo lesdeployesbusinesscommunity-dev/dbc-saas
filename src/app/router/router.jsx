@@ -8,6 +8,7 @@ import { SplashScreen } from "components/template/SplashScreen";
 import { protectedRoutes } from "./protected";
 import { publicRoutes } from "./public";
 import { adminRoutes } from "./admin";
+import { membreRoutes } from "./membre";
 
 // ----------------------------------------------------------------------
 
@@ -22,7 +23,7 @@ const router = createBrowserRouter([
     Component: Root,
     hydrateFallbackElement: <SplashScreen />,
     ErrorBoundary: RootErrorBoundary,
-    children: [protectedRoutes, publicRoutes, adminRoutes],
+    children: [protectedRoutes, publicRoutes, adminRoutes, membreRoutes],
   },
 ]);
 

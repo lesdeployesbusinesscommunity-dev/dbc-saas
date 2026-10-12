@@ -65,16 +65,14 @@ export function LevelTabs({ activeLevel, onSelect, onAddAnyLevel }) {
         })}
       </div>
 
-      {onAddAnyLevel && (
-        <button
-          type="button"
-          onClick={onAddAnyLevel}
-          className="flex shrink-0 items-center gap-2 rounded-lg bg-[#52A2DF] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        >
-          <UserPlusIcon aria-hidden="true" className="size-4" />
-          {t("admin.membres.addNewMember")}
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={onAddAnyLevel}
+        className="flex shrink-0 items-center gap-2 rounded-lg bg-[#52A2DF] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+      >
+        <UserPlusIcon aria-hidden="true" className="size-4" />
+        {t("admin.membres.addNewMember")}
+      </button>
     </div>
   );
 }

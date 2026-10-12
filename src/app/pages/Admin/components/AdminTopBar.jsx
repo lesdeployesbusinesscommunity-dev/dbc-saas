@@ -1,11 +1,12 @@
 // Import Dependencies
-import { BellIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
 import { LanguageToggle } from "components/shared/LanguageToggle";
+import { ProfileMenu } from "app/pages/Auth/ProfileMenu";
+import { NotificationsBell } from "app/pages/Notifications/NotificationsBell";
 import { currentAdmin } from "../currentAdmin";
-import { Avatar } from "./Avatar";
 
 // ----------------------------------------------------------------------
 
@@ -30,6 +31,10 @@ import { Avatar } from "./Avatar";
 // qui n'a aucune liste d'éléments nommés) omet ces props : le champ ne
 // s'affiche alors pas du tout, plutôt que d'afficher une recherche qui ne
 // ferait rien.
+//
+// Le profil admin (photo + nom, tout à droite) ouvre un menu : Paramètres,
+// "Passer en mode membre" (un admin est d'abord un membre) et "Se
+// déconnecter", avec confirmation (voir Auth/ProfileMenu.jsx).
 export function AdminTopBar({ title, searchValue, onSearchChange, searchPlaceholder }) {
   const { t } = useTranslation();
   const hasSearch = typeof onSearchChange === "function";
@@ -61,18 +66,15 @@ export function AdminTopBar({ title, searchValue, onSearchChange, searchPlacehol
 
       <div className="flex items-center gap-3">
         <LanguageToggle />
-        <button
-          type="button"
-          aria-label={t("admin.topbar.notifications")}
-          className="flex size-10 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm transition-colors hover:text-[#EE7115]"
-        >
-          <BellIcon aria-hidden="true" className="size-5" />
-        </button>
-        <div className="text-right leading-tight">
-          <p className="text-sm font-bold text-gray-900">{currentAdmin.name}</p>
-          <p className="text-xs text-gray-500">{currentAdmin.role}</p>
-        </div>
-        <Avatar name={currentAdmin.name} src={currentAdmin.photo} size="size-11" />
+        <NotificationsBell space="admin" />
+        <ProfileMenu
+          ns="admin"
+          name={currentAdmin.name}
+          subtitle={currentAdmin.role}
+          photo={currentAdmin.photo}
+          settingsTo="/admin/parametres"
+          switchTo={{ role: "membre", to: "/membre/dashboard" }}
+        />
       </div>
     </div>
   );

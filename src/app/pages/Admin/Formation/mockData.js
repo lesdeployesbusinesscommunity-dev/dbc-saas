@@ -1,3 +1,5 @@
+import { withDemoAssessments } from "./demoAssessments";
+
 // ----------------------------------------------------------------------
 // Données de démonstration pour "Gestion des formations". Comme pour le
 // reste de l'admin, tout est en local en attendant les vrais endpoints
@@ -15,18 +17,28 @@
 // "poster" réutilise en attendant de vraies affiches, les mêmes visuels
 // déjà présents dans /public (thème "Former") qu'ailleurs dans l'admin.
 // "progress" (0-100) alimente la barre d'avancement en bas de chaque
-// carte (voir TrainingCard.jsx). "objectives" alimente la fiche détaillée
-// ouverte au clic sur une carte (voir TrainingDetailsModal.jsx) :
+// carte (voir TrainingCard.jsx) — UNIQUEMENT tant qu'aucune vidéo n'a
+// encore été ajoutée à un chapitre de cette formation (voir
+// getTrainingProgress ci-dessous). "objectives" alimente la fiche
+// détaillée ouverte au clic sur une carte (voir TrainingDetailsModal.jsx) :
 // "global" = objectifs généraux de la formation, "chapters" = un
 // objectif par chapitre, "outcomes" = ce que le membre saura faire à
 // l'issue de la formation.
 //
+// "videos" (par chapitre, vide au départ dans ce catalogue de démo) :
+// chaque vidéo importée depuis la fiche détaillée (voir
+// TrainingDetailsModal.jsx) y est ajoutée à la position choisie par
+// l'admin, sous la forme { id, title, url, watched }. Tant qu'il n'existe
+// aucun vrai endpoint d'upload, "url" pointe vers un fichier local
+// (URL.createObjectURL) valable uniquement pour la session en cours — voir
+// Formation/index.jsx (handleAddVideo).
+//
 // "initial" (plutôt que "trainingsByLevel" directement) car Formation/
 // index.jsx en garde maintenant sa propre copie en état local, pour que
-// "Ajouter une formation" (voir AddTrainingModal.jsx) puisse l'enrichir
-// sans toucher ce fichier — comme pour initialMembersByLevel ailleurs
-// dans l'admin.
-export const initialTrainingsByLevel = {
+// "Ajouter une formation" (voir AddTrainingModal.jsx) et l'ajout de
+// vidéos puissent l'enrichir sans toucher ce fichier — comme pour
+// initialMembersByLevel ailleurs dans l'admin.
+const baseTrainingsByLevel = {
   starter: [
     {
       id: "f1",
@@ -49,6 +61,7 @@ export const initialTrainingsByLevel = {
               "Retracer la genèse du mouvement",
               "Identifier les 4 piliers de la gouvernance",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 2 — Le système de niveaux",
@@ -56,6 +69,7 @@ export const initialTrainingsByLevel = {
               "Distinguer les 8 niveaux et leurs cagnottes",
               "Comprendre la logique de progression",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 3 — Cotisations et tontine",
@@ -63,6 +77,7 @@ export const initialTrainingsByLevel = {
               "Suivre le cycle des 12 tours",
               "Utiliser le tableau de bord membre",
             ],
+            videos: [],
           },
         ],
         outcomes: [
@@ -92,6 +107,7 @@ export const initialTrainingsByLevel = {
               "Identifier des profils de prospects pertinents",
               "Construire un premier contact efficace",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 2 — Argumentaire",
@@ -99,6 +115,7 @@ export const initialTrainingsByLevel = {
               "Présenter la valeur de la DBC en 2 minutes",
               "Répondre aux objections courantes",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 3 — Closing",
@@ -106,6 +123,7 @@ export const initialTrainingsByLevel = {
               "Accompagner l'inscription jusqu'au bout",
               "Assurer le suivi post-inscription",
             ],
+            videos: [],
           },
         ],
         outcomes: [
@@ -137,6 +155,7 @@ export const initialTrainingsByLevel = {
               "Identifier son style de leadership",
               "Clarifier sa vision personnelle",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 2 — Communiquer et motiver",
@@ -144,6 +163,7 @@ export const initialTrainingsByLevel = {
               "Donner un feedback constructif",
               "Animer une réunion d'équipe",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 3 — Déléguer et faire grandir",
@@ -151,6 +171,7 @@ export const initialTrainingsByLevel = {
               "Répartir les responsabilités selon les forces de chacun",
               "Accompagner la montée en niveau de ses filleuls",
             ],
+            videos: [],
           },
         ],
         outcomes: [
@@ -180,6 +201,7 @@ export const initialTrainingsByLevel = {
               "Préparer une négociation en amont",
               "Trouver un terrain d'accord équilibré",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 2 — Gestion des objections complexes",
@@ -187,6 +209,7 @@ export const initialTrainingsByLevel = {
               "Désamorcer le scepticisme",
               "Rassurer sur la sécurité financière",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 3 — Fidélisation",
@@ -194,6 +217,7 @@ export const initialTrainingsByLevel = {
               "Maintenir le lien après l'inscription",
               "Encourager la progression de niveau",
             ],
+            videos: [],
           },
         ],
         outcomes: [
@@ -225,6 +249,7 @@ export const initialTrainingsByLevel = {
               "Distinguer les 4 pôles de la gouvernance DBC",
               "Comprendre le rôle de chaque instance",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 2 — Prise de décision",
@@ -232,6 +257,7 @@ export const initialTrainingsByLevel = {
               "Participer à une décision collégiale",
               "Respecter les principes de transparence",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 3 — Redevabilité",
@@ -239,6 +265,7 @@ export const initialTrainingsByLevel = {
               "Rendre compte de ses responsabilités",
               "Assurer un suivi rigoureux des engagements",
             ],
+            videos: [],
           },
         ],
         outcomes: [
@@ -270,6 +297,7 @@ export const initialTrainingsByLevel = {
               "Définir une ligne éditoriale claire",
               "Planifier un calendrier de publication",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 2 — Réseaux sociaux",
@@ -277,6 +305,7 @@ export const initialTrainingsByLevel = {
               "Optimiser un profil professionnel",
               "Utiliser les formats les plus engageants",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 3 — Mesure et optimisation",
@@ -284,6 +313,7 @@ export const initialTrainingsByLevel = {
               "Suivre les indicateurs clés de performance",
               "Ajuster sa stratégie selon les résultats",
             ],
+            videos: [],
           },
         ],
         outcomes: [
@@ -315,6 +345,7 @@ export const initialTrainingsByLevel = {
               "Analyser un tableau de bord financier",
               "Interpréter les cycles de cotisation",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 2 — Planification",
@@ -322,6 +353,7 @@ export const initialTrainingsByLevel = {
               "Établir un plan de trésorerie personnel",
               "Anticiper les échéances de tontine",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 3 — Investissement",
@@ -329,6 +361,7 @@ export const initialTrainingsByLevel = {
               "Identifier des opportunités de réinvestissement",
               "Évaluer le risque d'un projet",
             ],
+            videos: [],
           },
         ],
         outcomes: [
@@ -360,6 +393,7 @@ export const initialTrainingsByLevel = {
               "Identifier ses forces et axes de progrès",
               "Clarifier ses valeurs personnelles",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 2 — Techniques de coaching",
@@ -367,6 +401,7 @@ export const initialTrainingsByLevel = {
               "Poser des questions puissantes",
               "Accompagner sans imposer",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 3 — Accompagnement du réseau",
@@ -374,6 +409,7 @@ export const initialTrainingsByLevel = {
               "Structurer un plan de développement pour un filleul",
               "Célébrer les progrès de son équipe",
             ],
+            videos: [],
           },
         ],
         outcomes: [
@@ -405,6 +441,7 @@ export const initialTrainingsByLevel = {
               "Cartographier les zones à fort potentiel",
               "Évaluer la faisabilité d'une nouvelle antenne",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 2 — Implantation",
@@ -412,6 +449,7 @@ export const initialTrainingsByLevel = {
               "Structurer le lancement d'une antenne diaspora",
               "Recruter et former les premiers relais locaux",
             ],
+            videos: [],
           },
           {
             title: "Chapitre 3 — Pilotage à distance",
@@ -419,6 +457,7 @@ export const initialTrainingsByLevel = {
               "Mettre en place un suivi à distance efficace",
               "Coordonner plusieurs antennes internationales",
             ],
+            videos: [],
           },
         ],
         outcomes: [
@@ -434,3 +473,27 @@ export const initialTrainingsByLevel = {
   // programmer tant qu'il n'y a personne pour la suivre.
   legende: [],
 };
+
+// "Quiz de pré-requis" (training.prerequisiteQuiz, à l'entrée de la
+// formation) et, par chapitre, "documents" (supports PDF téléchargeables) et
+// "quizzes" (quiz de validation) : voir demoAssessments.js pour leur forme
+// et les formations de démonstration qui en ont. Les vidéos, elles, ne sont
+// JAMAIS téléchargeables (lecture dans la plateforme uniquement) ; les PDF
+// le sont. Voir Membre/Formation/quizUtils.js pour la forme d'un quiz.
+export const initialTrainingsByLevel = withDemoAssessments(baseTrainingsByLevel);
+
+// Avancement d'une formation, calculé à partir des vidéos regardées dans
+// ses chapitres plutôt que codé en dur, dès qu'il en existe au moins une —
+// c'est la logique demandée : "en fonction des vidéos que tu regardes ça
+// définit le pourcentage d'avancement". Tant qu'aucune vidéo n'a encore été
+// importée dans un chapitre (tout le catalogue de démo actuel), on retombe
+// sur l'ancien nombre statique "progress" pour ne pas afficher 0% à tort
+// sur des formations existantes qui n'ont simplement pas encore de vidéos.
+export function getTrainingProgress(training) {
+  const allVideos = (training.objectives?.chapters ?? []).flatMap(
+    (chapter) => chapter.videos ?? [],
+  );
+  if (allVideos.length === 0) return training.progress ?? 0;
+  const watchedCount = allVideos.filter((video) => video.watched).length;
+  return Math.round((watchedCount / allVideos.length) * 100);
+}

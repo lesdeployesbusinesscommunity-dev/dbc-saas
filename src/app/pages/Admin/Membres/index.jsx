@@ -1,7 +1,6 @@
 // Import Dependencies
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowPathIcon, ExclamationCircleIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
 import { Page } from "components/shared/Page";
@@ -11,39 +10,58 @@ import { MembersFolder } from "./MembersFolder";
 import { MembersToolbar } from "./MembersToolbar";
 import { MembersTable } from "./MembersTable";
 import { Pagination } from "./Pagination";
+import { AddMemberModal } from "./AddMemberModal";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { MemberDetailsCard } from "./MemberDetailsCard";
 import { TopMembers } from "./TopMembers";
-import { levelNumbers } from "./mockData";
-import { toViewMember } from "./viewModel";
+import { initialMembersByLevel, levelNumbers } from "./mockData";
 import { normalizeSearchText } from "../searchUtils";
-import { listerMembres } from "api/membres";
 
 // ----------------------------------------------------------------------
 
 const PAGE_SIZE = 6;
 
-// Exporte la liste affichée en CSV, tout en local (pas d'appel réseau) — à
-// remplacer par un vrai export serveur si le volume de membres grandit. Le
-// niveau est repris par ligne (member.levelKey) plutôt que fixé une fois
-// pour toutes, pour rester correct aussi bien pour un dossier que pour la
-// vue "Tous les niveaux". "t" est passé par l'appelant pour que les
-// en-têtes et les noms de niveau restent dans la langue active.
+// Prochain matricule libre d'un niveau : le plus grand numéro déjà utilisé
+// à ce niveau + 1 (et non "nombre de membres + 1", qui retomberait sur un
+// matricule déjà pris après une suppression). Sert de PROPOSITION dans le
+// formulaire d'ajout (voir AddMemberModal.jsx), que l'admin peut modifier,
+// et de valeur de secours si aucun matricule n'est fourni.
+function suggestMatricule(levelKey, membersByLevel) {
+  const prefix = `DBC-${levelNumbers[levelKey]}-`;
+  const used = Object.values(membersByLevel)
+    .flat()
+    .map((member) => member.matricule)
+    .filter((matricule) => matricule?.startsWith(prefix))
+    .map((matricule) => parseInt(matricule.slice(prefix.length), 10))
+    .filter(Number.isFinite);
+  const next = (used.length ? Math.max(...used) : 0) + 1;
+  return `${prefix}${String(next).padStart(4, "0")}`;
+}
+
+// Exporte la liste affichée en CSV, tout en local (pas d'appel réseau) —
+// à remplacer par un vrai export serveur si le volume de membres grandit.
+// Le niveau est repris par ligne (member.levelKey) plutôt que fixé une
+// fois pour toutes, pour rester correct aussi bien pour un dossier que
+// pour la vue "Tous les niveaux". "t" est passé par l'appelant pour que
+// les en-têtes et les noms de niveau restent dans la langue active.
 function exportToCsv(members, fileLabel, t) {
   const headers = [
     t("admin.membres.table.columns.matricule"),
     t("admin.membres.table.columns.name"),
+    t("admin.membres.table.columns.role"),
     t("admin.membres.table.columns.domain"),
     t("admin.membres.table.columns.level"),
     t("admin.membres.table.columns.city"),
     t("admin.membres.table.columns.country"),
     t("admin.membres.table.columns.sponsor"),
     t("admin.membres.modal.sponsorMatricule"),
+    t("admin.membres.table.columns.coins"),
     t("admin.membres.table.columns.status"),
   ];
   const rows = members.map((m) => [
-    m.matricule, m.name, m.domain,
+    m.matricule, m.name, m.role, m.domain,
     m.levelKey ? t(`simulateur.levels.${m.levelKey}.name`) : "",
-    m.city, m.country, m.sponsorName ?? "", m.sponsorMatricule ?? "", m.status,
+    m.city, m.country, m.sponsorName ?? "", m.sponsorMatricule ?? "", m.coins, m.status,
   ]);
   const csv = [headers, ...rows]
     .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
@@ -60,45 +78,43 @@ function exportToCsv(members, fileLabel, t) {
 
 // Page "Gestion des membres" (/admin/membres) : un dossier par niveau DBC
 // (étiquettes en haut, comme des onglets de classeur), chacun contenant le
-// tableau des membres validés (GET /membres, admin). Lecture seule pour
-// l'instant : créer/modifier un membre doit passer par une demande
-// d'inscription validée (voir Admin/Membres — page "Demandes"), pas par une
-// création directe ici, et désactiver/supprimer n'a pas de contrepartie
-// dans le domaine Membre (un seul statut possible : "actif") — voir
-// RowActionsMenu, LevelTabs et MembersToolbar pour le masquage de ces
-// actions plutôt que de les simuler.
+// tableau des membres de ce niveau. Tout est géré en local pour l'instant
+// (ajout / mise à jour / désactivation) — voir mockData.js pour le détail
+// de ce qui reste à brancher au backend.
 export default function Membres() {
   const { t } = useTranslation();
-  const [members, setMembers] = useState([]);
-  const [status, setStatus] = useState("loading"); // loading | ready | error
+  const [membersByLevel, setMembersByLevel] = useState(initialMembersByLevel);
+  // "all" affiche tous les niveaux combinés ; sinon c'est une clé de
+  // "levels" (app/pages/Simulateur/data). On démarre sur "all" — c'est la
+  // vue la plus utile par défaut sur un tableau d'administration standard.
   const [activeLevel, setActiveLevel] = useState("all");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("aucun");
   const [page, setPage] = useState(1);
-  const [viewMember, setViewMember] = useState(null);
 
-  const charger = useCallback(async () => {
-    setStatus("loading");
-    try {
-      const donnees = await listerMembres();
-      setMembers(donnees.map(toViewMember));
-      setStatus("ready");
-    } catch {
-      setStatus("error");
-    }
-  }, []);
-
-  useEffect(() => {
-    charger();
-  }, [charger]);
+  const [modal, setModal] = useState(null); // { mode, member, lockLevel, defaultLevel } | null
+  const [viewMember, setViewMember] = useState(null); // membre affiché dans la fiche "Voir"
+  const [confirmAction, setConfirmAction] = useState(null); // { type: "update"|"toggle"|"delete", member } | null
 
   const list = useMemo(() => {
-    let arr = activeLevel === "all" ? members : members.filter((m) => m.levelKey === activeLevel);
+    // "levelKey" est rattaché ici (plutôt que stocké sur chaque membre) car
+    // la liste vient du dictionnaire "membersByLevel" indexé par niveau —
+    // utile pour pré-remplir le formulaire de modification, et pour
+    // afficher le bon niveau par ligne dans la vue "Tous les niveaux".
+    let arr =
+      activeLevel === "all"
+        ? Object.entries(membersByLevel).flatMap(([levelKey, entries]) =>
+            entries.map((member) => ({ ...member, levelKey })),
+          )
+        : (membersByLevel[activeLevel] ?? []).map((member) => ({
+            ...member,
+            levelKey: activeLevel,
+          }));
 
     if (search.trim()) {
-      // normalizeSearchText tolère accents/casse/tirets des deux côtés (voir
-      // searchUtils.js) — un clavier réglé en anglais retrouve "Aïcha" en
-      // tapant "aicha".
+      // normalizeSearchText tolère accents/casse/tirets des deux côtés
+      // (voir searchUtils.js) — un clavier réglé en anglais retrouve
+      // "Aïcha" en tapant "aicha".
       const query = normalizeSearchText(search);
       arr = arr.filter(
         (member) =>
@@ -107,25 +123,35 @@ export default function Membres() {
       );
     }
 
-    arr = [...arr];
     switch (filter) {
       case "aucun":
         break;
       case "recent":
-        arr.sort((a, b) => new Date(b.joinedAt ?? 0) - new Date(a.joinedAt ?? 0));
+        arr.sort((a, b) => new Date(b.joinedAt) - new Date(a.joinedAt));
         break;
       case "ville":
-        arr.sort((a, b) => (a.city ?? "").localeCompare(b.city ?? ""));
+        arr.sort((a, b) => a.city.localeCompare(b.city));
         break;
       case "pays":
-        arr.sort((a, b) => (a.country ?? "").localeCompare(b.country ?? ""));
+        arr.sort((a, b) => a.country.localeCompare(b.country));
         break;
       default:
-        arr.sort((a, b) => new Date(a.joinedAt ?? 0) - new Date(b.joinedAt ?? 0));
+        arr.sort((a, b) => new Date(a.joinedAt) - new Date(b.joinedAt));
     }
 
     return arr;
-  }, [members, activeLevel, search, filter]);
+  }, [membersByLevel, activeLevel, search, filter]);
+
+  // Tous les membres, tous niveaux confondus, indépendamment du filtre/
+  // niveau ouvert dans le tableau — sert au "Top des membres" affiché en
+  // dessous, qui doit rester stable même quand on change de dossier.
+  const allMembers = useMemo(
+    () =>
+      Object.entries(membersByLevel).flatMap(([levelKey, entries]) =>
+        entries.map((member) => ({ ...member, levelKey })),
+      ),
+    [membersByLevel],
+  );
 
   // Revenir à la première page dès que le contenu affiché change (niveau,
   // recherche ou filtre) pour ne pas rester bloqué sur une page vide.
@@ -136,8 +162,88 @@ export default function Membres() {
   const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
   const paginatedList = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  // "Ajouter un membre" (dans la barre d'outils) se verrouille sur le
+  // niveau du dossier ouvert — sauf en vue "Tous les niveaux", où il se
+  // comporte comme le bouton global (niveau libre).
+  const openAddForLevel = () =>
+    setModal(
+      activeLevel === "all" ? { mode: "add" } : { mode: "add", lockLevel: activeLevel },
+    );
+  const openAddAnyLevel = () =>
+    setModal({ mode: "add", defaultLevel: activeLevel === "all" ? undefined : activeLevel });
+  const closeModal = () => setModal(null);
+
+  // "Voir" ouvre directement la fiche détaillée du membre — pas besoin de
+  // confirmation puisque c'est juste de la lecture (voir MemberDetailsCard).
   const openView = (member) => setViewMember(member);
   const closeView = () => setViewMember(null);
+
+  // "Mettre à jour", "Désactiver"/"Réactiver" et "Supprimer" passent tous
+  // par une confirmation avant de s'exécuter (voir ConfirmDialog ci-dessous
+  // et son rendu dans le JSX) — demandé explicitement par l'utilisateur.
+  const askUpdate = (member) => setConfirmAction({ type: "update", member });
+  const askToggleStatus = (member) => setConfirmAction({ type: "toggle", member });
+  const askDelete = (member) => setConfirmAction({ type: "delete", member });
+  const cancelConfirm = () => setConfirmAction(null);
+
+  const runConfirmedAction = () => {
+    if (!confirmAction) return;
+    const { type, member } = confirmAction;
+
+    if (type === "update") {
+      setModal({ mode: "edit", member, defaultLevel: member.levelKey });
+    } else if (type === "toggle") {
+      setMembersByLevel((prev) => ({
+        ...prev,
+        [member.levelKey]: prev[member.levelKey].map((entry) =>
+          entry.id === member.id
+            ? { ...entry, status: entry.status === "desactive" ? "actif" : "desactive" }
+            : entry,
+        ),
+      }));
+    } else if (type === "delete") {
+      setMembersByLevel((prev) => ({
+        ...prev,
+        [member.levelKey]: prev[member.levelKey].filter((entry) => entry.id !== member.id),
+      }));
+    }
+
+    setConfirmAction(null);
+  };
+
+  const handleSubmit = (levelKey, form) => {
+    if (modal?.mode === "edit" && modal.member) {
+      const memberId = modal.member.id;
+      // Le niveau a pu changer dans le formulaire : on retire le membre de
+      // son ancien niveau si besoin, puis on le place dans le nouveau.
+      setMembersByLevel((prev) => {
+        const withoutMember = Object.fromEntries(
+          Object.entries(prev).map(([key, entries]) => [
+            key,
+            entries.filter((entry) => entry.id !== memberId),
+          ]),
+        );
+        const updated = { ...modal.member, ...form, levelKey };
+        return {
+          ...withoutMember,
+          [levelKey]: [...(withoutMember[levelKey] ?? []), updated],
+        };
+      });
+    } else {
+      setMembersByLevel((prev) => {
+        const existing = prev[levelKey] ?? [];
+        const newMember = {
+          id: `m-${Date.now()}`,
+          matricule: suggestMatricule(levelKey, prev),
+          levelKey,
+          ...form,
+          joinedAt: new Date().toISOString().slice(0, 10),
+        };
+        return { ...prev, [levelKey]: [...existing, newMember] };
+      });
+    }
+    closeModal();
+  };
 
   const activeLevelName = activeLevel === "all" ? null : t(`simulateur.levels.${activeLevel}.name`);
 
@@ -164,7 +270,11 @@ export default function Membres() {
           searchPlaceholder={t("admin.membres.searchPlaceholder")}
         />
 
-        <LevelTabs activeLevel={activeLevel} onSelect={setActiveLevel} />
+        <LevelTabs
+          activeLevel={activeLevel}
+          onSelect={setActiveLevel}
+          onAddAnyLevel={openAddAnyLevel}
+        />
 
         <MembersFolder
           label={
@@ -178,6 +288,7 @@ export default function Membres() {
             onSearchChange={setSearch}
             filter={filter}
             onFilterChange={setFilter}
+            onAddMember={openAddForLevel}
             onExport={() =>
               exportToCsv(
                 list,
@@ -187,31 +298,66 @@ export default function Membres() {
             }
           />
 
-          {status === "loading" && (
-            <div className="mt-10 flex items-center justify-center text-gray-400">
-              <ArrowPathIcon aria-hidden="true" className="size-6 animate-spin" />
-            </div>
-          )}
+          <MembersTable
+            members={paginatedList}
+            onUpdate={askUpdate}
+            onView={openView}
+            onToggleStatus={askToggleStatus}
+            onDelete={askDelete}
+          />
 
-          {status === "error" && (
-            <div className="mt-6 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-              <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
-              Impossible de charger les membres pour le moment.
-            </div>
-          )}
-
-          {status === "ready" && (
-            <>
-              <MembersTable members={paginatedList} onView={openView} />
-              <Pagination page={page} pageCount={pageCount} onChange={setPage} />
-            </>
-          )}
+          <Pagination page={page} pageCount={pageCount} onChange={setPage} />
         </MembersFolder>
 
-        {status === "ready" && <TopMembers members={members} />}
+        <TopMembers members={allMembers} />
       </div>
 
+      <AddMemberModal
+        open={!!modal}
+        mode={modal?.mode ?? "add"}
+        member={modal?.member}
+        lockLevel={modal?.lockLevel}
+        defaultLevel={modal?.defaultLevel}
+        onClose={closeModal}
+        onSubmit={handleSubmit}
+        suggestMatricule={(levelKey) => suggestMatricule(levelKey, membersByLevel)}
+        existingMatricules={allMembers.map((member) => member.matricule)}
+      />
+
       <MemberDetailsCard member={viewMember} open={!!viewMember} onClose={closeView} />
+
+      {confirmAction &&
+        (() => {
+          // Clé de traduction (admin.membres.confirm.*) selon le type
+          // d'action et, pour "toggle", l'état actuel du membre.
+          const confirmKey =
+            confirmAction.type === "update"
+              ? "update"
+              : confirmAction.type === "delete"
+                ? "delete"
+                : confirmAction.member.status === "desactive"
+                  ? "reactivate"
+                  : "deactivate";
+
+          return (
+            <ConfirmDialog
+              open={!!confirmAction}
+              title={t(`admin.membres.confirm.${confirmKey}.title`)}
+              description={t(`admin.membres.confirm.${confirmKey}.description`, {
+                name: confirmAction.member.name,
+              })}
+              confirmLabel={t(`admin.membres.confirm.${confirmKey}.confirmLabel`)}
+              tone={
+                confirmAction.type === "delete" ||
+                (confirmAction.type === "toggle" && confirmAction.member.status !== "desactive")
+                  ? "danger"
+                  : "default"
+              }
+              onConfirm={runConfirmedAction}
+              onCancel={cancelConfirm}
+            />
+          );
+        })()}
     </Page>
   );
 }

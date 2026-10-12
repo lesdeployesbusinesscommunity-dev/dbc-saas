@@ -25,10 +25,20 @@ export const initialTontineSettings = {
   reminderDaysBefore: 3,
 };
 
+// "twoFactorEnabled" et "sessionTimeout" concernent les administrateurs.
+// Les cinq suivants concernent TOUS les comptes, donc les membres (voir
+// Parametres/platformSettings.js, lu par Paramètres > Sécurité côté
+// membre et par la déconnexion automatique de l'espace membre) :
+// longueur minimale du mot de passe, majuscule / chiffre / symbole exigés,
+// et minutes d'inactivité d'un membre avant déconnexion automatique.
 export const initialSecuritySettings = {
   twoFactorEnabled: false,
   sessionTimeout: "30",
-  passwordPolicy: "standard",
+  passwordMinLength: 8,
+  passwordRequireUpper: false,
+  passwordRequireDigit: true,
+  passwordRequireSymbol: false,
+  memberIdleMinutes: 5,
 };
 
 export const initialBackupSettings = {
@@ -57,11 +67,16 @@ export const notificationTypes = [
   { key: "rappelFormation", labelKey: "admin.parametres.notifications.types.rappelFormation" },
   { key: "changementNiveau", labelKey: "admin.parametres.notifications.types.changementNiveau" },
   { key: "annonceGouvernance", labelKey: "admin.parametres.notifications.types.annonceGouvernance" },
+  { key: "rencontre", labelKey: "admin.parametres.notifications.types.rencontre" },
+  { key: "coinsGagnes", labelKey: "admin.parametres.notifications.types.coinsGagnes" },
+  { key: "nouveauFilleul", labelKey: "admin.parametres.notifications.types.nouveauFilleul" },
 ];
 
 // Qui reçoit quoi par défaut — un mélange volontairement varié (pas tout
 // coché, pas tout décoché) pour que la matrice soit lisible dès l'ouverture
-// de la page.
+// de la page. La colonne "Membres" décide de ce qui apparaît dans les
+// notifications de l'espace membre, la colonne "Administrateurs" de ce qui
+// apparaît dans celles de l'admin (voir Notifications/feeds.js).
 export const initialNotificationMatrix = {
   cotisationRecue: { membres: true, directeurs: false, leaders: false, admins: true },
   rappelEcheance: { membres: true, directeurs: false, leaders: false, admins: false },
@@ -71,6 +86,9 @@ export const initialNotificationMatrix = {
   rappelFormation: { membres: true, directeurs: false, leaders: false, admins: false },
   changementNiveau: { membres: true, directeurs: false, leaders: true, admins: false },
   annonceGouvernance: { membres: false, directeurs: true, leaders: true, admins: true },
+  rencontre: { membres: true, directeurs: false, leaders: true, admins: false },
+  coinsGagnes: { membres: true, directeurs: false, leaders: false, admins: false },
+  nouveauFilleul: { membres: true, directeurs: false, leaders: false, admins: false },
 };
 
 export const initialNotificationsEnabled = true;
@@ -108,10 +126,6 @@ export const sessionTimeoutOptions = [
   { value: "480", labelKey: "admin.parametres.security.sessionTimeoutOptions.480" },
 ];
 
-export const passwordPolicyOptions = [
-  { value: "standard", labelKey: "admin.parametres.security.passwordPolicyOptions.standard" },
-  { value: "renforcee", labelKey: "admin.parametres.security.passwordPolicyOptions.renforcee" },
-];
 
 export const exportFrequencyOptions = [
   { value: "daily", labelKey: "admin.parametres.backup.exportFrequencyOptions.daily" },

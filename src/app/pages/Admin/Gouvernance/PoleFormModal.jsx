@@ -22,14 +22,19 @@ const EMPTY_FORM = () => ({
 });
 
 // Formulaire d'ajout/modification d'un pôle de gouvernance : titre,
-// description, icône, et la liste de ses sièges, librement ajoutables/
-// retirables (POST/PATCH /gouvernance/poles — voir Gouvernance/index.jsx).
-// "Réseau des Leaders d'Antennes" et "Conseil des Légendes" ne sont pas
-// des pôles en base (dérivés des antennes et des membres réels) : ce
-// formulaire n'est jamais ouvert pour eux.
+// description, icône, et — seulement pour un pôle "à postes nommés"
+// (kind "assignable", le seul type qu'on peut créer soi-même) — la liste
+// de ses postes, librement ajoutables/retirables. Les 3 autres types de
+// pôles fournis avec le site (Direction Fondatrice, Réseau des Leaders
+// d'Antennes, Conseil des Légendes) gardent leur fonctionnement propre
+// (poste unique non réassignable, branches réelles, niveau automatique)
+// — les modifier ici ne touche que leur identité (titre/description/
+// icône), jamais leurs postes.
 export function PoleFormModal({ open, pole, onClose, onSubmit }) {
   const { t } = useTranslation();
   const [form, setForm] = useState(EMPTY_FORM);
+
+  const editableSeats = !pole || pole.kind === "assignable";
 
   useEffect(() => {
     if (!open) return;
@@ -38,7 +43,10 @@ export function PoleFormModal({ open, pole, onClose, onSubmit }) {
         title: getPoleTitle(pole, t),
         description: getPoleDescription(pole, t),
         iconKey: pole.iconKey ?? POLE_ICON_OPTIONS[0].key,
-        seats: pole.seats.map((seat) => ({ id: seat.id, title: getSeatTitle(seat, t) })),
+        seats:
+          pole.kind === "assignable"
+            ? pole.seats.map((seat) => ({ id: seat.id, title: getSeatTitle(seat, t) }))
+            : [],
       });
     } else {
       setForm(EMPTY_FORM());
@@ -64,24 +72,30 @@ export function PoleFormModal({ open, pole, onClose, onSubmit }) {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const seats = form.seats
-      .map((seat) => ({ ...seat, title: seat.title.trim() }))
-      .filter((seat) => seat.title)
-      .map((seat) => {
-        const existing = pole?.seats.find((s) => s.id === seat.id);
-        return {
-          id: existing?.id ?? `seat-${Date.now()}-${seatSeq++}`,
-          title: seat.title,
-          memberId: existing?.memberId ?? null,
-        };
-      });
-
-    onSubmit({
+    const payload = {
       title: form.title.trim(),
       description: form.description.trim(),
       iconKey: form.iconKey,
-      seats,
-    });
+    };
+
+    if (editableSeats) {
+      payload.kind = "assignable";
+      payload.seats = form.seats
+        .map((seat) => ({ ...seat, title: seat.title.trim() }))
+        .filter((seat) => seat.title)
+        .map((seat) => {
+          const existing = pole?.kind === "assignable"
+            ? pole.seats.find((s) => s.id === seat.id)
+            : undefined;
+          return {
+            id: existing?.id ?? `seat-${Date.now()}-${seatSeq++}`,
+            title: seat.title,
+            memberId: existing?.memberId ?? null,
+          };
+        });
+    }
+
+    onSubmit(payload);
   };
 
   return (
@@ -151,42 +165,48 @@ export function PoleFormModal({ open, pole, onClose, onSubmit }) {
                 </div>
               </div>
 
-              <div>
-                <p className="text-xs font-semibold text-gray-500">
-                  {t("admin.gouvernance.poleForm.seats")}
-                </p>
-                <div className="mt-1.5 space-y-2">
-                  {form.seats.map((seat, index) => (
-                    <div key={seat.id} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={seat.title}
-                        onChange={(event) => updateSeatTitle(index, event.target.value)}
-                        placeholder={t("admin.gouvernance.poleForm.seatPlaceholder")}
-                        className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#52A2DF]"
-                      />
-                      {form.seats.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeSeat(index)}
-                          aria-label={t("admin.gouvernance.poleForm.removeSeat")}
-                          className="flex size-8 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-red-500"
-                        >
-                          <XMarkIcon aria-hidden="true" className="size-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+              {editableSeats ? (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500">
+                    {t("admin.gouvernance.poleForm.seats")}
+                  </p>
+                  <div className="mt-1.5 space-y-2">
+                    {form.seats.map((seat, index) => (
+                      <div key={seat.id} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={seat.title}
+                          onChange={(event) => updateSeatTitle(index, event.target.value)}
+                          placeholder={t("admin.gouvernance.poleForm.seatPlaceholder")}
+                          className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#52A2DF]"
+                        />
+                        {form.seats.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeSeat(index)}
+                            aria-label={t("admin.gouvernance.poleForm.removeSeat")}
+                            className="flex size-8 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-red-500"
+                          >
+                            <XMarkIcon aria-hidden="true" className="size-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addSeat}
+                    className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#52A2DF] hover:underline"
+                  >
+                    <PlusIcon aria-hidden="true" className="size-3.5" />
+                    {t("admin.gouvernance.poleForm.addSeat")}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={addSeat}
-                  className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#52A2DF] hover:underline"
-                >
-                  <PlusIcon aria-hidden="true" className="size-3.5" />
-                  {t("admin.gouvernance.poleForm.addSeat")}
-                </button>
-              </div>
+              ) : (
+                <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-xs text-gray-500">
+                  {t("admin.gouvernance.poleForm.seatsManagedElsewhere")}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 border-t border-gray-100 p-6">

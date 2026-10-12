@@ -38,6 +38,16 @@ function formFromMember(member) {
   };
 }
 
+// Le matricule est ATTRIBUÉ ici à l'ajout d'un membre : le champ est
+// pré-rempli avec le prochain numéro libre du niveau choisi (proposé par
+// la page, voir Membres/index.jsx : "suggestMatricule"), que l'admin peut
+// garder ou remplacer à la main (ex: pour reprendre le matricule déjà
+// donné à un membre existant). Tant qu'il ne l'a pas modifié lui-même, il
+// suit le niveau choisi ; une fois modifié à la main, on n'y touche plus.
+// Un matricule déjà attribué à un autre membre est refusé (c'est ce que le
+// membre donne pour parrainer, il doit être unique). Après l'ajout, le
+// matricule n'est plus modifiable (champ grisé en "edit"/"view").
+//
 // Formulaire d'un membre, en 3 modes :
 // - "add" : nouveau membre. Le niveau est fixe (bouton "Ajouter un membre"
 //   à l'intérieur d'un dossier) ou libre (bouton global "Ajouter un
@@ -55,15 +65,26 @@ export function AddMemberModal({
   defaultLevel,
   onClose,
   onSubmit,
+  suggestMatricule,
+  existingMatricules = [],
 }) {
   const { t } = useTranslation();
   const [form, setForm] = useState(EMPTY_FORM);
   const [level, setLevel] = useState(lockLevel ?? defaultLevel ?? levels[0].key);
+  const [matricule, setMatricule] = useState("");
+  const [matriculeEdited, setMatriculeEdited] = useState(false);
 
+  // "suggestMatricule" est volontairement hors des dépendances : la page
+  // en recrée une nouvelle à chaque rendu, ce qui réinitialiserait le
+  // formulaire en pleine saisie. On ne la lit qu'à l'ouverture.
   useEffect(() => {
     if (!open) return;
+    const initialLevel = member?.levelKey ?? lockLevel ?? defaultLevel ?? levels[0].key;
     setForm(formFromMember(member));
-    setLevel(member?.levelKey ?? lockLevel ?? defaultLevel ?? levels[0].key);
+    setLevel(initialLevel);
+    setMatricule(member ? member.matricule : (suggestMatricule?.(initialLevel) ?? ""));
+    setMatriculeEdited(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, member, lockLevel, defaultLevel]);
 
   const readOnly = mode === "view";
@@ -83,10 +104,24 @@ export function AddMemberModal({
   const updateField = (field) => (event) =>
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
 
+  const handleLevelChange = (event) => {
+    const nextLevel = event.target.value;
+    setLevel(nextLevel);
+    if (mode === "add" && !matriculeEdited) setMatricule(suggestMatricule?.(nextLevel) ?? "");
+  };
+
+  const cleanMatricule = matricule.trim().toUpperCase();
+  const matriculeTaken =
+    mode === "add" &&
+    cleanMatricule !== "" &&
+    existingMatricules.some((existing) => existing?.toUpperCase() === cleanMatricule);
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (readOnly) return;
-    onSubmit(level, form);
+    if (readOnly || matriculeTaken) return;
+    // En ajout, le matricule saisi fait partie du membre créé ; en
+    // modification il reste celui d'origine (champ grisé).
+    onSubmit(level, mode === "add" ? { ...form, matricule: cleanMatricule } : form);
   };
 
   return (
@@ -110,6 +145,29 @@ export function AddMemberModal({
           </div>
 
           <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+            {mode === "add" && (
+              <label className="block text-xs font-semibold text-gray-500">
+                {t("admin.membres.modal.matricule")}
+                <input
+                  type="text"
+                  required
+                  value={matricule}
+                  onChange={(event) => {
+                    setMatricule(event.target.value);
+                    setMatriculeEdited(true);
+                  }}
+                  placeholder={t("admin.membres.modal.matriculePlaceholder")}
+                  aria-invalid={matriculeTaken}
+                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm font-semibold uppercase tracking-wide text-gray-800 outline-none ${
+                    matriculeTaken ? "border-red-400 focus:border-red-500" : "border-gray-200 focus:border-[#52A2DF]"
+                  }`}
+                />
+                <span className={`mt-1 block text-[11px] font-normal ${matriculeTaken ? "text-red-600" : "text-gray-400"}`}>
+                  {matriculeTaken ? t("admin.membres.modal.matriculeTaken") : t("admin.membres.modal.matriculeHint")}
+                </span>
+              </label>
+            )}
+
             {member && (
               <label className="block text-xs font-semibold text-gray-500">
                 {t("admin.membres.modal.matricule")}
@@ -145,7 +203,7 @@ export function AddMemberModal({
               ) : (
                 <select
                   value={level}
-                  onChange={(event) => setLevel(event.target.value)}
+                  onChange={handleLevelChange}
                   className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#52A2DF]"
                 >
                   {levels.map((lvl) => (
