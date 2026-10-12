@@ -1,30 +1,33 @@
-import { GroupeTontine } from './groupe-tontine';
+import { GroupeTontine, MEMBRES_MAXIMUM_PAR_VAGUE } from './groupe-tontine';
+
+function nouvelleVague(): GroupeTontine {
+  return GroupeTontine.creer({ niveauId: 1, numero: 1, cotisationMensuelle: 5_000, montantCagnotte: 55_000 }).valeur!;
+}
 
 describe('GroupeTontine (domaine)', () => {
-  it("s'ouvre avec le statut ouvert et le minimum par défaut (36)", () => {
-    const groupe = GroupeTontine.creer({ niveauId: 1 });
-    expect(groupe.statut).toBe('ouvert');
-    expect(groupe.minMembres).toBe(36);
+  it('démarre en cours, sans minimum de membres', () => {
+    const vague = nouvelleVague();
+    expect(vague.statut).toBe('en_cours');
+    expect(vague.peutAccueillir(0).succes).toBe(true);
   });
 
-  it('refuse de démarrer sous le quorum de membres', () => {
-    const groupe = GroupeTontine.creer({ niveauId: 1, minMembres: 36 });
-    const resultat = groupe.demarrer(35);
+  it('refuse une cotisation ou une cagnotte nulle', () => {
+    const resultat = GroupeTontine.creer({ niveauId: 1, numero: 1, cotisationMensuelle: 0, montantCagnotte: 55_000 });
     expect(resultat.succes).toBe(false);
-    expect(groupe.statut).toBe('ouvert');
   });
 
-  it('démarre dès que le quorum est atteint', () => {
-    const groupe = GroupeTontine.creer({ niveauId: 1, minMembres: 36 });
-    const resultat = groupe.demarrer(36);
-    expect(resultat.succes).toBe(true);
-    expect(groupe.statut).toBe('actif');
+  it('accepte jusqu’à 11 membres, pas un de plus', () => {
+    const vague = nouvelleVague();
+    expect(MEMBRES_MAXIMUM_PAR_VAGUE).toBe(11);
+    expect(vague.peutAccueillir(10).succes).toBe(true);
+    expect(vague.peutAccueillir(11).succes).toBe(false);
   });
 
-  it('refuse de redémarrer un groupe déjà actif ou clos', () => {
-    const groupe = GroupeTontine.creer({ niveauId: 1, minMembres: 36 });
-    groupe.demarrer(36);
-    const resultat = groupe.demarrer(36);
-    expect(resultat.succes).toBe(false);
+  it('n’accueille plus personne une fois terminée', () => {
+    const vague = nouvelleVague();
+    vague.terminer();
+    expect(vague.peutAccueillir(3).succes).toBe(false);
+    expect(vague.terminer().succes).toBe(false);
+    expect(vague.designerResponsable('m1').succes).toBe(false);
   });
 });
