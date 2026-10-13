@@ -18,6 +18,9 @@ export class MembreOrmEntity {
 
   // Profil (voir Membre.profil) — nullable : recopié de la demande d'inscription.
   @Column({ type: 'varchar', nullable: true })
+  titre: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
   prenom: string | null;
 
   @Column({ type: 'varchar', nullable: true })

@@ -12,6 +12,9 @@ import { levelNumbers, statusOptions } from "./mockData";
 
 const EMPTY_FORM = {
   name: "",
+  phone: "",
+  email: "",
+  temporaryPassword: "",
   role: "",
   domain: "",
   city: "",
@@ -38,15 +41,13 @@ function formFromMember(member) {
   };
 }
 
-// Le matricule est ATTRIBUÉ ici à l'ajout d'un membre : le champ est
-// pré-rempli avec le prochain numéro libre du niveau choisi (proposé par
-// la page, voir Membres/index.jsx : "suggestMatricule"), que l'admin peut
-// garder ou remplacer à la main (ex: pour reprendre le matricule déjà
-// donné à un membre existant). Tant qu'il ne l'a pas modifié lui-même, il
-// suit le niveau choisi ; une fois modifié à la main, on n'y touche plus.
-// Un matricule déjà attribué à un autre membre est refusé (c'est ce que le
-// membre donne pour parrainer, il doit être unique). Après l'ajout, le
-// matricule n'est plus modifiable (champ grisé en "edit"/"view").
+// Le matricule est attribué par le SERVEUR à la création (format DBC du
+// cahier des charges, unique) : à l'ajout, le champ l'annonce simplement ;
+// ensuite il n'est plus modifiable (champ grisé en "edit"/"view"). Pour
+// créer le compte, l'admin donne aussi le numéro WhatsApp du membre (qui sert
+// à se connecter) et un mot de passe temporaire à lui transmettre. Le parrain
+// se choisit par son matricule à l'ajout ; il ne change plus ensuite (c'est
+// sa place dans l'arbre de parrainage).
 //
 // Formulaire d'un membre, en 3 modes :
 // - "add" : nouveau membre. Le niveau est fixe (bouton "Ajouter un membre"
@@ -55,8 +56,9 @@ function formFromMember(member) {
 // - "edit" : "Mettre à jour" depuis le menu "..." d'une ligne.
 // - "view" : "Voir" depuis le même menu, tous les champs en lecture seule.
 //
-// Rien n'est envoyé au backend pour l'instant : "onSubmit" ne fait que
-// mettre à jour l'état local de la page (voir Membres/index.jsx).
+// "onSubmit" enregistre sur le serveur (voir Membres/index.jsx) ; s'il refuse
+// (numéro déjà utilisé, parrain inconnu...), le formulaire reste ouvert avec
+// le message.
 export function AddMemberModal({
   open,
   mode = "add",
@@ -65,26 +67,18 @@ export function AddMemberModal({
   defaultLevel,
   onClose,
   onSubmit,
-  suggestMatricule,
-  existingMatricules = [],
 }) {
   const { t } = useTranslation();
   const [form, setForm] = useState(EMPTY_FORM);
   const [level, setLevel] = useState(lockLevel ?? defaultLevel ?? levels[0].key);
-  const [matricule, setMatricule] = useState("");
-  const [matriculeEdited, setMatriculeEdited] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  // "suggestMatricule" est volontairement hors des dépendances : la page
-  // en recrée une nouvelle à chaque rendu, ce qui réinitialiserait le
-  // formulaire en pleine saisie. On ne la lit qu'à l'ouverture.
   useEffect(() => {
     if (!open) return;
-    const initialLevel = member?.levelKey ?? lockLevel ?? defaultLevel ?? levels[0].key;
     setForm(formFromMember(member));
-    setLevel(initialLevel);
-    setMatricule(member ? member.matricule : (suggestMatricule?.(initialLevel) ?? ""));
-    setMatriculeEdited(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setLevel(member?.levelKey ?? lockLevel ?? defaultLevel ?? levels[0].key);
+    setSubmitError("");
   }, [open, member, lockLevel, defaultLevel]);
 
   const readOnly = mode === "view";
@@ -104,24 +98,20 @@ export function AddMemberModal({
   const updateField = (field) => (event) =>
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
 
-  const handleLevelChange = (event) => {
-    const nextLevel = event.target.value;
-    setLevel(nextLevel);
-    if (mode === "add" && !matriculeEdited) setMatricule(suggestMatricule?.(nextLevel) ?? "");
-  };
+  const handleLevelChange = (event) => setLevel(event.target.value);
 
-  const cleanMatricule = matricule.trim().toUpperCase();
-  const matriculeTaken =
-    mode === "add" &&
-    cleanMatricule !== "" &&
-    existingMatricules.some((existing) => existing?.toUpperCase() === cleanMatricule);
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (readOnly || matriculeTaken) return;
-    // En ajout, le matricule saisi fait partie du membre créé ; en
-    // modification il reste celui d'origine (champ grisé).
-    onSubmit(level, mode === "add" ? { ...form, matricule: cleanMatricule } : form);
+    if (readOnly || saving) return;
+    setSaving(true);
+    setSubmitError("");
+    try {
+      await onSubmit(level, form);
+    } catch (error) {
+      setSubmitError(error.detail ?? t(error.message ?? "api.errors.server"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -150,21 +140,11 @@ export function AddMemberModal({
                 {t("admin.membres.modal.matricule")}
                 <input
                   type="text"
-                  required
-                  value={matricule}
-                  onChange={(event) => {
-                    setMatricule(event.target.value);
-                    setMatriculeEdited(true);
-                  }}
-                  placeholder={t("admin.membres.modal.matriculePlaceholder")}
-                  aria-invalid={matriculeTaken}
-                  className={`mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm font-semibold uppercase tracking-wide text-gray-800 outline-none ${
-                    matriculeTaken ? "border-red-400 focus:border-red-500" : "border-gray-200 focus:border-[#52A2DF]"
-                  }`}
+                  disabled
+                  value=""
+                  placeholder={t("admin.membres.modal.matriculeAuto")}
+                  className="mt-1 block w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500"
                 />
-                <span className={`mt-1 block text-[11px] font-normal ${matriculeTaken ? "text-red-600" : "text-gray-400"}`}>
-                  {matriculeTaken ? t("admin.membres.modal.matriculeTaken") : t("admin.membres.modal.matriculeHint")}
-                </span>
               </label>
             )}
 
@@ -191,6 +171,48 @@ export function AddMemberModal({
                 className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#52A2DF] disabled:bg-gray-50 disabled:text-gray-500"
               />
             </label>
+
+            {mode === "add" && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="block text-xs font-semibold text-gray-500">
+                    {t("admin.membres.modal.phone")}
+                    <input
+                      type="tel"
+                      required
+                      value={form.phone}
+                      onChange={updateField("phone")}
+                      placeholder="+237 6XX XX XX XX"
+                      className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#52A2DF]"
+                    />
+                  </label>
+                  <label className="block text-xs font-semibold text-gray-500">
+                    {t("admin.membres.modal.email")}
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={updateField("email")}
+                      className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#52A2DF]"
+                    />
+                  </label>
+                </div>
+                <label className="block text-xs font-semibold text-gray-500">
+                  {t("admin.membres.modal.temporaryPassword")}
+                  <input
+                    type="text"
+                    required
+                    minLength={8}
+                    autoComplete="off"
+                    value={form.temporaryPassword}
+                    onChange={updateField("temporaryPassword")}
+                    className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#52A2DF]"
+                  />
+                  <span className="mt-1 block text-[11px] font-normal text-gray-400">
+                    {t("admin.membres.modal.temporaryPasswordHint")}
+                  </span>
+                </label>
+              </>
+            )}
 
             <div>
               <p className="text-xs font-semibold text-gray-500">
@@ -280,7 +302,7 @@ export function AddMemberModal({
                 {t("admin.membres.modal.sponsorName")}
                 <input
                   type="text"
-                  disabled={readOnly}
+                  disabled
                   value={form.sponsorName}
                   onChange={updateField("sponsorName")}
                   placeholder={t("admin.membres.modal.sponsorNamePlaceholder")}
@@ -291,7 +313,7 @@ export function AddMemberModal({
                 {t("admin.membres.modal.sponsorMatricule")}
                 <input
                   type="text"
-                  disabled={readOnly}
+                  disabled={mode !== "add"}
                   value={form.sponsorMatricule}
                   onChange={updateField("sponsorMatricule")}
                   placeholder={t("admin.membres.modal.sponsorMatriculePlaceholder")}
@@ -316,6 +338,12 @@ export function AddMemberModal({
               </select>
             </label>
 
+            {submitError && (
+              <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+                {submitError}
+              </p>
+            )}
+
             <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
@@ -327,7 +355,8 @@ export function AddMemberModal({
               {!readOnly && (
                 <button
                   type="submit"
-                  className="rounded-lg bg-[#EE7115] px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                  disabled={saving}
+                  className="rounded-lg bg-[#EE7115] px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
                 >
                   {mode === "add" ? t("admin.membres.modal.add") : t("admin.membres.modal.save")}
                 </button>

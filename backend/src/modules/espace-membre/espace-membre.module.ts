@@ -27,5 +27,7 @@ import { TontineModule } from '../tontine/tontine.module';
     CoinsMembreService,
     ActiviteMembreService,
   ],
+  // L'annuaire sert aussi à l'espace admin (voir EspaceAdminModule).
+  exports: [AnnuaireMembresService],
 })
 export class EspaceMembreModule {}

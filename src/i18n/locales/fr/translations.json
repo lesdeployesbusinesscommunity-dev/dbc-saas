@@ -610,7 +610,12 @@
         "status": "Etat",
         "matriculePlaceholder": "Ex : DBC-1-0001",
         "matriculeHint": "Proposé automatiquement : tu peux le remplacer. C'est ce que le membre donnera pour parrainer.",
-        "matriculeTaken": "Ce matricule est déjà attribué à un autre membre."
+        "matriculeTaken": "Ce matricule est déjà attribué à un autre membre.",
+        "matriculeAuto": "Attribué automatiquement à la création",
+        "phone": "Numéro WhatsApp",
+        "email": "E-mail (facultatif)",
+        "temporaryPassword": "Mot de passe temporaire",
+        "temporaryPasswordHint": "8 caractères minimum. Transmets-le au membre : il se connectera avec son matricule et ce mot de passe."
       },
       "details": {
         "coordinates": "Coordonnées",

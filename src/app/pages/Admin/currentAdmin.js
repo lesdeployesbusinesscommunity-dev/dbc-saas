@@ -1,15 +1,20 @@
+// Local Imports
+import { getSessionSnapshot, subscribeSession } from "app/pages/Auth/session";
+
 // ----------------------------------------------------------------------
 // Identité de l'admin connecté, partagée par toutes les pages admin
-// (dashboard, gestion des membres, etc.). Placeholder en attendant que la
-// connexion admin soit branchée au backend — remplacera cet objet par la
-// réponse de l'endpoint "/me" (ou équivalent) une fois disponible.
-//
-// C'est le compte administrateur de démonstration de la page de connexion
-// (voir Auth/index.jsx : Hubert Wakap, matricule DBC-1-0001) — le même nom
-// que sa fiche dans Gestion des membres et que son profil côté membre (voir
-// Membre/currentMember.js).
-export const currentAdmin = {
-  name: "Hubert Wakap",
-  role: "Admin",
-  photo: null, // pas de photo -> Avatar affiche "HW" sur fond de couleur
-};
+// (dashboard, gestion des membres, etc.) : celle du compte ouvert sur
+// /login (voir Auth/session.js — nom et photo du profil renvoyé par le
+// serveur). "currentAdmin" reste UN SEUL objet dont le contenu suit la
+// session, pour que chaque import existant lise toujours le bon compte.
+export const currentAdmin = { name: "", role: "Admin", photo: null };
+
+function sync() {
+  const session = getSessionSnapshot().session;
+  if (!session) return; // à la déconnexion, on garde le nom le temps de la redirection
+  currentAdmin.name = session.name ?? "";
+  currentAdmin.photo = session.user?.photoUrl ?? null;
+}
+
+sync();
+subscribeSession(sync);

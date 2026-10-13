@@ -49,9 +49,8 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
     { provide: CommissionMlmRepositoryPort, useClass: CommissionMlmPostgresRepository },
     { provide: ParrainageMlmRepositoryPort, useClass: ParrainageMlmPostgresRepository },
   ],
-  // Ports exportés en plus d'EnregistrerParrainageUseCase pour que Identité & accès
-  // puisse agréger sponsor/gains/contributions dans la fiche membre admin — voir
-  // ListerMembresAdminUseCase.
+  // Ports exportés en plus d'EnregistrerParrainageUseCase pour l'espace membre et
+  // l'espace admin (parrain, filleuls, gains, contributions de chaque membre).
   exports: [
     EnregistrerParrainageUseCase,
     PackMlmRepositoryPort,

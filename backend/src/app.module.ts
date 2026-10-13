@@ -16,6 +16,7 @@ import { ContactModule } from './modules/contact/contact.module';
 import { TontineModule } from './modules/tontine/tontine.module';
 import { FichiersModule } from './modules/fichiers/fichiers.module';
 import { EspaceMembreModule } from './modules/espace-membre/espace-membre.module';
+import { EspaceAdminModule } from './modules/espace-admin/espace-admin.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { EspaceMembreModule } from './modules/espace-membre/espace-membre.module
     TontineModule,
     FichiersModule,
     EspaceMembreModule,
+    EspaceAdminModule,
   ],
 })
 export class AppModule {}

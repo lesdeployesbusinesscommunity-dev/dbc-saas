@@ -90,7 +90,7 @@ export class CoinsMembreService {
         libelle: t.libelle ?? LIBELLE_PAR_MOTIF[t.motif] ?? t.motif,
       })),
       classement: [...annuaire.values()]
-        .filter((fiche) => fiche.statut !== 'suspendu')
+        .filter((fiche) => fiche.statut !== 'suspendu' && fiche.statut !== 'supprime')
         .map((fiche) => ({ membre: fiche, coinsDuMois: gainsParMembre.get(fiche.id) ?? 0 })),
       bareme: {
         actions: actions

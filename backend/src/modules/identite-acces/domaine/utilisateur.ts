@@ -9,7 +9,7 @@
  */
 import { ResultatOperation } from '../../../commun/domaine/resultat-operation';
 
-export const STATUTS_UTILISATEUR = ['en_attente', 'actif', 'suspendu'] as const;
+export const STATUTS_UTILISATEUR = ['en_attente', 'actif', 'suspendu', 'supprime'] as const;
 export type StatutUtilisateur = (typeof STATUTS_UTILISATEUR)[number];
 
 export const ROLES_UTILISATEUR = ['membre', 'admin'] as const;
@@ -88,17 +88,36 @@ export class Utilisateur {
     return ResultatOperation.ok();
   }
 
-  /** Un compte suspendu ne peut jamais se connecter, quel que soit le mot de passe. */
+  /** Un compte suspendu ou supprimé ne peut jamais se connecter, quel que soit le mot de passe. */
   verifierAccesAutorise(): ResultatOperation<void> {
     if (this.statut === 'suspendu') {
       return ResultatOperation.echec('Compte suspendu');
     }
+    if (this.statut === 'supprime') {
+      return ResultatOperation.echec('Compte supprimé');
+    }
+    return ResultatOperation.ok();
+  }
+
+  /**
+   * Suppression par l'administrateur : le compte ne peut plus se connecter et
+   * disparaît des listes, mais son historique (cotisations, Coins, parrainage)
+   * reste intact pour les autres membres et pour l'audit.
+   */
+  supprimer(): ResultatOperation<void> {
+    if (this.statut === 'supprime') {
+      return ResultatOperation.echec('Ce compte est déjà supprimé');
+    }
+    this.statut = 'supprime';
     return ResultatOperation.ok();
   }
 
   suspendre(): ResultatOperation<void> {
     if (this.statut === 'suspendu') {
       return ResultatOperation.echec('Ce compte est déjà suspendu');
+    }
+    if (this.statut === 'supprime') {
+      return ResultatOperation.echec('Ce compte est supprimé');
     }
     this.statut = 'suspendu';
     return ResultatOperation.ok();

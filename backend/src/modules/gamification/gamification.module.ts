@@ -31,6 +31,11 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
     { provide: TransactionCoinsRepositoryPort, useClass: TransactionCoinsPostgresRepository },
   ],
   // Ports exportés pour l'espace membre (historique, classement, barème) — voir EspaceMembreModule.
-  exports: [ReclamerGainCoinsUseCase, TransactionCoinsRepositoryPort, CatalogueActionsCoinsRepositoryPort],
+  exports: [
+    ReclamerGainCoinsUseCase,
+    AttribuerCoinsManuellementUseCase,
+    TransactionCoinsRepositoryPort,
+    CatalogueActionsCoinsRepositoryPort,
+  ],
 })
 export class GamificationModule {}

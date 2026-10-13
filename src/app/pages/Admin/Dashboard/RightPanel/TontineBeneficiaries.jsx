@@ -1,31 +1,55 @@
 // Import Dependencies
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 
 // Local Imports
 import { Avatar } from "../../components/Avatar";
-import { tontineBeneficiariesByLevel } from "../mockData";
+import { levels } from "app/pages/Simulateur/data";
+import { levelKeyFromCode } from "utils/levelCodes";
+import { tontineDuMois } from "api/espaceAdmin";
 import { LevelSelector } from "./LevelSelector";
 
 // ----------------------------------------------------------------------
 
 // Liste des bénéficiaires de la tontine du mois pour le niveau choisi (ou
-// tous les niveaux si la case est cochée). Les pastilles ✓/✕ sont un
-// statut en lecture seule (l'admin consulte, il ne les clique pas) : la
-// vraie valeur viendra du backend (paiement confirmé ou non) une fois
-// l'intégration API de cette section faite.
+// tous les niveaux si la case est cochée) — GET /espace-admin/tontine :
+// cagnottes attribuées ce mois-ci et celles encore à remettre. Les pastilles
+// ✓/✕ sont un statut en lecture seule (l'admin consulte, il ne les clique
+// pas) : ✓ = cagnotte remise, sinon en attente de remise.
 export function TontineBeneficiaries() {
   const { t } = useTranslation();
   const [level, setLevel] = useState(1);
   const [showAll, setShowAll] = useState(false);
+  const [beneficiaries, setBeneficiaries] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    tontineDuMois()
+      .then((data) => {
+        if (cancelled) return;
+        setBeneficiaries(
+          data.beneficiaries.map((entry) => ({
+            id: entry.roundId,
+            name: entry.name,
+            city: entry.city ?? "",
+            status: entry.status,
+            levelKey: levelKeyFromCode(entry.levelCode),
+          })),
+        );
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const list = useMemo(() => {
-    return showAll
-      ? Object.values(tontineBeneficiariesByLevel).flat()
-      : (tontineBeneficiariesByLevel[level] ?? []);
-  }, [level, showAll]);
+    if (showAll) return beneficiaries;
+    const levelKey = levels[level - 1]?.key;
+    return beneficiaries.filter((entry) => entry.levelKey === levelKey);
+  }, [beneficiaries, level, showAll]);
 
   return (
     <div className="mt-6">

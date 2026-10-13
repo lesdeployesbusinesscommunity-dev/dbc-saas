@@ -610,7 +610,12 @@
         "status": "Status",
         "matriculePlaceholder": "E.g.: DBC-1-0001",
         "matriculeHint": "Suggested automatically: you can replace it. This is what the member will give to refer someone.",
-        "matriculeTaken": "This member ID is already assigned to another member."
+        "matriculeTaken": "This member ID is already assigned to another member.",
+        "matriculeAuto": "Assigned automatically on creation",
+        "phone": "WhatsApp number",
+        "email": "Email (optional)",
+        "temporaryPassword": "Temporary password",
+        "temporaryPasswordHint": "At least 8 characters. Give it to the member: they will sign in with their membership number and this password."
       },
       "details": {
         "coordinates": "Contact details",

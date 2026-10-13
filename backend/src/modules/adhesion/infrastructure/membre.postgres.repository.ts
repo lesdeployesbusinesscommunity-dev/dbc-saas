@@ -22,6 +22,7 @@ export class MembrePostgresRepository implements MembreRepositoryPort {
       matricule: membre.matricule,
       statut: membre.statut,
       niveauActuelId: membre.niveauActuelId,
+      titre: membre.profil.titre,
       prenom: membre.profil.prenom,
       nom: membre.profil.nom,
       ville: membre.profil.ville,
@@ -71,6 +72,7 @@ export class MembrePostgresRepository implements MembreRepositoryPort {
       statut: ligne.statut,
       niveauActuelId: ligne.niveauActuelId,
       profil: {
+        titre: ligne.titre,
         prenom: ligne.prenom,
         nom: ligne.nom,
         ville: ligne.ville,

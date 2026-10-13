@@ -7,13 +7,15 @@
  * référence directe à l'entité Utilisateur elle-même (frontière de module stricte).
  *
  * Le profil (nom, ville, profession, photo) est recopié de la demande
- * d'inscription à la validation, puis modifiable par le membre lui-même
- * (Paramètres > Profil de l'espace membre). Le matricule et le niveau, eux,
- * ne le sont jamais par le membre.
+ * d'inscription à la validation, puis tenu à jour par l'équipe DBC ("Gestion
+ * des membres") : dans l'espace membre il est en lecture seule. Le matricule
+ * n'est jamais modifiable.
  */
 export type StatutMembre = 'actif';
 
 export interface ProfilMembre {
+  /** Titre affiché sous le nom (ex. "Ambassadrice", "Leader Antenne"), donné par l'admin. */
+  titre: string | null;
   prenom: string | null;
   nom: string | null;
   ville: string | null;
@@ -23,6 +25,7 @@ export interface ProfilMembre {
 }
 
 export const PROFIL_VIDE: ProfilMembre = {
+  titre: null,
   prenom: null,
   nom: null,
   ville: null,

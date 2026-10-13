@@ -1,6 +1,7 @@
 // Import Dependencies
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ArrowPathIcon, ExclamationCircleIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
 import { Page } from "components/shared/Page";
@@ -14,29 +15,14 @@ import { AddMemberModal } from "./AddMemberModal";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { MemberDetailsCard } from "./MemberDetailsCard";
 import { TopMembers } from "./TopMembers";
-import { initialMembersByLevel, levelNumbers } from "./mockData";
+import { levelNumbers } from "./mockData";
+import { creerMembre, listerMembres, modifierMembre, supprimerMembre } from "api/membres";
+import { createPayload, groupMembersByLevel, updatePayload } from "./membersApi";
 import { normalizeSearchText } from "../searchUtils";
 
 // ----------------------------------------------------------------------
 
 const PAGE_SIZE = 6;
-
-// Prochain matricule libre d'un niveau : le plus grand numéro déjà utilisé
-// à ce niveau + 1 (et non "nombre de membres + 1", qui retomberait sur un
-// matricule déjà pris après une suppression). Sert de PROPOSITION dans le
-// formulaire d'ajout (voir AddMemberModal.jsx), que l'admin peut modifier,
-// et de valeur de secours si aucun matricule n'est fourni.
-function suggestMatricule(levelKey, membersByLevel) {
-  const prefix = `DBC-${levelNumbers[levelKey]}-`;
-  const used = Object.values(membersByLevel)
-    .flat()
-    .map((member) => member.matricule)
-    .filter((matricule) => matricule?.startsWith(prefix))
-    .map((matricule) => parseInt(matricule.slice(prefix.length), 10))
-    .filter(Number.isFinite);
-  const next = (used.length ? Math.max(...used) : 0) + 1;
-  return `${prefix}${String(next).padStart(4, "0")}`;
-}
 
 // Exporte la liste affichée en CSV, tout en local (pas d'appel réseau) —
 // à remplacer par un vrai export serveur si le volume de membres grandit.
@@ -83,7 +69,7 @@ function exportToCsv(members, fileLabel, t) {
 // de ce qui reste à brancher au backend.
 export default function Membres() {
   const { t } = useTranslation();
-  const [membersByLevel, setMembersByLevel] = useState(initialMembersByLevel);
+  const [membersByLevel, setMembersByLevel] = useState({});
   // "all" affiche tous les niveaux combinés ; sinon c'est une clé de
   // "levels" (app/pages/Simulateur/data). On démarre sur "all" — c'est la
   // vue la plus utile par défaut sur un tableau d'administration standard.
@@ -93,6 +79,25 @@ export default function Membres() {
   const [page, setPage] = useState(1);
 
   const [modal, setModal] = useState(null); // { mode, member, lockLevel, defaultLevel } | null
+  const [loadStatus, setLoadStatus] = useState("loading"); // loading | ready | error
+  const [actionError, setActionError] = useState("");
+
+  // Membres réels (GET /membres) ; rechargés après chaque action pour que la
+  // page reflète exactement ce que le serveur a enregistré.
+  const reload = () =>
+    listerMembres()
+      .then((members) => {
+        setMembersByLevel(groupMembersByLevel(members));
+        setLoadStatus("ready");
+      })
+      .catch(() => setLoadStatus((current) => (current === "ready" ? current : "error")));
+
+  useEffect(() => {
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const failWith = (error) => setActionError(error.detail ?? t(error.message ?? "api.errors.server"));
   const [viewMember, setViewMember] = useState(null); // membre affiché dans la fiche "Voir"
   const [confirmAction, setConfirmAction] = useState(null); // { type: "update"|"toggle"|"delete", member } | null
 
@@ -186,62 +191,38 @@ export default function Membres() {
   const askDelete = (member) => setConfirmAction({ type: "delete", member });
   const cancelConfirm = () => setConfirmAction(null);
 
-  const runConfirmedAction = () => {
+  const runConfirmedAction = async () => {
     if (!confirmAction) return;
     const { type, member } = confirmAction;
+    setConfirmAction(null);
+    setActionError("");
 
     if (type === "update") {
       setModal({ mode: "edit", member, defaultLevel: member.levelKey });
-    } else if (type === "toggle") {
-      setMembersByLevel((prev) => ({
-        ...prev,
-        [member.levelKey]: prev[member.levelKey].map((entry) =>
-          entry.id === member.id
-            ? { ...entry, status: entry.status === "desactive" ? "actif" : "desactive" }
-            : entry,
-        ),
-      }));
-    } else if (type === "delete") {
-      setMembersByLevel((prev) => ({
-        ...prev,
-        [member.levelKey]: prev[member.levelKey].filter((entry) => entry.id !== member.id),
-      }));
+      return;
     }
-
-    setConfirmAction(null);
+    try {
+      if (type === "toggle") {
+        await modifierMembre(member.id, { status: member.status === "desactive" ? "actif" : "desactive" });
+      } else if (type === "delete") {
+        await supprimerMembre(member.id);
+      }
+      await reload();
+    } catch (error) {
+      failWith(error);
+    }
   };
 
-  const handleSubmit = (levelKey, form) => {
+  // Enregistre le formulaire sur le serveur ; en cas de refus (numéro déjà
+  // utilisé, parrain inconnu...), le formulaire reste ouvert avec le message.
+  const handleSubmit = async (levelKey, form) => {
+    setActionError("");
     if (modal?.mode === "edit" && modal.member) {
-      const memberId = modal.member.id;
-      // Le niveau a pu changer dans le formulaire : on retire le membre de
-      // son ancien niveau si besoin, puis on le place dans le nouveau.
-      setMembersByLevel((prev) => {
-        const withoutMember = Object.fromEntries(
-          Object.entries(prev).map(([key, entries]) => [
-            key,
-            entries.filter((entry) => entry.id !== memberId),
-          ]),
-        );
-        const updated = { ...modal.member, ...form, levelKey };
-        return {
-          ...withoutMember,
-          [levelKey]: [...(withoutMember[levelKey] ?? []), updated],
-        };
-      });
+      await modifierMembre(modal.member.id, updatePayload(levelKey, form));
     } else {
-      setMembersByLevel((prev) => {
-        const existing = prev[levelKey] ?? [];
-        const newMember = {
-          id: `m-${Date.now()}`,
-          matricule: suggestMatricule(levelKey, prev),
-          levelKey,
-          ...form,
-          joinedAt: new Date().toISOString().slice(0, 10),
-        };
-        return { ...prev, [levelKey]: [...existing, newMember] };
-      });
+      await creerMembre(createPayload(levelKey, form));
     }
+    await reload();
     closeModal();
   };
 
@@ -298,15 +279,35 @@ export default function Membres() {
             }
           />
 
-          <MembersTable
-            members={paginatedList}
-            onUpdate={askUpdate}
-            onView={openView}
-            onToggleStatus={askToggleStatus}
-            onDelete={askDelete}
-          />
+          {actionError && (
+            <p role="alert" className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+              {actionError}
+            </p>
+          )}
 
-          <Pagination page={page} pageCount={pageCount} onChange={setPage} />
+          {loadStatus === "loading" ? (
+            <div className="mt-10 flex justify-center text-gray-400">
+              <ArrowPathIcon aria-hidden="true" className="size-6 animate-spin" />
+            </div>
+          ) : loadStatus === "error" ? (
+            <p className="mt-6 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              <ExclamationCircleIcon aria-hidden="true" className="size-4 shrink-0" />
+              {t("api.errors.server")}
+            </p>
+          ) : (
+            <>
+              <MembersTable
+                members={paginatedList}
+                onUpdate={askUpdate}
+                onView={openView}
+                onToggleStatus={askToggleStatus}
+                onDelete={askDelete}
+              />
+
+              <Pagination page={page} pageCount={pageCount} onChange={setPage} />
+            </>
+          )}
         </MembersFolder>
 
         <TopMembers members={allMembers} />
@@ -320,8 +321,6 @@ export default function Membres() {
         defaultLevel={modal?.defaultLevel}
         onClose={closeModal}
         onSubmit={handleSubmit}
-        suggestMatricule={(levelKey) => suggestMatricule(levelKey, membersByLevel)}
-        existingMatricules={allMembers.map((member) => member.matricule)}
       />
 
       <MemberDetailsCard member={viewMember} open={!!viewMember} onClose={closeView} />

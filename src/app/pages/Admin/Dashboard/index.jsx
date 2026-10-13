@@ -6,6 +6,7 @@ import { ArrowPathIcon, ExclamationCircleIcon } from "@heroicons/react/24/solid"
 // Local Imports
 import { Page } from "components/shared/Page";
 import { tableauDeBord } from "api/gouvernance";
+import { tontineDuMois } from "api/espaceAdmin";
 import { currentAdmin } from "./mockData";
 import { TopBar } from "./TopBar";
 import { WelcomeBanner } from "./WelcomeBanner";
@@ -18,10 +19,10 @@ import { RightPanel } from "./RightPanel";
 // Page d'accueil de l'espace admin (/admin/dashboard) : colonne principale
 // (recherche, bandeau de bienvenue, vue globale, graphe des cagnottes) +
 // panneau de droite (profil, calendrier, bénéficiaires tontine, formations).
-// "Vue globale" (StatsGrid) vient de GET /gouvernance/tableau-de-bord — le
-// reste du panneau de droite (bénéficiaires tontine, formations en cours)
-// reste en mockData.js : pas d'agrégat réel équivalent côté backend pour
-// l'instant.
+// "Vue globale" (StatsGrid) vient de GET /gouvernance/tableau-de-bord, plus
+// le nombre de membres engagés dans une vague (GET /espace-admin/tontine) ;
+// le panneau de droite charge lui-même ses données (bénéficiaires tontine,
+// formations).
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const [dashboardData, setDashboardData] = useState(null);
@@ -29,10 +30,10 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     let cancelled = false;
-    tableauDeBord()
-      .then((data) => {
+    Promise.all([tableauDeBord(), tontineDuMois()])
+      .then(([data, tontine]) => {
         if (!cancelled) {
-          setDashboardData(data);
+          setDashboardData({ ...data, totalTontineMembers: tontine.membersInWaves });
           setStatus("ready");
         }
       })

@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './interface/auth.controller';
 import { DemandesInscriptionController } from './interface/demandes-inscription.controller';
-import { MembresAdminController } from './interface/membres-admin.controller';
 import { ConnecterUtilisateurUseCase } from './application/connecter-utilisateur.use-case';
 import { VerifierOtpConnexionUseCase } from './application/verifier-otp-connexion.use-case';
 import { BasculerDoubleAuthentificationUseCase } from './application/basculer-double-authentification.use-case';
@@ -16,7 +15,6 @@ import { ChangerMotDePasseUseCase } from './application/changer-mot-de-passe.use
 import { MettreAJourProfilUseCase } from './application/mettre-a-jour-profil.use-case';
 import { ProfilUtilisateurService } from './application/profil-utilisateur.service';
 import { IdentiteAccesBootstrap } from './infrastructure/identite-acces.bootstrap';
-import { ListerMembresAdminUseCase } from './application/lister-membres-admin.use-case';
 import { UtilisateurRepositoryPort } from './domaine/utilisateur.repository.port';
 import { DemandeInscriptionRepositoryPort } from './domaine/demande-inscription.repository.port';
 import { CodeOtpRepositoryPort } from './domaine/code-otp.repository.port';
@@ -37,7 +35,6 @@ import { JwtStrategy } from './infrastructure/jwt.strategy';
 import { AdhesionModule } from '../adhesion/adhesion.module';
 import { ReseauMlmModule } from '../reseau-mlm/reseau-mlm.module';
 import { GouvernanceModule } from '../gouvernance/gouvernance.module';
-import { FormationModule } from '../formation/formation.module';
 
 @Module({
   imports: [
@@ -51,7 +48,6 @@ import { FormationModule } from '../formation/formation.module';
     AdhesionModule, // ValiderDemandeInscriptionUseCase orchestre Identité + Adhésion + Réseau MLM — voir ce use-case.
     ReseauMlmModule,
     GouvernanceModule,
-    FormationModule, // ListerMembresAdminUseCase agrège les formations suivies par membre.
     // ConfigModule est global (voir AppModule) : ConfigService est déjà disponible ici.
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -63,7 +59,7 @@ import { FormationModule } from '../formation/formation.module';
       }),
     }),
   ],
-  controllers: [AuthController, DemandesInscriptionController, MembresAdminController],
+  controllers: [AuthController, DemandesInscriptionController],
   providers: [
     ConnecterUtilisateurUseCase,
     VerifierOtpConnexionUseCase,
@@ -71,7 +67,6 @@ import { FormationModule } from '../formation/formation.module';
     CreerDemandeInscriptionUseCase,
     ValiderDemandeInscriptionUseCase,
     RejeterDemandeInscriptionUseCase,
-    ListerMembresAdminUseCase,
     ChangerMotDePasseUseCase,
     MettreAJourProfilUseCase,
     ProfilUtilisateurService,
@@ -87,7 +82,8 @@ import { FormationModule } from '../formation/formation.module';
     { provide: HacheurMotDePassePort, useClass: HacheurBcrypt },
     { provide: EnvoyeurOtpPort, useClass: EnvoyeurOtpWhatsAppSimule },
   ],
-  // Pour l'espace membre (numéro WhatsApp des membres du réseau) — voir EspaceMembreModule.
-  exports: [UtilisateurRepositoryPort, ProfilUtilisateurService],
+  // Pour l'espace membre et l'espace admin (comptes des membres) — voir EspaceMembreModule
+  // et EspaceAdminModule.
+  exports: [UtilisateurRepositoryPort, ProfilUtilisateurService, HacheurMotDePassePort],
 })
 export class IdentiteAccesModule {}
