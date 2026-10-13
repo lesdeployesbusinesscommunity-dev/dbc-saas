@@ -2,51 +2,75 @@
 import { useSyncExternalStore } from "react";
 
 // Local Imports
+import { ajouterProgramme, listerPiliers, reglerProgramme, supprimerProgramme } from "api/programmes";
 import { pillarGroups, pillars as basePillars } from "./mockData";
 
 // ----------------------------------------------------------------------
 // Ce que l'admin change sur les piliers (statut, visibilité pour les
 // membres, résumé, explication) — par-dessus les valeurs de départ de
-// mockData.js. Pas de backend pour l'instant : gardé dans le navigateur
-// (localStorage, protégé par try/catch — il peut être absent ou bloqué)
-// et partagé entre la page admin et la page membre via
-// useSyncExternalStore, donc une modification faite côté admin se voit
-// tout de suite côté membre dans ce navigateur. À remplacer par de vrais
-// appels API sans changer ce que "getPillars" renvoie.
+// mockData.js. Enregistré sur le serveur (module Programmes : GET
+// /programmes/piliers, PATCH/POST/DELETE /programmes) et partagé entre la
+// page admin et la page membre via useSyncExternalStore. Chaque changement
+// s'affiche aussitôt puis part au serveur ; s'il est refusé, on recharge
+// l'état du serveur.
 //
 // Forme : { [idPilier]: { status?, visible?, summary?, overview? } }.
 // "summary" et "overview", quand ils existent, remplacent le texte
 // traduit (FR et EN) du pilier — ils ne sont pas traduits automatiquement.
-const STORAGE_KEY = "dbc-piliers-overrides-v1";
-
+//
 // Programmes AJOUTÉS par l'admin (bouton "Ajouter un programme"), rangés dans
 // l'un des 4 piliers. Contrairement aux programmes de départ, leurs textes
 // (nom, résumé, explication) ne sont pas dans i18n : ils sont gardés tels
-// quels ici, donc identiques en français et en anglais.
+// quels, donc identiques en français et en anglais.
 // Forme : [{ id, group, name, summary, overview, status, visible }].
-const CUSTOM_KEY = "dbc-piliers-custom-v1";
 
-function loadCustom() {
-  try {
-    const raw = window.localStorage.getItem(CUSTOM_KEY);
-    const list = raw ? JSON.parse(raw) : [];
-    return Array.isArray(list) ? list : [];
-  } catch {
-    return [];
-  }
+// Réponse du serveur -> réglages des programmes de départ + programmes ajoutés.
+function fromServer(groups) {
+  const nextOverrides = {};
+  const nextCustoms = [];
+  groups.forEach((group) =>
+    group.programs.forEach((program) => {
+      const entry = {
+        status: program.status,
+        visible: program.visible,
+        summary: program.summary ?? "",
+        overview: program.overview ?? "",
+      };
+      if (program.custom) {
+        nextCustoms.push({ id: program.code, group: group.code, name: program.name, ...entry });
+      } else {
+        nextOverrides[program.code] = entry;
+      }
+    }),
+  );
+  return { nextOverrides, nextCustoms };
 }
 
-function load() {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
+let loading = null;
+
+// Charge (ou recharge) les réglages depuis le serveur.
+export function loadPillars() {
+  loading = listerPiliers()
+    .then((groups) => {
+      const { nextOverrides, nextCustoms } = fromServer(groups);
+      overrides = nextOverrides;
+      customs = nextCustoms;
+      publish();
+    })
+    .catch(() => {
+      // serveur injoignable : on garde l'affichage actuel
+    });
+  return loading;
 }
 
-let overrides = load();
-let customs = loadCustom();
+// Envoie un changement au serveur ; s'il est refusé, l'écran revient à
+// l'état du serveur.
+function send(request) {
+  request.catch(() => loadPillars());
+}
+
+let overrides = {};
+let customs = [];
 let snapshot = merge(overrides);
 const listeners = new Set();
 
@@ -74,15 +98,8 @@ function publish() {
   listeners.forEach((listener) => listener());
 }
 
-function persist(key, value) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // stockage indisponible : la modification reste valable pour cette session
-  }
-}
-
 function subscribe(listener) {
+  if (!loading) loadPillars();
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
@@ -101,12 +118,14 @@ export function updatePillar(id, patch) {
   if (customs.some((entry) => entry.id === id)) {
     // Programme ajouté : on modifie directement son enregistrement.
     customs = customs.map((entry) => (entry.id === id ? { ...entry, ...patch } : entry));
-    persist(CUSTOM_KEY, customs);
   } else {
     overrides = { ...overrides, [id]: { ...(overrides[id] ?? {}), ...patch } };
-    persist(STORAGE_KEY, overrides);
   }
   publish();
+  // "group" ne change qu'à la création ; le serveur ne le reçoit pas ici.
+  const reglages = { ...patch };
+  delete reglages.group;
+  send(reglerProgramme(id, reglages));
 }
 
 // Remet un pilier à ses valeurs de départ (textes traduits, statut et
@@ -115,8 +134,9 @@ export function resetPillar(id) {
   const next = { ...overrides };
   delete next[id];
   overrides = next;
-  persist(STORAGE_KEY, overrides);
   publish();
+  const base = basePillars.find((pillar) => pillar.id === id);
+  send(reglerProgramme(id, { status: base?.status ?? "active", visible: true, summary: "", overview: "" }));
 }
 
 // Brouillon vide d'un programme à ajouter (id null = pas encore créé),
@@ -129,8 +149,8 @@ export function newPillarDraft(group) {
 export function addPillar({ group, name, summary = "", overview = "", status = "active", visible = true }) {
   const id = `custom-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
   customs = [...customs, { id, group, name, summary, overview, status, visible }];
-  persist(CUSTOM_KEY, customs);
   publish();
+  send(ajouterProgramme({ code: id, group, name, status, visible, summary, overview }));
   return id;
 }
 
@@ -138,8 +158,8 @@ export function addPillar({ group, name, summary = "", overview = "", status = "
 // les masque avec la visibilité).
 export function removePillar(id) {
   customs = customs.filter((entry) => entry.id !== id);
-  persist(CUSTOM_KEY, customs);
   publish();
+  send(supprimerProgramme(id));
 }
 
 // Texte affiché d'un pilier : la version modifiée par l'admin si elle
