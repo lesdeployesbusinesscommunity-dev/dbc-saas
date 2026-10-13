@@ -10,3 +10,11 @@ export async function tontineDuMois() {
   const { data } = await httpClient.get("/espace-admin/tontine");
   return data;
 }
+
+// GET /espace-admin/finances (admin) — chiffres de la tontine niveau par
+// niveau (caisse, total collecté, cotisations du mois, avancement du cycle,
+// nombre de membres).
+export async function financesParNiveau() {
+  const { data } = await httpClient.get("/espace-admin/finances");
+  return data;
+}

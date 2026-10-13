@@ -6,6 +6,7 @@ import { CreerMembreParAdminUseCase } from './application/creer-membre-par-admin
 import { ModifierMembreParAdminUseCase } from './application/modifier-membre-par-admin.use-case';
 import { SupprimerMembreParAdminUseCase } from './application/supprimer-membre-par-admin.use-case';
 import { TontineAdminService } from './application/tontine-admin.service';
+import { FinancesAdminService } from './application/finances-admin.service';
 import { AdhesionModule } from '../adhesion/adhesion.module';
 import { IdentiteAccesModule } from '../identite-acces/identite-acces.module';
 import { GamificationModule } from '../gamification/gamification.module';
@@ -39,6 +40,7 @@ import { EspaceMembreModule } from '../espace-membre/espace-membre.module';
     ModifierMembreParAdminUseCase,
     SupprimerMembreParAdminUseCase,
     TontineAdminService,
+    FinancesAdminService,
   ],
 })
 export class EspaceAdminModule {}

@@ -1,5 +1,5 @@
 // Import Dependencies
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import {
@@ -16,7 +16,7 @@ import { formatMoney, levels } from "app/pages/Simulateur/data";
 import { ComparisonTable } from "app/pages/Simulateur/ComparisonTable";
 import { AdminTopBar } from "../components/AdminTopBar";
 import { FinanceStatCard } from "./FinanceStatCard";
-import { getFinanceForLevel } from "./mockData";
+import { getFinanceForLevel, loadFinanceByLevel } from "./mockData";
 
 // ----------------------------------------------------------------------
 
@@ -29,13 +29,20 @@ import { getFinanceForLevel } from "./mockData";
 // ligne du tableau comparatif repris de "Simulateur de revenus" (côté
 // visiteur) juste en dessous des cartes — voir ComparisonTable.jsx, qui
 // gagne ici une prop "onSelect" optionnelle sans rien changer à son
-// usage côté visiteur. Tout est en local pour l'instant (voir mockData.js),
-// comme le reste de l'admin, en attendant les vrais endpoints.
+// usage côté visiteur. Les chiffres viennent du serveur (voir mockData.js).
 export default function Finance() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("fr") ? "fr-FR" : "en-US";
   const [selectedLevel, setSelectedLevel] = useState(levels[0]);
-  const finance = getFinanceForLevel(selectedLevel.key);
+  const [financeByLevel, setFinanceByLevel] = useState({});
+  const [loadError, setLoadError] = useState("");
+  const finance = getFinanceForLevel(financeByLevel, selectedLevel.key);
+
+  useEffect(() => {
+    loadFinanceByLevel()
+      .then(setFinanceByLevel)
+      .catch((error) => setLoadError(error.detail ?? t(error.message ?? "api.errors.server")));
+  }, [t]);
 
   return (
     <Page title={`Admin – ${t("admin.finance.title")}`}>
@@ -56,6 +63,12 @@ export default function Finance() {
           </span>
           <p className="text-sm text-gray-500">{t("admin.finance.currentLevelHint")}</p>
         </div>
+
+        {loadError && (
+          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            {loadError}
+          </p>
+        )}
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <FinanceStatCard

@@ -1,6 +1,7 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TontineAdminService } from '../application/tontine-admin.service';
+import { FinancesAdminService } from '../application/finances-admin.service';
 import { AnnuaireMembresService } from '../../espace-membre/application/annuaire-membres.service';
 import { AdminSecretGuard } from '../../../commun/gardes/admin-secret.guard';
 
@@ -13,6 +14,7 @@ import { AdminSecretGuard } from '../../../commun/gardes/admin-secret.guard';
 export class EspaceAdminController {
   constructor(
     private readonly tontine: TontineAdminService,
+    private readonly finances: FinancesAdminService,
     private readonly annuaire: AnnuaireMembresService,
   ) {}
 
@@ -36,5 +38,22 @@ export class EspaceAdminController {
         at: b.date,
       })),
     };
+  }
+
+  @Get('finances')
+  @ApiOperation({ summary: 'Gestion financière : chiffres de la tontine par niveau (admin)' })
+  async finances() {
+    const niveaux = await this.finances.parNiveau(await this.annuaire.charger());
+    return niveaux.map((n) => ({
+      levelCode: n.niveauCode,
+      currentPot: n.caisseActuelle,
+      totalCollected: n.totalCollecte,
+      toursCompleted: n.toursClotures,
+      contributionsReceived: n.cotisationsRecues,
+      contributionsExpected: n.cotisationsAttendues,
+      currentTour: n.moisCycle,
+      totalTours: n.dureeCycle,
+      memberCount: n.nombreMembres,
+    }));
   }
 }
