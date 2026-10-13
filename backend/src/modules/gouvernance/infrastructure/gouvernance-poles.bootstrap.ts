@@ -3,37 +3,80 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PoleOrmEntity } from './pole.orm-entity';
 import { SiegeOrmEntity } from './siege.orm-entity';
+import { TypePole } from '../domaine/pole';
+
+interface PoleInitial {
+  code: string;
+  nom: string;
+  description: string;
+  icone: string;
+  type: TypePole;
+  niveauCode?: string;
+  sieges: string[];
+  /** Noms d'une version précédente (en anglais) : remplacés s'ils n'ont pas été modifiés depuis. */
+  ancienNom?: string;
+  anciensSieges?: string[];
+}
 
 /**
- * Organigramme réel de la gouvernance DBC, déjà présent dans la maquette
- * frontend (Admin/Gouvernance) : tous les sièges naissent vacants
- * (membreId null), à assigner ensuite via POST /gouvernance/sieges/:id/assigner.
- * Le "Chapter Leaders Network" (3e pôle de la maquette) n'est pas repris
- * ici : il correspond déjà aux antennes existantes (module Communauté &
- * diaspora, GET /communaute/antennes, avec leaderMembreId/coordinatorMembreId).
+ * Organigramme réel de la gouvernance DBC (Admin/Gouvernance) : les 4 pôles
+ * d'origine, avec leurs textes français. Les sièges naissent vacants, à
+ * attribuer ensuite par l'admin.
+ *
+ * Idempotent : sur une base qui existe déjà, il ajoute seulement ce qui
+ * manque (pôles "reseau" et "niveau" créés après coup, types) et traduit les
+ * noms anglais de la toute première version tant que l'admin ne les a pas
+ * renommés.
  */
-const POLES = [
+const POLES: PoleInitial[] = [
   {
     code: 'founding-leadership',
-    nom: 'Founding Leadership',
-    description: 'Founder & CEO — Overall strategic vision and final arbitration',
-    ordre: 1,
+    nom: 'Direction Fondatrice',
+    description: 'Fondateur & CEO — Vision stratégique globale et arbitrage final',
     icone: 'sparkles',
-    sieges: [{ titre: 'Founder & CEO', ordre: 1 }],
+    type: 'fondatrice',
+    sieges: ['Fondateur & CEO'],
+    ancienNom: 'Founding Leadership',
+    anciensSieges: ['Founder & CEO'],
   },
   {
     code: 'executive-committee',
-    nom: 'Executive Committee',
-    description: '5 Directors: Operations, Finance, Training, Digital Marketing, Diaspora',
-    ordre: 2,
+    nom: 'Comité Exécutif',
+    description: '5 Directeurs : Opérations · Financier · Formations · Marketing Digital · Diaspora',
     icone: 'briefcase',
+    type: 'sieges',
     sieges: [
-      { titre: 'Operations Director', ordre: 1 },
-      { titre: 'Finance Director', ordre: 2 },
-      { titre: 'Training Director', ordre: 3 },
-      { titre: 'Digital Marketing Director', ordre: 4 },
-      { titre: 'Diaspora Director', ordre: 5 },
+      'Directeur Opérations',
+      'Directeur Financier',
+      'Directeur Formations',
+      'Directeur Marketing Digital',
+      'Directeur Diaspora',
     ],
+    ancienNom: 'Executive Committee',
+    anciensSieges: [
+      'Operations Director',
+      'Finance Director',
+      'Training Director',
+      'Digital Marketing Director',
+      'Diaspora Director',
+    ],
+  },
+  {
+    code: 'chapter-leaders',
+    nom: "Réseau des Leaders d'Antennes",
+    description: 'Binôme Leader Légende + Coordinateur dans chaque chapitre local et antenne diaspora',
+    icone: 'globe',
+    type: 'reseau',
+    sieges: [],
+  },
+  {
+    code: 'legends-council',
+    nom: 'Conseil des Légendes',
+    description: 'Tous les membres Niveau 8 — consultés pour les décisions stratégiques majeures',
+    icone: 'trophy',
+    type: 'niveau',
+    niveauCode: 'legende',
+    sieges: [],
   },
 ];
 
@@ -49,28 +92,49 @@ export class GouvernancePolesBootstrap implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    const existants = await this.poles.count();
-    if (existants > 0) {
-      return;
+    const existants = await this.poles.find();
+    let ordreMax = existants.reduce((max, pole) => Math.max(max, pole.ordre), 0);
+    let ajoutes = 0;
+
+    for (const initial of POLES) {
+      const existant = existants.find((pole) => pole.code === initial.code);
+      if (!existant) {
+        ordreMax += 1;
+        const ligne = await this.poles.save({
+          code: initial.code,
+          nom: initial.nom,
+          description: initial.description,
+          ordre: ordreMax,
+          icone: initial.icone,
+          type: initial.type,
+          niveauCode: initial.niveauCode ?? null,
+        });
+        await this.sieges.save(
+          initial.sieges.map((titre, index) => ({ poleId: ligne.id, titre, ordre: index + 1, membreId: null })),
+        );
+        ajoutes++;
+        continue;
+      }
+
+      const traduit = existant.nom === initial.ancienNom;
+      await this.poles.save({
+        ...existant,
+        type: initial.type,
+        niveauCode: initial.niveauCode ?? null,
+        ...(traduit ? { nom: initial.nom, description: initial.description } : {}),
+      });
+      if (traduit && initial.anciensSieges) {
+        for (const siege of await this.sieges.find({ where: { poleId: existant.id } })) {
+          const index = initial.anciensSieges.indexOf(siege.titre);
+          if (index >= 0) {
+            await this.sieges.save({ ...siege, titre: initial.sieges[index] });
+          }
+        }
+      }
     }
 
-    for (const pole of POLES) {
-      const ligne = await this.poles.save({
-        code: pole.code,
-        nom: pole.nom,
-        description: pole.description,
-        ordre: pole.ordre,
-        icone: pole.icone,
-      });
-      await this.sieges.save(
-        pole.sieges.map((siege) => ({
-          poleId: ligne.id,
-          titre: siege.titre,
-          ordre: siege.ordre,
-          membreId: null,
-        })),
-      );
+    if (ajoutes > 0) {
+      this.logger.log(`${ajoutes} pôle(s) de gouvernance initialisé(s).`);
     }
-    this.logger.log(`${POLES.length} pôles de gouvernance initialisés.`);
   }
 }

@@ -64,3 +64,21 @@ export async function reordonnerPoles(poleIds) {
   );
   return data;
 }
+
+// GET /gouvernance/reseau-territorial (admin) — l'organisation de chaque pays
+// ("Gestion du réseau") : arbre des branches avec responsables et
+// coordinateurs, titres des échelons.
+export async function listerReseauxTerritoriaux() {
+  const { data } = await httpClient.get("/gouvernance/reseau-territorial");
+  return data;
+}
+
+// PUT /gouvernance/reseau-territorial/:pays (admin) — remplace l'arbre entier
+// et les titres d'un pays (tree null = plus d'organisation dans ce pays).
+export async function enregistrerReseauTerritorial(country, { tree, levelTitles }) {
+  const { data } = await httpClient.put(`/gouvernance/reseau-territorial/${encodeURIComponent(country)}`, {
+    tree,
+    levelTitles,
+  });
+  return data;
+}

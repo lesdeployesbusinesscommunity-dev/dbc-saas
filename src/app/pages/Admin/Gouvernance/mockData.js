@@ -1,5 +1,5 @@
 // Local Imports
-import { initialMembersByLevel } from "app/pages/Admin/Membres/mockData";
+import { adminMembers, getAdminMember } from "app/pages/Admin/adminDirectory";
 import { flattenTree } from "app/pages/Admin/Reseau/mockData";
 
 // ----------------------------------------------------------------------
@@ -12,12 +12,10 @@ import { flattenTree } from "app/pages/Admin/Reseau/mockData";
 // Bottin plat de tous les membres, même source de données que "Gestion
 // des membres" et "Gestion du réseau", pour que la gouvernance reste
 // cohérente avec le reste de l'admin.
-export const allMembers = Object.entries(initialMembersByLevel).flatMap(
-  ([levelKey, entries]) => entries.map((member) => ({ ...member, levelKey })),
-);
+export const allMembers = adminMembers;
 
 export function getMember(id) {
-  return allMembers.find((member) => member.id === id) ?? null;
+  return getAdminMember(id);
 }
 
 // Les 4 pôles de la gouvernance DBC, dans l'ordre affiché. "kind" décide

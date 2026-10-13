@@ -27,6 +27,10 @@ import { AdhesionModule } from '../adhesion/adhesion.module';
 import { PaiementsModule } from '../paiements/paiements.module';
 import { ProgrammesModule } from '../programmes/programmes.module';
 import { CommunauteDiasporaModule } from '../communaute-diaspora/communaute-diaspora.module';
+import { ReseauTerritorialOrmEntity } from './infrastructure/reseau-territorial.orm-entity';
+import { ReseauTerritorialPostgresRepository } from './infrastructure/reseau-territorial.postgres.repository';
+import { ReseauTerritorialRepositoryPort } from './domaine/reseau-territorial.repository.port';
+import { EnregistrerReseauTerritorialUseCase } from './application/enregistrer-reseau-territorial.use-case';
 
 /**
  * Module 10 — Gouvernance et administration. EnregistrerAuditUseCase est
@@ -39,7 +43,13 @@ import { CommunauteDiasporaModule } from '../communaute-diaspora/communaute-dias
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([JournalAuditOrmEntity, AnnonceOrmEntity, PoleOrmEntity, SiegeOrmEntity]),
+    TypeOrmModule.forFeature([
+      JournalAuditOrmEntity,
+      AnnonceOrmEntity,
+      PoleOrmEntity,
+      SiegeOrmEntity,
+      ReseauTerritorialOrmEntity,
+    ]),
     AdhesionModule,
     PaiementsModule,
     ProgrammesModule,
@@ -57,10 +67,12 @@ import { CommunauteDiasporaModule } from '../communaute-diaspora/communaute-dias
     SupprimerPoleUseCase,
     ReordonnerPolesUseCase,
     GouvernancePolesBootstrap,
+    EnregistrerReseauTerritorialUseCase,
     { provide: JournalAuditRepositoryPort, useClass: JournalAuditPostgresRepository },
     { provide: AnnonceRepositoryPort, useClass: AnnoncePostgresRepository },
     { provide: PoleRepositoryPort, useClass: PolePostgresRepository },
     { provide: SiegeRepositoryPort, useClass: SiegePostgresRepository },
+    { provide: ReseauTerritorialRepositoryPort, useClass: ReseauTerritorialPostgresRepository },
   ],
   exports: [EnregistrerAuditUseCase],
 })

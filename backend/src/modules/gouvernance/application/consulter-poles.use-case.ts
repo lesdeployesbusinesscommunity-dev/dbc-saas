@@ -18,6 +18,8 @@ export interface PoleAvecSieges {
   description: string;
   ordre: number;
   icone: string;
+  type: string;
+  niveauCode: string | null;
   sieges: SiegeAvecMembre[];
 }
 
@@ -46,6 +48,8 @@ export class ConsulterPolesUseCase {
       description: pole.description,
       ordre: pole.ordre,
       icone: pole.icone,
+      type: pole.type,
+      niveauCode: pole.niveauCode,
       sieges: tousSieges
         .filter((siege) => siege.poleId === pole.id)
         .sort((a, b) => a.ordre - b.ordre)

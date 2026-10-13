@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PoleRepositoryPort } from '../domaine/pole.repository.port';
 import { SiegeRepositoryPort } from '../domaine/siege.repository.port';
 
@@ -14,6 +14,9 @@ export class SupprimerPoleUseCase {
     const pole = await this.poles.trouverParId(poleId);
     if (!pole) {
       throw new NotFoundException('Pôle introuvable');
+    }
+    if (!pole.peutEtreSupprime) {
+      throw new BadRequestException('La Direction fondatrice ne peut pas être supprimée');
     }
 
     const siegesDuPole = await this.sieges.listerParPoleId(poleId);

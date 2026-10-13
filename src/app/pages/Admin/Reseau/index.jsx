@@ -18,7 +18,6 @@ import {
   flattenTree,
   getMember,
   getTreeSearchMatches,
-  initialLevelTitlesByCountry,
   insertNodeAbove,
   resolveLevelLabel,
   updateNodeInTree,
@@ -30,10 +29,9 @@ const DEFAULT_COUNTRY = "Cameroun";
 
 // Page "Gestion du réseau" (/admin/reseau) : un arbre généalogique par
 // pays (Superviseur National > Superviseur Régional > Gestionnaire de
-// ville), construit à partir des membres de "Gestion des membres". Tout
-// est géré en local pour l'instant (voir mockData.js) — ajouter une
-// branche ou assigner un responsable ne survit pas à un rechargement de
-// page, en attendant les vrais endpoints.
+// ville), construit à partir des membres de "Gestion des membres". L'arbre
+// vient du serveur et chaque changement y est enregistré aussitôt (voir
+// context/NetworkDataContext.jsx).
 export default function Reseau() {
   const { t } = useTranslation();
   // Partagé avec "Gestion de la gouvernance" (voir NetworkDataContext) :
@@ -43,12 +41,20 @@ export default function Reseau() {
   // (mockData.networkCountries) complétée par ceux ajoutés à la volée
   // depuis le sélecteur (voir CountrySwitcher.jsx) — un pays qui n'est pas
   // dans les 22 options de départ peut être tapé directement là.
-  const { networksByCountry, setNetworksByCountry, allCountries, addCountry } = useNetworkData();
+  const {
+    networksByCountry,
+    setNetworksByCountry,
+    levelTitlesByCountry,
+    setLevelTitlesByCountry,
+    allCountries,
+    addCountry,
+    saveError,
+  } = useNetworkData();
   // Titre de rôle de chaque échelon (ex: "Le Visionnaire", "Responsable
   // Régional"), par pays et par profondeur — distinct du nom propre de
   // chaque branche (voir mockData.resolveLevelLabel). Renommable en
-  // cliquant sur le badge d'une carte (voir NodeCard.jsx).
-  const [levelTitlesByCountry, setLevelTitlesByCountry] = useState(initialLevelTitlesByCountry);
+  // cliquant sur le badge d'une carte (voir NodeCard.jsx) ; enregistré avec
+  // l'arbre du pays.
   const [activeCountry, setActiveCountry] = useState(DEFAULT_COUNTRY);
   // Recherche pilotée depuis l'en-tête partagé (voir AdminTopBar) : compare
   // au nom de branche ET au nom du responsable, dans l'arbre du pays actif
@@ -247,6 +253,12 @@ export default function Reseau() {
           onSearchChange={setSearchQuery}
           searchPlaceholder={t("admin.reseau.searchPlaceholder")}
         />
+
+        {saveError && (
+          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            {t(saveError)}
+          </p>
+        )}
 
         <div className="mt-6 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 p-5 sm:p-6">

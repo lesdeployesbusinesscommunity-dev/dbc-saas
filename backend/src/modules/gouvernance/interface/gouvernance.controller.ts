@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PublierAnnonceUseCase } from '../application/publier-annonce.use-case';
 import { ConsulterTableauDeBordUseCase } from '../application/consulter-tableau-de-bord.use-case';
@@ -14,6 +14,10 @@ import { PublierAnnonceDto } from './dto/publier-annonce.dto';
 import { AssignerSiegeDto } from './dto/assigner-siege.dto';
 import { CreerPoleDto, ModifierPoleDto } from './dto/pole-siege.dto';
 import { ReordonnerPolesDto } from './dto/reordonner-poles.dto';
+import { EnregistrerReseauTerritorialDto, noeudDepuisCorps, noeudVersReponse } from './dto/reseau-territorial.dto';
+import { EnregistrerReseauTerritorialUseCase } from '../application/enregistrer-reseau-territorial.use-case';
+import { ReseauTerritorialRepositoryPort } from '../domaine/reseau-territorial.repository.port';
+import { ReseauTerritorial } from '../domaine/reseau-territorial';
 import { AdminSecretGuard } from '../../../commun/gardes/admin-secret.guard';
 
 function versReponsePole(pole: PoleAvecSieges) {
@@ -24,6 +28,8 @@ function versReponsePole(pole: PoleAvecSieges) {
     description: pole.description,
     order: pole.ordre,
     icon: pole.icone,
+    type: pole.type,
+    levelCode: pole.niveauCode,
     seats: pole.sieges.map((siege) => ({
       id: siege.id,
       title: siege.titre,
@@ -31,6 +37,14 @@ function versReponsePole(pole: PoleAvecSieges) {
       memberId: siege.membreId,
       membershipNumber: siege.matricule,
     })),
+  };
+}
+
+function versReponseReseau(reseau: ReseauTerritorial) {
+  return {
+    country: reseau.pays,
+    tree: reseau.racine ? noeudVersReponse(reseau.racine) : null,
+    levelTitles: reseau.titresNiveaux,
   };
 }
 
@@ -48,6 +62,8 @@ export class GouvernanceController {
     private readonly reordonnerPoles: ReordonnerPolesUseCase,
     private readonly annonces: AnnonceRepositoryPort,
     private readonly journal: JournalAuditRepositoryPort,
+    private readonly enregistrerReseau: EnregistrerReseauTerritorialUseCase,
+    private readonly reseaux: ReseauTerritorialRepositoryPort,
   ) {}
 
   @Get('poles')
@@ -104,6 +120,27 @@ export class GouvernanceController {
   async supprimer(@Param('id', ParseIntPipe) id: number) {
     await this.supprimerPole.executer(id);
     return this.poles();
+  }
+
+  @Get('reseau-territorial')
+  @UseGuards(AdminSecretGuard)
+  @ApiHeader({ name: 'x-admin-secret', required: false })
+  @ApiOperation({ summary: "Organisation territoriale de chaque pays : branches, responsables, coordinateurs (Administrateur)" })
+  async reseauTerritorial() {
+    return (await this.reseaux.listerTous()).map(versReponseReseau);
+  }
+
+  @Put('reseau-territorial/:pays')
+  @UseGuards(AdminSecretGuard)
+  @ApiHeader({ name: 'x-admin-secret', required: false })
+  @ApiOperation({ summary: "Remplacer l'organisation d'un pays (arbre entier et titres des échelons) (Administrateur)" })
+  async enregistrerReseauTerritorial(@Param('pays') pays: string, @Body() dto: EnregistrerReseauTerritorialDto) {
+    const reseau = await this.enregistrerReseau.executer({
+      pays,
+      racine: dto.tree ? noeudDepuisCorps(dto.tree) : null,
+      titresNiveaux: dto.levelTitles,
+    });
+    return versReponseReseau(reseau);
   }
 
   @Post('sieges/:id/assigner')

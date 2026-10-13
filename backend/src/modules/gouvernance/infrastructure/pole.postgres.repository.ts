@@ -30,6 +30,8 @@ export class PolePostgresRepository implements PoleRepositoryPort {
       description: pole.description,
       ordre: pole.ordre,
       icone: pole.icone,
+      type: pole.type,
+      niveauCode: pole.niveauCode,
     });
     return Pole.depuisPersistance(ligne);
   }

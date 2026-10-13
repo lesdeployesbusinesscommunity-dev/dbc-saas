@@ -1,24 +1,19 @@
 // Local Imports
-import { initialMembersByLevel } from "app/pages/Admin/Membres/mockData";
+import { adminMembers, getAdminMember } from "../adminDirectory";
 import { normalizeSearchText } from "../searchUtils";
 
 // ----------------------------------------------------------------------
-// Données de démonstration pour "Gestion du réseau". Comme pour les
-// membres et le dashboard, l'intégration API est mise de côté pour
-// l'instant : l'arbre de chaque pays est géré en local (ajouter une
-// branche / assigner un responsable ne survit pas à un rechargement de
-// page) en attendant les vrais endpoints.
+// Outils et référentiels de "Gestion du réseau". L'arbre de chaque pays
+// vient du serveur et y est enregistré à chaque changement (voir
+// context/NetworkDataContext.jsx).
 
-// Bottin plat de tous les membres (tous niveaux confondus), utilisé par le
-// sélecteur de membre du popover "Ajouter une branche" / "Assigner" — même
-// source de données que "Gestion des membres", pour que le réseau reste
-// cohérent avec le reste de l'admin.
-export const allMembers = Object.entries(initialMembersByLevel).flatMap(
-  ([levelKey, entries]) => entries.map((member) => ({ ...member, levelKey })),
-);
+// Tous les membres réels (tous niveaux confondus), utilisés par le sélecteur
+// de membre du popover "Ajouter une branche" / "Assigner" — même source que
+// "Gestion des membres" (voir adminDirectory.js).
+export const allMembers = adminMembers;
 
 function getMember(id) {
-  return allMembers.find((member) => member.id === id) ?? null;
+  return getAdminMember(id);
 }
 
 // Un seul échelon a un statut particulier : "National" (racine de l'arbre,
@@ -42,8 +37,6 @@ export const BRANCH_LABEL_KEY = "admin.reseau.levels.branche";
 // à tout moment en cliquant sur le badge d'une carte (voir NodeCard.jsx).
 // Tant qu'un niveau n'a pas encore été nommé, son badge retombe sur
 // NATIONAL_LABEL_KEY / BRANCH_LABEL_KEY ci-dessus.
-export const initialLevelTitlesByCountry = {};
-
 export function resolveLevelLabel(depth, levelTitles, t) {
   const custom = levelTitles?.[depth];
   if (custom) return custom;
@@ -79,15 +72,12 @@ export const networkCountries = [
   "Tunisie",
 ].sort((a, b) => a.localeCompare(b));
 
-let nodeSeq = 0;
-// Crée un nœud de l'arbre (id unique auto-incrémenté) — utilisé aussi bien
-// pour les données de démo ci-dessous qu'à l'exécution, quand on ajoute
-// une nouvelle branche depuis l'UI (voir Reseau/index.jsx).
+// Crée un nœud de l'arbre, quand on ajoute une branche depuis l'UI (voir
+// Reseau/index.jsx). Identifiant aléatoire : il ne doit jamais retomber sur
+// celui d'une branche déjà enregistrée.
 export function createNetworkNode({ memberId = null, label = null, children = [] } = {}) {
-  nodeSeq += 1;
-  return { id: `node-${nodeSeq}`, memberId, label, children };
+  return { id: `node-${crypto.randomUUID()}`, memberId, coordinatorId: null, label, children };
 }
-const makeNode = createNetworkNode;
 
 // Remplace (immuablement) le nœud "nodeId" quelque part dans "root" par le
 // résultat de "updater(node)" — sert à assigner un membre à un poste vacant
@@ -181,57 +171,6 @@ export function insertNodeAbove(root, targetNodeId, { memberId = null, label = n
 // l'arbre reste crédible). Un memberId à "null" représente une branche
 // créée mais dont le poste est encore vacant (ex: Littoral, Yaoundé
 // ci-dessous) : sert aussi à montrer l'état "à assigner" dans l'UI.
-export const initialNetworksByCountry = {
-  Cameroun: makeNode({
-    memberId: "m1", // Hubert Wakap, Douala
-    children: [
-      makeNode({
-        memberId: "m5", // Nadège Mbarga, Yaoundé
-        label: "Centre",
-        children: [makeNode({ memberId: null, label: "Yaoundé", children: [] })],
-      }),
-      makeNode({ memberId: null, label: "Littoral", children: [] }),
-    ],
-  }),
-  Nigéria: makeNode({
-    memberId: "m3", // Samuel Okafor, Lagos
-    children: [
-      // Libellé "Federal Capital Territory" (et non "Abuja (FCT)") : c'est
-      // le nom de la région tel qu'utilisé par la carte de présence (voir
-      // countryMaps.js) — un admin qui recrée cette branche verra la liste
-      // de suggestions du champ "Nom de la branche" (voir MemberPickerModal)
-      // et n'a pas besoin de connaître ce nom officiel par cœur.
-      makeNode({ memberId: "m8", label: "Federal Capital Territory", children: [] }), // Chidi Eze
-      makeNode({ memberId: null, label: "Lagos", children: [] }),
-    ],
-  }),
-  Ghana: makeNode({
-    memberId: "m2", // Grace Owusu, Accra
-    children: [makeNode({ memberId: "m6", label: "Ashanti", children: [] })], // Kwame Asante
-  }),
-  Sénégal: makeNode({
-    memberId: "m7", // Fatou Ndiaye, Dakar
-    children: [],
-  }),
-  Mali: makeNode({
-    memberId: "m4", // Aïcha Konaté, Bamako
-    children: [makeNode({ memberId: "m9", label: "Bamako", children: [] })], // Awa Traoré
-  }),
-};
-
-// Recherche dans l'arbre du pays actif (voir la barre de recherche
-// partagée dans AdminTopBar, pilotée par Reseau/index.jsx) : "query" est
-// comparé (insensible à la casse ET aux accents, voir normalizeSearchText —
-// un clavier réglé en anglais retrouve "Extrême-Nord" en tapant "extreme
-// nord") au nom de la branche (node.label) ET au nom de son responsable
-// s'il en a un. Renvoie null si "query" est vide (pas de recherche en
-// cours, l'arbre s'affiche normalement) ; sinon { matchIds, keepIds } —
-// "matchIds" les nœuds qui correspondent directement (à mettre en
-// évidence), "keepIds" ces mêmes nœuds PLUS leurs ancêtres (pour garder le
-// fil qui y mène visible) et leurs descendants (une branche trouvée reste
-// normalement visible en dessous) : tout nœud hors de "keepIds" doit être
-// estompé par l'appelant (voir OrgTree.jsx / NodeCard.jsx) pour que les
-// résultats ressortent dans un arbre qui peut être profond.
 export function getTreeSearchMatches(root, query) {
   const trimmed = normalizeSearchText(query);
   if (!trimmed) return null;

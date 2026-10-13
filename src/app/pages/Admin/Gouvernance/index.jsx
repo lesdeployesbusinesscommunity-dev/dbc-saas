@@ -1,5 +1,5 @@
 // Import Dependencies
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PlusIcon, SparklesIcon } from "@heroicons/react/24/solid";
 
@@ -21,8 +21,27 @@ import {
   getNetworkChapters,
   getPoleTitle,
   getSeatTitle,
-  initialGovernanceStructure,
 } from "./mockData";
+import { assignerSiege, creerPole, listerPoles, modifierPole, reordonnerPoles, supprimerPole } from "api/gouvernance";
+import { levelKeyFromCode } from "utils/levelCodes";
+
+// Pôle du serveur -> forme de la page. Le type du serveur donne le
+// fonctionnement de la carte : "fondatrice" -> poste unique en avant,
+// "sieges" -> postes nommés à pourvoir, "reseau" -> chapitres de Gestion du
+// réseau, "niveau" -> tous les membres d'un niveau.
+const KIND_BY_TYPE = { fondatrice: "fixed", sieges: "assignable", reseau: "networkChapters", niveau: "autoLevel" };
+
+function poleFromApi(pole) {
+  return {
+    id: pole.id,
+    iconKey: pole.icon,
+    title: pole.name,
+    description: pole.description,
+    kind: KIND_BY_TYPE[pole.type] ?? "assignable",
+    levelKey: pole.levelCode ? levelKeyFromCode(pole.levelCode) : undefined,
+    seats: pole.seats.map((seat) => ({ id: seat.id, title: seat.title, memberId: seat.memberId })),
+  };
+}
 
 // ----------------------------------------------------------------------
 
@@ -39,12 +58,30 @@ import {
 // peut créer soi-même — les 3 autres viennent avec un fonctionnement qui
 // leur est propre, voir mockData.js), et chaque carte peut ensuite être
 // modifiée, supprimée, ou déplacée (monter/descendre — voir PoleSection/
-// PoleHeader) pour changer sa position dans la page. Tout est géré en
-// local pour l'instant (voir mockData.js), comme le reste de l'admin.
+// PoleHeader) pour changer sa position dans la page. Les pôles et leurs
+// postes viennent du serveur (GET /gouvernance/poles) et chaque action y est
+// enregistrée ; les chapitres viennent de Gestion du réseau.
 export default function Gouvernance() {
   const { t, i18n } = useTranslation();
-  const { networksByCountry } = useNetworkData();
-  const [structure, setStructure] = useState(initialGovernanceStructure);
+  const { networksByCountry, coordinatorsByNodeId, setCoordinatorsByNodeId } = useNetworkData();
+  const [structure, setStructure] = useState([]);
+  const [actionError, setActionError] = useState("");
+
+  // Toutes les réponses du serveur renvoient la liste à jour des pôles.
+  const applyPoles = (poles) => setStructure(poles.map(poleFromApi));
+  const run = async (action) => {
+    setActionError("");
+    try {
+      await action();
+    } catch (error) {
+      setActionError(error.detail ?? t(error.message ?? "api.errors.server"));
+    }
+  };
+
+  useEffect(() => {
+    run(async () => applyPoles(await listerPoles()));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Recherche pilotée depuis l'en-tête partagé (voir AdminTopBar) : compare
   // au titre du pôle, aux titres/titulaires de ses postes, et — pour le
   // pôle "Réseau des Leaders d'Antennes" — aux noms de chapitres et de
@@ -53,9 +90,8 @@ export default function Gouvernance() {
   // PoleSection) : on garde le contexte de la page entière visible.
   const [search, setSearch] = useState("");
   // Le "Leader Légende" de chaque chapitre vient directement de Gestion du
-  // réseau (voir NetworkDataContext) — seul le "Coordinateur", propre à la
-  // gouvernance, se gère ici, par id de branche.
-  const [coordinatorsByNodeId, setCoordinatorsByNodeId] = useState({});
+  // réseau (voir NetworkDataContext) — seul le "Coordinateur" se gère ici, par
+  // id de branche ; il est enregistré avec l'organisation du pays.
   const [viewingMemberId, setViewingMemberId] = useState(null);
   // assigning = { poleId, chapterId, seatId, seatLabel } | null
   const [assigning, setAssigning] = useState(null);
@@ -81,7 +117,7 @@ export default function Gouvernance() {
     if (!assigning) return;
     const { poleId, chapterId, seatId } = assigning;
 
-    if (poleId === "antennes") {
+    if (structure.find((pole) => pole.id === poleId)?.kind === "networkChapters") {
       // "chapterId" est ici l'id du nœud de branche (voir
       // getNetworkChapters dans mockData.js) — seul le "Coordinateur" se
       // gère depuis cette page ; le "Leader Légende" se change dans
@@ -91,32 +127,22 @@ export default function Gouvernance() {
       return;
     }
 
-    setStructure((prev) =>
-      prev.map((pole) => {
-        if (pole.id !== poleId) return pole;
-        if (pole.kind === "assignable") {
-          return {
-            ...pole,
-            seats: pole.seats.map((seat) => (seat.id === seatId ? { ...seat, memberId } : seat)),
-          };
-        }
-        return pole;
-      }),
-    );
-
     closeAssign();
+    run(async () => {
+      await assignerSiege(seatId, memberId);
+      applyPoles(await listerPoles());
+    });
   };
 
   // Échange le pôle à "index" avec son voisin ("direction" = -1 pour
   // monter, +1 pour descendre) — pas d'effet si déjà en haut/en bas.
   const movePole = (index, direction) => {
-    setStructure((prev) => {
-      const target = index + direction;
-      if (target < 0 || target >= prev.length) return prev;
-      const next = [...prev];
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
+    const target = index + direction;
+    if (target < 0 || target >= structure.length) return;
+    const next = [...structure];
+    [next[index], next[target]] = [next[target], next[index]];
+    setStructure(next);
+    run(async () => applyPoles(await reordonnerPoles(next.map((pole) => pole.id))));
   };
 
   const openAddPole = () => setPoleForm({ mode: "add" });
@@ -124,19 +150,19 @@ export default function Gouvernance() {
   const closePoleForm = () => setPoleForm(null);
 
   const handlePoleSubmit = (payload) => {
-    if (poleForm?.mode === "edit") {
-      const targetId = poleForm.pole.id;
-      setStructure((prev) => prev.map((p) => (p.id === targetId ? { ...p, ...payload } : p)));
-    } else {
-      setStructure((prev) => [...prev, { id: `pole-${Date.now()}`, ...payload }]);
-    }
+    const editing = poleForm?.mode === "edit" ? poleForm.pole : null;
+    // Un pôle sans postes modifiables dans le formulaire garde les siens.
+    const seats = (payload.seats ?? editing?.seats ?? []).map((seat) => ({ id: seat.id, title: seat.title }));
+    const body = { name: payload.title, description: payload.description, icon: payload.iconKey, seats };
     closePoleForm();
+    run(async () => applyPoles(editing ? await modifierPole(editing.id, body) : await creerPole(body)));
   };
 
   const confirmDeletePole = () => {
     if (!deletingPole) return;
-    setStructure((prev) => prev.filter((p) => p.id !== deletingPole.id));
+    const poleId = deletingPole.id;
     setDeletingPole(null);
+    run(async () => applyPoles(await supprimerPole(poleId)));
   };
 
   const viewingMember = viewingMemberId ? getMember(viewingMemberId) : null;
@@ -256,6 +282,12 @@ export default function Gouvernance() {
           </blockquote>
           <p className="relative mt-5 text-sm font-semibold text-white/80">— {founderQuote.author}</p>
         </div>
+
+        {actionError && (
+          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            {actionError}
+          </p>
+        )}
 
         <div className="mt-6 flex justify-end">
           <button

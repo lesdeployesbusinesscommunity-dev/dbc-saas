@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { TYPES_POLE, TypePole } from '../domaine/pole';
 
 @Entity({ name: 'poles' })
 export class PoleOrmEntity {
@@ -21,4 +22,10 @@ export class PoleOrmEntity {
   // "briefcase" par défaut pour les pôles déjà en base avant cette colonne.
   @Column({ type: 'varchar', default: 'briefcase' })
   icone: string;
+
+  @Column({ type: 'enum', enum: TYPES_POLE, default: 'sieges' })
+  type: TypePole;
+
+  @Column({ name: 'niveau_code', type: 'varchar', nullable: true })
+  niveauCode: string | null;
 }
