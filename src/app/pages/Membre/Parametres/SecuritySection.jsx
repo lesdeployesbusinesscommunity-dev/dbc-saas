@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { EyeIcon, EyeSlashIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 
 // Local Imports
+import { changePassword } from "api/auth";
 import { Field, TextInput } from "app/pages/Admin/Parametres/Field";
 import { SettingsSection } from "app/pages/Admin/Parametres/SettingsSection";
 import {
@@ -18,10 +19,8 @@ import {
 // minimale, majuscule, chiffre, symbole) est celle choisie par l'admin dans
 // ses Paramètres > Comptes des membres (voir
 // Admin/Parametres/platformSettings.js) : si l'admin la change, elle
-// s'applique ici tout de suite. Aucun mot de passe n'est conservé ni envoyé nulle part
-// pour l'instant : la connexion membre n'est pas encore branchée au
-// backend (voir router/membre.jsx) — c'est à cet endroit qu'on appellera
-// l'endpoint de changement de mot de passe, avec "current" et "next".
+// s'applique ici tout de suite. Le changement part au serveur (POST
+// /auth/password), qui vérifie l'ancien mot de passe et RE-VÉRIFIE la règle.
 export function SecuritySection({ onSaved }) {
   const { t, i18n } = useTranslation();
   const { security } = usePlatformSettings();
@@ -34,6 +33,7 @@ export function SecuritySection({ onSaved }) {
   const [visible, setVisible] = useState(false);
   const [errors, setErrors] = useState({});
   const [done, setDone] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const update = (field) => (event) => {
     setValues((prev) => ({ ...prev, [field]: event.target.value }));
@@ -53,11 +53,21 @@ export function SecuritySection({ onSaved }) {
     if (values.confirm !== values.next) next.confirm = t("membre.parametres.security.errors.mismatch");
 
     setErrors(next);
-    if (Object.keys(next).length > 0) return;
+    if (Object.keys(next).length > 0 || sending) return;
 
-    setValues({ current: "", next: "", confirm: "" });
-    setDone(true);
-    onSaved();
+    setSending(true);
+    changePassword({ currentPassword: values.current, newPassword: values.next })
+      .then(() => {
+        setValues({ current: "", next: "", confirm: "" });
+        setDone(true);
+        onSaved();
+      })
+      .catch((error) => {
+        // Le serveur dit pourquoi : ancien mot de passe faux, ou règle non respectée.
+        const message = error.detail ?? t(error.message ?? "api.errors.server");
+        setErrors(/actuel/i.test(message) ? { current: message } : { next: message });
+      })
+      .finally(() => setSending(false));
   };
 
   const type = visible ? "text" : "password";
@@ -108,6 +118,7 @@ export function SecuritySection({ onSaved }) {
           </button>
           <button
             type="submit"
+            disabled={sending}
             className="rounded-xl bg-[#EE7115] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
           >
             {t("membre.parametres.security.submit")}

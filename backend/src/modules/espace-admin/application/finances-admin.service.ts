@@ -19,6 +19,8 @@ export interface FinancesNiveau {
   /** Membres des vagues en cours ayant payé une cotisation ce mois-ci / membres des vagues en cours. */
   cotisationsRecues: number;
   cotisationsAttendues: number;
+  /** Noms des membres des vagues en cours qui n'ont pas encore cotisé ce mois-ci. */
+  membresEnRetard: string[];
   /** Mois atteint par la plus ancienne vague en cours (0 si aucune), sur un cycle de 12. */
   moisCycle: number;
   dureeCycle: number;
@@ -52,6 +54,7 @@ export class FinancesAdminService {
         toursClotures: 0,
         cotisationsRecues: 0,
         cotisationsAttendues: 0,
+        membresEnRetard: [],
         moisCycle: 0,
         dureeCycle: COTISATIONS_PAR_MEMBRE,
         nombreMembres: fiches.filter((f) => f.niveauId === niveau.id && f.statut === 'actif').length,
@@ -70,9 +73,12 @@ export class FinancesAdminService {
         finances.caisseActuelle += calculerCaisse(cotisations, tours);
         const membres = await this.participations.listerParGroupe(groupe.id!);
         finances.cotisationsAttendues += membres.length;
-        finances.cotisationsRecues += membres.filter((p) =>
-          payees.some((c) => c.participationId === p.id && c.payeeLe && c.payeeLe >= debutDuMois),
-        ).length;
+        const aCotiseCeMois = (participationId: string | undefined) =>
+          payees.some((c) => c.participationId === participationId && c.payeeLe && c.payeeLe >= debutDuMois);
+        finances.cotisationsRecues += membres.filter((p) => aCotiseCeMois(p.id)).length;
+        finances.membresEnRetard.push(
+          ...membres.filter((p) => !aCotiseCeMois(p.id)).map((p) => annuaire.get(p.membreId)?.nom ?? 'Membre'),
+        );
         const mois =
           (maintenant.getFullYear() - groupe.creeLe.getFullYear()) * 12 +
           (maintenant.getMonth() - groupe.creeLe.getMonth()) +

@@ -42,7 +42,7 @@ export class EspaceAdminController {
 
   @Get('finances')
   @ApiOperation({ summary: 'Gestion financière : chiffres de la tontine par niveau (admin)' })
-  async finances() {
+  async financesParNiveau() {
     const niveaux = await this.finances.parNiveau(await this.annuaire.charger());
     return niveaux.map((n) => ({
       levelCode: n.niveauCode,
@@ -51,6 +51,7 @@ export class EspaceAdminController {
       toursCompleted: n.toursClotures,
       contributionsReceived: n.cotisationsRecues,
       contributionsExpected: n.cotisationsAttendues,
+      lateMembers: n.membresEnRetard,
       currentTour: n.moisCycle,
       totalTours: n.dureeCycle,
       memberCount: n.nombreMembres,

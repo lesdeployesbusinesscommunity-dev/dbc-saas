@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 // Local Imports
 import { currentMember } from "../currentMember";
 import { NewsCarousel } from "./NewsCarousel";
-import { getNewsSlides } from "./newsData";
+import { getNewsSlides, useNewsVersion } from "./newsData";
 
 // ----------------------------------------------------------------------
 
@@ -28,8 +28,10 @@ import { getNewsSlides } from "./newsData";
 export function WelcomeBanner() {
   const { t } = useTranslation();
   // Les niveaux du membre ne changent pas pendant la visite : les
-  // diapositives sont calculées une seule fois.
-  const slides = useMemo(() => getNewsSlides(currentMember.levelKeys), []);
+  // diapositives ne sont recalculées que quand les annonces arrivent.
+  const newsVersion = useNewsVersion();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- "newsVersion" signale l'arrivée des annonces
+  const slides = useMemo(() => getNewsSlides(currentMember.levelKeys), [newsVersion]);
 
   return (
     <div className="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm min-[1800px]:flex min-[1800px]:min-h-[18rem]">

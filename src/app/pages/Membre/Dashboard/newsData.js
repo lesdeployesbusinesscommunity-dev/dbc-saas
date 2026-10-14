@@ -1,21 +1,26 @@
 // Import Dependencies
+import { useSyncExternalStore } from "react";
+
+// Local Imports
+import { listerNiveaux } from "api/adhesion";
+import { listerAnnonces } from "api/gouvernance";
 import { levels } from "app/pages/Simulateur/data";
+import { levelKeyFromCode } from "utils/levelCodes";
 import { getCourseCatalog } from "../Formation/formationData";
 
 // ----------------------------------------------------------------------
 // Diapositives du carrousel d'actualités du bandeau d'accueil (voir
-// NewsCarousel.jsx). Comme le reste du dashboard, rien n'est encore branché
-// au backend : cette liste sera remplacée par un appel API (actualités
-// publiées par l'admin) sans changer le composant qui l'affiche.
-//
-// Deux sortes de contenu :
-// - tiré des VRAIES données du site : les formations les plus récentes du
-//   catalogue (même source que la page Formation) et le prochain niveau DBC
-//   que le membre n'a pas encore (même source que le tableau comparatif) ;
-// - des actualités DE DÉMONSTRATION (rencontres, antenne, programmes) dont
-//   les textes sont dans les fichiers de traduction, sous
-//   "membre.dashboard.news.items.<id>" : à remplacer par les vraies
-//   annonces (dates, lieux, photos) quand l'admin pourra les publier.
+// NewsCarousel.jsx). Tout vient des VRAIES données du site :
+// - les annonces publiées par la DBC (GET /gouvernance/annonces), celles
+//   réservées à un niveau n'apparaissant qu'aux membres de ce niveau ou
+//   au-dessus ;
+// - les formations les plus récentes du catalogue (même source que la page
+//   Formation) et le prochain niveau DBC que le membre n'a pas encore (même
+//   source que le tableau comparatif) ;
+// - la présentation des programmes (texte dans les traductions, sous
+//   "membre.dashboard.news.items.nouveauxProgrammes").
+// Les rencontres (date, lieu, inscription) reviendront ici quand le serveur
+// saura les gérer.
 //
 // "image" : photo du dossier /public. Pour mettre une vraie photo d'une
 // rencontre, déposer le fichier dans /public (ex: /public/rencontre-douala.jpg)
@@ -90,46 +95,74 @@ function levelSlide(ownedLevelKeys) {
   };
 }
 
+// Annonces de la DBC, chargées une fois depuis le serveur (la première fois
+// que le carrousel ou les notifications en ont besoin).
+const ANNOUNCEMENT_IMAGES = ["/investir 4.jpg", "/resauter.jpg", "/resauter 3.jpg", "/investir.jpg"];
+let announcements = [];
+let newsVersion = 0;
+let newsRequested = false;
+const newsListeners = new Set();
+
+function loadAnnouncements() {
+  newsRequested = true;
+  Promise.all([listerAnnonces(), listerNiveaux()])
+    .then(([items, niveaux]) => {
+      const levelKeyById = new Map(niveaux.map((niveau) => [niveau.id, levelKeyFromCode(niveau.code)]));
+      announcements = items.map((item) => ({
+        ...item,
+        targetLevelKey: item.targetLevelId ? levelKeyById.get(item.targetLevelId) ?? null : null,
+      }));
+      newsVersion += 1;
+      newsListeners.forEach((listener) => listener());
+    })
+    .catch(() => {
+      // serveur injoignable : pas d'annonces
+    });
+}
+
+function subscribeNews(listener) {
+  newsListeners.add(listener);
+  return () => newsListeners.delete(listener);
+}
+
+const getNewsVersion = () => newsVersion;
+
+// Se redessiner quand les annonces arrivent.
+export function useNewsVersion() {
+  return useSyncExternalStore(subscribeNews, getNewsVersion, getNewsVersion);
+}
+
+// Une annonce réservée à un niveau s'adresse aux membres de ce niveau ou au-dessus.
+function isForMember(announcement, ownedLevelKeys) {
+  if (!announcement.targetLevelKey) return true;
+  const target = levels.findIndex((level) => level.key === announcement.targetLevelKey);
+  return ownedLevelKeys.some((key) => levels.findIndex((level) => level.key === key) >= target);
+}
+
+function announcementSlides(ownedLevelKeys) {
+  if (!newsRequested) loadAnnouncements();
+  return announcements
+    .filter((announcement) => isForMember(announcement, ownedLevelKeys))
+    .map((announcement, index) => ({
+      id: `annonce-${announcement.id}`,
+      kind: "general",
+      image: ANNOUNCEMENT_IMAGES[index % ANNOUNCEMENT_IMAGES.length],
+      title: announcement.title,
+      text: announcement.content,
+      date: announcement.publishedAt?.slice(0, 10),
+      cta: { type: "link", to: "/membre/notifications", labelKey: `${NEWS_KEY}.cta.discover` },
+    }));
+}
+
 export function getNewsSlides(ownedLevelKeys) {
   const [firstFormation, secondFormation] = formationSlides(ownedLevelKeys);
 
   // Ordre voulu : on alterne les types pour que le défilement reste varié.
   return [
-    {
-      id: "rencontreDouala",
-      kind: "event",
-      image: "/resauter.jpg",
-      date: "2026-10-18",
-      hasPlace: true,
-      cta: {
-        type: "request",
-        labelKey: `${NEWS_KEY}.cta.participate`,
-        questionKey: `${NEWS_KEY}.items.rencontreDouala.question`,
-      },
-    },
+    ...announcementSlides(ownedLevelKeys),
     firstFormation,
-    {
-      id: "antenneBafoussam",
-      kind: "antenne",
-      image: "/resauter 3.jpg",
-      date: "2026-10-24",
-      hasPlace: true,
-      cta: { type: "link", to: "/membre/reseau", labelKey: `${NEWS_KEY}.cta.seeNetwork` },
-    },
     levelSlide(ownedLevelKeys),
     secondFormation,
-    {
-      id: "atelierYaounde",
-      kind: "event",
-      image: "/investir.jpg",
-      date: "2026-11-07",
-      hasPlace: true,
-      cta: {
-        type: "request",
-        labelKey: `${NEWS_KEY}.cta.participate`,
-        questionKey: `${NEWS_KEY}.items.atelierYaounde.question`,
-      },
-    },
     {
       id: "nouveauxProgrammes",
       kind: "general",

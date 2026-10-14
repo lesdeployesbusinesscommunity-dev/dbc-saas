@@ -177,8 +177,9 @@ export function describe(item, t, locale) {
       params.place = t(`membre.dashboard.news.items.${p.eventId}.place`, { defaultValue: "" });
       break;
     case "dbc":
-      params.title = t(`membre.dashboard.news.items.${p.itemId}.title`, { defaultValue: p.itemId });
-      params.text = t(`membre.dashboard.news.items.${p.itemId}.text`, { defaultValue: "" });
+      // Une annonce de la DBC porte son propre texte ; les autres sont traduites.
+      params.title = p.title ?? t(`membre.dashboard.news.items.${p.itemId}.title`, { defaultValue: p.itemId });
+      params.text = p.text ?? t(`membre.dashboard.news.items.${p.itemId}.text`, { defaultValue: "" });
       break;
     case "tourAttribue":
     case "tourProche":

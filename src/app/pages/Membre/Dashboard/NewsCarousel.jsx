@@ -177,8 +177,9 @@ function NewsSlide({ slide, position, onPopoverOpenChange }) {
       cagnotte: formatMoney(slide.cagnotte, locale),
     });
   } else {
-    title = t(`${base}.items.${slide.id}.title`);
-    text = t(`${base}.items.${slide.id}.text`);
+    // Une annonce de la DBC porte son propre texte ; les autres sont traduites.
+    title = slide.title ?? t(`${base}.items.${slide.id}.title`);
+    text = slide.text ?? t(`${base}.items.${slide.id}.text`);
     if (slide.date) {
       dateLabel =
         slide.kind === "antenne"

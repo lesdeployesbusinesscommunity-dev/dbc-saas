@@ -2,7 +2,16 @@
 import { useSyncExternalStore } from "react";
 
 // Local Imports
-import { accountStorageKey, currentMember } from "app/pages/Membre/currentMember";
+import {
+  deciderDemande,
+  deposerDemande,
+  listerNotifications,
+  marquerNotificationsLues,
+  retirerDemande,
+} from "api/notifications";
+import { getSessionSnapshot, subscribeSession } from "app/pages/Auth/session";
+import { currentMember } from "app/pages/Membre/currentMember";
+import { levelKeyFromCode } from "utils/levelCodes";
 
 // ----------------------------------------------------------------------
 // Notifications ENREGISTRÉES, partagées par l'espace membre et l'espace
@@ -16,33 +25,21 @@ import { accountStorageKey, currentMember } from "app/pages/Membre/currentMember
 // Coins...) ne sont pas enregistrées : elles se déduisent des données du
 // site (voir feeds.js). Seul leur état "lu" l'est.
 //
-// Gardé dans le navigateur (localStorage, protégé par try/catch) avec une
-// mise à jour entre onglets : un membre et un admin ouverts dans deux
-// onglets du même navigateur se voient. Une fois le backend branché, cette
-// liste viendra du serveur (une demande = une ligne, créée par le membre,
-// décidée par l'admin) sans changer la forme de ce que ces fonctions
-// renvoient.
-const STORAGE_KEY = "dbc-notifications-v1";
+// Enregistrées sur le serveur (GET /notifications : une demande = une
+// ligne, créée par le membre, décidée par l'admin ; voir api/notifications.js).
+// Chaque action s'affiche aussitôt, part au serveur, puis la liste est
+// rechargée. Elle est aussi rechargée régulièrement tant qu'une page
+// l'affiche, pour qu'un admin voie arriver les nouvelles demandes.
 
 // Types de demande. "key" sert à repérer une demande déjà en attente (pas
 // de doublon si le membre confirme deux fois).
 export const REQUEST_TYPES = ["deleteAccount", "level", "event", "reward", "tontineNext"];
 
+const REFRESH_MS = 60 * 1000;
+
 const empty = () => ({ items: [], readIds: { admin: [], membre: [] } });
 
-function load() {
-  try {
-    const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "null");
-    if (saved && Array.isArray(saved.items)) {
-      return { items: saved.items, readIds: { ...empty().readIds, ...(saved.readIds ?? {}) } };
-    }
-  } catch {
-    // stockage absent ou illisible : on repart d'une liste vide
-  }
-  return empty();
-}
-
-let state = load();
+let state = empty();
 const listeners = new Set();
 
 function emit() {
@@ -51,25 +48,112 @@ function emit() {
 
 function commit(next) {
   state = next;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // stockage indisponible : les notifications restent valables pour cette session
-  }
   emit();
 }
 
-if (typeof window !== "undefined") {
-  window.addEventListener("storage", (event) => {
-    if (event.key !== STORAGE_KEY) return;
-    state = load();
-    emit();
-  });
+// Profil envoyé par le serveur -> forme de getMemberSnapshot().
+function memberFromApi(member = {}) {
+  return {
+    name: member.name,
+    firstName: member.firstName,
+    lastName: member.lastName,
+    matricule: member.membershipNumber,
+    email: member.email,
+    whatsapp: member.whatsapp,
+    city: member.city,
+    country: member.country,
+    profession: member.profession,
+    levelKeys: (member.levelCodes ?? []).map(levelKeyFromCode).filter(Boolean),
+    coins: member.coins,
+    sponsoredCount: member.sponsoredCount,
+  };
+}
+
+// Une demande du serveur -> la demande (fil admin) et, si elle est
+// décidée, la décision (fil membre).
+function itemsFromApi(request) {
+  const member = memberFromApi(request.member);
+  const items = [
+    {
+      id: request.id,
+      audience: "admin",
+      kind: "request",
+      type: request.type,
+      status: request.status,
+      createdAt: Date.parse(request.createdAt),
+      decidedAt: request.decidedAt ? Date.parse(request.decidedAt) : null,
+      read: request.readByAdmin,
+      member,
+      details: request.details ?? {},
+    },
+  ];
+  if (request.status === "validated" || request.status === "refused") {
+    items.push({
+      id: request.decisionId,
+      audience: "membre",
+      kind: "decision",
+      type: request.type,
+      status: request.status,
+      requestId: request.id,
+      memberMatricule: member.matricule ?? null,
+      createdAt: Date.parse(request.decidedAt),
+      read: request.decisionReadByMember,
+      details: request.details ?? {},
+    });
+  }
+  return items;
+}
+
+let loadedFor = null;
+let timer = null;
+
+const sessionUserId = () => getSessionSnapshot().session?.user?.id ?? null;
+
+// Charge (ou recharge) les notifications du compte connecté.
+export function loadNotifications() {
+  const userId = sessionUserId();
+  loadedFor = userId;
+  if (!userId) {
+    commit(empty());
+    return Promise.resolve();
+  }
+  return listerNotifications()
+    .then((data) => {
+      if (sessionUserId() !== userId) return;
+      commit({
+        items: data.requests.flatMap(itemsFromApi),
+        readIds: { ...empty().readIds, ...(data.readIds ?? {}) },
+      });
+    })
+    .catch(() => {
+      // serveur injoignable : on garde la liste actuelle
+    });
+}
+
+// Un autre compte se connecte (ou la session se termine) : on repart de sa liste.
+subscribeSession(() => {
+  if (sessionUserId() !== loadedFor && listeners.size > 0) loadNotifications();
+});
+
+// Envoie une action au serveur, puis recharge la liste (qu'elle ait réussi
+// ou non : en cas de refus, l'écran revient à l'état du serveur).
+function send(request) {
+  request.catch(() => {}).finally(() => loadNotifications());
 }
 
 function subscribe(listener) {
+  if (listeners.size === 0) {
+    if (loadedFor !== sessionUserId() || state.items.length === 0) loadNotifications();
+    timer = setInterval(loadNotifications, REFRESH_MS);
+  }
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+    if (listeners.size === 0) {
+      clearInterval(timer);
+      timer = null;
+    }
+  };
 }
 
 export function getNotificationState() {
@@ -111,10 +195,10 @@ export function isMine(item) {
   return !matricule || matricule === currentMember.matricule;
 }
 
-// Les notifications DÉDUITES déjà lues sont mémorisées par identifiant ; côté
-// membre, la clé porte aussi le compte (le membre de démonstration garde les
-// clés d'origine) : ce que l'un a lu n'est pas "lu" pour l'autre.
-const readKey = (audience, id) => (audience === "membre" ? accountStorageKey(id) : id);
+// Les notifications DÉDUITES déjà lues sont mémorisées par identifiant, sur
+// le serveur et pour le compte connecté : ce que l'un a lu n'est pas "lu"
+// pour l'autre.
+const readKey = (_audience, id) => id;
 
 const sameDetails = (a, b) => JSON.stringify(a ?? {}) === JSON.stringify(b ?? {});
 
@@ -146,6 +230,7 @@ export function submitRequest({ type, ...details }) {
     details,
   };
   commit({ ...state, items: [item, ...state.items] });
+  send(deposerDemande(type, details));
   return item.id;
 }
 
@@ -160,7 +245,10 @@ export function withdrawRequest(type) {
     }
     return item;
   });
-  if (changed) commit({ ...state, items });
+  if (changed) {
+    commit({ ...state, items });
+    send(retirerDemande(type));
+  }
 }
 
 // L'admin valide ou refuse une demande ("validated" | "refused") : le
@@ -190,6 +278,7 @@ export function decideRequest(id, status) {
       ),
     ],
   });
+  send(deciderDemande(id, status));
 }
 
 export function markRead(audience, id) {
@@ -197,11 +286,13 @@ export function markRead(audience, id) {
   if (stored) {
     if (stored.read) return;
     commit({ ...state, items: state.items.map((item) => (item.id === id ? { ...item, read: true } : item)) });
+    marquerNotificationsLues(audience, [id]).catch(() => {});
     return;
   }
   const key = readKey(audience, id);
   if (state.readIds[audience].includes(key)) return;
   commit({ ...state, readIds: { ...state.readIds, [audience]: [...state.readIds[audience], key] } });
+  marquerNotificationsLues(audience, [id]).catch(() => {});
 }
 
 // Marque comme lues toutes les notifications données (enregistrées ou
@@ -218,6 +309,7 @@ export function markAllRead(audience, ids) {
     items,
     readIds: { ...state.readIds, [audience]: [...state.readIds[audience], ...derived] },
   });
+  if (ids.length > 0) marquerNotificationsLues(audience, ids).catch(() => {});
 }
 
 export function isRead(item, notificationState = state) {

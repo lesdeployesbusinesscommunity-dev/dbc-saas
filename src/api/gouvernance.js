@@ -82,3 +82,10 @@ export async function enregistrerReseauTerritorial(country, { tree, levelTitles 
   });
   return data;
 }
+
+// GET /gouvernance/annonces — public, les annonces récentes de la DBC
+// ("targetLevelId" : réservée aux membres de ce niveau et au-dessus).
+export async function listerAnnonces() {
+  const { data } = await httpClient.get("/gouvernance/annonces");
+  return data;
+}

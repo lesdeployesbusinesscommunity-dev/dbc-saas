@@ -17,6 +17,8 @@ import { TontineModule } from './modules/tontine/tontine.module';
 import { FichiersModule } from './modules/fichiers/fichiers.module';
 import { EspaceMembreModule } from './modules/espace-membre/espace-membre.module';
 import { EspaceAdminModule } from './modules/espace-admin/espace-admin.module';
+import { DemandesMembresModule } from './modules/demandes-membres/demandes-membres.module';
+import { ParametresPlateformeModule } from './modules/parametres-plateforme/parametres-plateforme.module';
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { EspaceAdminModule } from './modules/espace-admin/espace-admin.module';
     FichiersModule,
     EspaceMembreModule,
     EspaceAdminModule,
+    DemandesMembresModule,
+    ParametresPlateformeModule,
   ],
 })
 export class AppModule {}

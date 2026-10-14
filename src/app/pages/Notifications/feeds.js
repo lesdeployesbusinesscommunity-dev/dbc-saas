@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 
 // Local Imports
 import { getContributionDay, getPlatformSettings, getReminderDays, usePlatformSettings } from "app/pages/Admin/Parametres/platformSettings";
-import { initialMembersByLevel } from "app/pages/Admin/Membres/mockData";
 import { currentMember } from "app/pages/Membre/currentMember";
 import { getCoinsHistory } from "app/pages/Membre/Coins/coinsData";
 import { getNewsSlides } from "app/pages/Membre/Dashboard/newsData";
@@ -19,6 +18,7 @@ import {
   isCycleComplete,
 } from "app/pages/Membre/Tontine/tontineData";
 import { isMine, isRead, markAllRead, markRead, useNotificationState } from "./notificationsStore";
+import { getAdminFeedData, useAdminFeedVersion } from "./adminFeedData";
 
 // ----------------------------------------------------------------------
 // Le FIL de notifications de chaque espace : les notifications enregistrées
@@ -193,8 +193,8 @@ function memberDerived(platform) {
     } else if (slide.kind === "antenne" || slide.kind === "general") {
       items.push(
         make("membre", "dbc", `dbc-${slide.id}`, today.subtract(index + 1, "day").add(15, "hour"), "community", {
-          params: { itemId: slide.id, date: slide.date ?? null },
-          to: slide.kind === "antenne" ? "/membre/reseau" : "/membre/piliers",
+          params: { itemId: slide.id, date: slide.date ?? null, title: slide.title, text: slide.text },
+          to: slide.kind === "antenne" ? "/membre/reseau" : slide.cta.to,
           matrixKey: "annonceGouvernance",
           prefKey: "community",
         }),
@@ -250,31 +250,34 @@ function adminDerived(platform) {
   const today = dayjs().startOf("day");
   const wants = (key) => platform.notificationMatrix[key]?.admins !== false;
 
-  // Nouveaux membres en attente de validation (Gestion des membres).
+  const { pendingJoins, financeByLevel, beneficiaries } = getAdminFeedData();
+
+  // Demandes d'adhésion en attente de validation (voir "Demandes d'inscription").
   if (wants("nouveauMembre")) {
-    Object.values(initialMembersByLevel)
-      .flat()
-      .filter((member) => member.status === "attente")
-      .forEach((member) => {
-        items.push(
-          make("admin", "adminNouveauMembre", `membre-${member.id}`, dayjs(member.joinedAt).add(9, "hour"), "system", {
-            params: { name: member.name, city: member.city, country: member.country },
-            to: "/admin/membres",
-          }),
-        );
-      });
+    pendingJoins.forEach((join) => {
+      items.push(
+        make("admin", "adminNouveauMembre", `membre-${join.id}`, dayjs(join.submittedAt), "system", {
+          params: {
+            name: [join.firstName, join.lastName].filter(Boolean).join(" "),
+            city: join.city,
+            country: join.country,
+          },
+          to: "/admin/demandes-inscription",
+        }),
+      );
+    });
   }
 
-  // Cotisations du mois, par niveau (qui a payé, qui est en retard).
-  Object.keys(initialMembersByLevel).forEach((levelKey) => {
-    const group = getTontineGroup(levelKey);
-    if (group.length === 0) return;
-    const paid = group.filter((member) => member.status === "paid").length;
-    const unpaidNames = group.filter((member) => member.status !== "paid").map((member) => member.name);
+  // Cotisations du mois, par niveau (qui a payé, qui est en retard) — pour
+  // les niveaux qui ont une vague de tontine en cours.
+  Object.entries(financeByLevel).forEach(([levelKey, finance]) => {
+    const total = finance.contributionsExpected;
+    if (!levelKey || total === 0) return;
+    const unpaidNames = finance.lateMembers ?? [];
     if (wants("cotisationRecue")) {
       items.push(
         make("admin", "adminCotisations", `cotis-${levelKey}`, today.add(7, "hour"), "system", {
-          params: { levelKey, paid, total: group.length },
+          params: { levelKey, paid: finance.contributionsReceived, total },
           to: "/admin/finance",
         }),
       );
@@ -287,16 +290,15 @@ function adminDerived(platform) {
         }),
       );
     }
-    if (wants("tourAttribue") && !isCycleComplete(levelKey)) {
-      const tour = getCurrentTour(levelKey);
-      if (tour) {
-        items.push(
-          make("admin", "adminTour", `tour-${levelKey}`, today.subtract(1, "day").add(18, "hour"), "system", {
-            params: { levelKey, tour: tour.tour, name: tour.memberName },
-            to: "/admin/finance",
-          }),
-        );
-      }
+    // Cagnotte attribuée ce mois-ci dans ce niveau (voir le tableau de bord).
+    const beneficiary = beneficiaries.find((entry) => entry.levelKey === levelKey);
+    if (wants("tourAttribue") && beneficiary) {
+      items.push(
+        make("admin", "adminTour", `tour-${beneficiary.roundId}`, dayjs(beneficiary.at ?? today), "system", {
+          params: { levelKey, tour: finance.currentTour, name: beneficiary.name },
+          to: "/admin/finance",
+        }),
+      );
     }
   });
 
@@ -320,6 +322,7 @@ function adminFeed(platform, stored) {
 export function useNotifications(space) {
   const platform = usePlatformSettings();
   const stored = useNotificationState();
+  useAdminFeedVersion(); // se redessiner quand les alertes admin sont (re)chargées
 
   const feed = space === "admin" ? adminFeed(platform, stored) : memberFeed(platform, stored);
   const items = feed

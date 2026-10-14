@@ -35,6 +35,7 @@ import { JwtStrategy } from './infrastructure/jwt.strategy';
 import { AdhesionModule } from '../adhesion/adhesion.module';
 import { ReseauMlmModule } from '../reseau-mlm/reseau-mlm.module';
 import { GouvernanceModule } from '../gouvernance/gouvernance.module';
+import { ParametresPlateformeModule } from '../parametres-plateforme/parametres-plateforme.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { GouvernanceModule } from '../gouvernance/gouvernance.module';
     AdhesionModule, // ValiderDemandeInscriptionUseCase orchestre Identité + Adhésion + Réseau MLM — voir ce use-case.
     ReseauMlmModule,
     GouvernanceModule,
+    ParametresPlateformeModule, // règle de mot de passe choisie par l'administrateur
     // ConfigModule est global (voir AppModule) : ConfigService est déjà disponible ici.
     JwtModule.registerAsync({
       inject: [ConfigService],

@@ -2,6 +2,7 @@
 import { useSyncExternalStore } from "react";
 
 // Local Imports
+import { enregistrerParametresPlateforme, lireParametresPlateforme } from "api/parametresPlateforme";
 import {
   initialBackupSettings,
   initialGeneralSettings,
@@ -19,13 +20,12 @@ import {
 // ces valeurs dans l'état du composant : elles disparaissaient au
 // rechargement et rien d'autre ne les lisait.
 //
-// Gardés dans le navigateur (localStorage, protégé par try/catch) en
-// attendant le backend, avec une mise à jour entre onglets (un admin et un
-// membre ouverts dans deux onglets du même navigateur voient la même
-// chose). Une fois les endpoints disponibles, c'est le serveur qui sera la
-// source de vérité (et qui devra RE-VÉRIFIER ces règles : un contrôle fait
-// seulement dans le navigateur ne protège rien).
-const STORAGE_KEY = "dbc-platform-settings-v1";
+// Enregistrés sur le serveur (GET/PUT /parametres-plateforme), qui est la
+// source de vérité et RE-VÉRIFIE la règle de mot de passe (un contrôle fait
+// seulement dans le navigateur ne protège rien). Un changement s'affiche
+// aussitôt ; il part au serveur après une courte pause (les champs texte
+// enregistrent à chaque frappe), et l'état du serveur revient s'il refuse.
+const SAVE_DELAY_MS = 600;
 
 // Bornes de la longueur minimale du mot de passe. Jamais en dessous de 8 :
 // un mot de passe plus court se devine trop vite.
@@ -61,27 +61,41 @@ function merge(saved) {
   };
 }
 
-function load() {
-  try {
-    return merge(JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "{}"));
-  } catch {
-    return merge({});
-  }
-}
-
-let state = load();
+let state = merge({});
 const listeners = new Set();
+let saveTimer = null;
 
 function emit() {
   listeners.forEach((listener) => listener());
 }
 
-if (typeof window !== "undefined") {
-  window.addEventListener("storage", (event) => {
-    if (event.key !== STORAGE_KEY) return;
-    state = load();
-    emit();
-  });
+// Charge (ou recharge) les réglages depuis le serveur.
+export function loadPlatformSettings() {
+  return lireParametresPlateforme()
+    .then((saved) => {
+      if (saveTimer) return; // un changement attend d'être envoyé : il l'emporte
+      state = merge(saved ?? {});
+      emit();
+    })
+    .catch(() => {
+      // serveur injoignable : on garde les valeurs actuelles
+    });
+}
+
+loadPlatformSettings();
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    enregistrerParametresPlateforme(state)
+      .then((saved) => {
+        if (saveTimer) return;
+        state = merge(saved);
+        emit();
+      })
+      .catch(() => loadPlatformSettings());
+  }, SAVE_DELAY_MS);
 }
 
 function subscribe(listener) {
@@ -97,12 +111,8 @@ export function getPlatformSettings() {
 export function updatePlatformSettings(update) {
   const next = typeof update === "function" ? update(state) : { ...state, ...update };
   state = merge(next);
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // stockage indisponible : les réglages restent valables pour cette session
-  }
   emit();
+  scheduleSave();
 }
 
 export function usePlatformSettings() {

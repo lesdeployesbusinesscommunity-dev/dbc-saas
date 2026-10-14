@@ -16,7 +16,7 @@ import { SecuritySection } from "./SecuritySection";
 import { NotificationsSection } from "./NotificationsSection";
 import { PrivacySection } from "./PrivacySection";
 import { AccountSection } from "./AccountSection";
-import { loadSettings, saveSettings } from "./settingsStore";
+import { saveSettings, useMemberSettings } from "./settingsStore";
 
 // ----------------------------------------------------------------------
 
@@ -40,7 +40,10 @@ export default function MembreParametres() {
   useMemberData(); // se redessine quand les données du membre changent (voir memberStore.js)
   const { t } = useTranslation();
   const { locale, updateLocale } = useLocaleContext();
-  const [settings, setSettings] = useState(loadSettings);
+  const storedSettings = useMemberSettings();
+  const [settings, setSettings] = useState(storedSettings);
+  // Les préférences enregistrées arrivent du serveur après l'ouverture de la page.
+  useEffect(() => setSettings(storedSettings), [storedSettings]);
   const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => {

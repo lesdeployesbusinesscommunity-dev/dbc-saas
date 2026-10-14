@@ -3,6 +3,8 @@ import { MembreRepositoryPort } from '../../adhesion/domaine/membre.repository.p
 import { NiveauAdhesionRepositoryPort } from '../../adhesion/domaine/niveau-adhesion.repository.port';
 import { UtilisateurRepositoryPort } from '../../identite-acces/domaine/utilisateur.repository.port';
 import { TransactionCoinsRepositoryPort } from '../../gamification/domaine/transaction-coins.repository.port';
+import { Confidentialite, normaliserPreferences } from '../domaine/preferences-membre';
+import { PreferencesMembreRepositoryPort } from '../domaine/preferences-membre.repository.port';
 
 /** Ce que l'espace membre affiche d'une personne (réseau, classement, fiche "CV"). */
 export interface FicheMembre {
@@ -20,6 +22,8 @@ export interface FicheMembre {
   membreDepuis: Date | null;
   telephone: string | null;
   estAdmin: boolean;
+  /** Ce que le membre accepte de montrer aux autres (Paramètres > Confidentialité). */
+  confidentialite: Confidentialite;
 }
 
 export type Annuaire = Map<string, FicheMembre>;
@@ -37,14 +41,16 @@ export class AnnuaireMembresService {
     private readonly niveaux: NiveauAdhesionRepositoryPort,
     private readonly utilisateurs: UtilisateurRepositoryPort,
     private readonly transactions: TransactionCoinsRepositoryPort,
+    private readonly preferences: PreferencesMembreRepositoryPort,
   ) {}
 
   async charger(): Promise<Annuaire> {
-    const [membres, niveaux, utilisateurs, soldes] = await Promise.all([
+    const [membres, niveaux, utilisateurs, soldes, preferences] = await Promise.all([
       this.membres.listerTous(),
       this.niveaux.listerTous(),
       this.utilisateurs.listerTous(),
       this.transactions.classement(Number.MAX_SAFE_INTEGER),
+      this.preferences.listerToutes(),
     ]);
     const niveauParId = new Map(niveaux.map((n) => [n.id, n]));
     const utilisateurParId = new Map(utilisateurs.map((u) => [u.id!, u]));
@@ -70,6 +76,7 @@ export class AnnuaireMembresService {
             membreDepuis: membre.creeLe ?? null,
             telephone: utilisateur?.telephone ?? null,
             estAdmin: utilisateur?.estAdmin ?? false,
+            confidentialite: normaliserPreferences(preferences.get(membre.id)).privacy,
           },
         ];
       }),

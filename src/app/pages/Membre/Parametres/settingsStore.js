@@ -1,20 +1,20 @@
+// Import Dependencies
+import { useSyncExternalStore } from "react";
+
+// Local Imports
+import { enregistrerPreferences, lirePreferences } from "api/espaceMembre";
+import { getSessionSnapshot } from "app/pages/Auth/session";
+
 // ----------------------------------------------------------------------
-// Préférences du membre : notifications et confidentialité. Pas de
-// backend pour l'instant : elles sont gardées dans le navigateur
-// (localStorage, protégé par try/catch — il peut être absent ou bloqué)
-// et réappliquées à l'ouverture de la page. À remplacer par les vrais
-// endpoints (préférences enregistrées côté serveur, par membre) sans
-// changer la forme de ce que "loadSettings" renvoie.
+// Préférences du membre : notifications et confidentialité. Enregistrées sur
+// le serveur, par compte (GET/PUT /espace-membre/preferences), qui applique
+// la confidentialité aux autres membres. "loadSettings" renvoie la dernière
+// version connue (les valeurs par défaut tant que le serveur n'a pas
+// répondu) ; "useMemberSettings" redessine quand elle arrive.
 //
 // Le profil (nom, photo, coordonnées) n'est PAS ici : il vit dans
 // currentMember.js ("applyProfile"), parce que le reste de l'espace membre
 // le lit.
-import { accountStorageKey } from "../currentMember";
-
-// Une clé PAR COMPTE (voir currentMember.js : "accountStorageKey") : les
-// préférences de l'administrateur en mode membre sont à lui.
-const BASE_KEY = "dbc-membre-settings-v1";
-const storageKey = () => accountStorageKey(BASE_KEY);
 
 // Types de notification proposés, avec le canal (email / WhatsApp) par
 // lequel les recevoir. Les rappels d'échéance de cotisation sont activés
@@ -54,14 +54,7 @@ export const defaultSettings = {
   deletionRequested: false,
 };
 
-export function loadSettings() {
-  let saved = {};
-  try {
-    saved = JSON.parse(window.localStorage.getItem(storageKey()) ?? "{}");
-  } catch {
-    saved = {};
-  }
-
+function merge(saved = {}) {
   return {
     ...defaultSettings,
     ...saved,
@@ -75,10 +68,51 @@ export function loadSettings() {
   };
 }
 
+let cache = { userId: null, settings: merge() };
+let requested = null;
+const listeners = new Set();
+
+const sessionUserId = () => getSessionSnapshot().session?.user?.id ?? null;
+
+function publish(userId, settings) {
+  cache = { userId, settings };
+  listeners.forEach((listener) => listener());
+}
+
+function fetchSettings(userId) {
+  requested = userId;
+  lirePreferences()
+    .then((saved) => {
+      if (sessionUserId() === userId) publish(userId, merge(saved));
+    })
+    .catch(() => {
+      // serveur injoignable : on garde les valeurs par défaut
+    });
+}
+
+// Préférences du compte connecté (les valeurs par défaut d'abord, puis
+// celles du serveur).
+export function loadSettings() {
+  const userId = sessionUserId();
+  if (cache.userId !== userId) cache = { userId, settings: merge() };
+  if (userId && requested !== userId) fetchSettings(userId);
+  return cache.settings;
+}
+
+function subscribe(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+export function useMemberSettings() {
+  return useSyncExternalStore(subscribe, loadSettings, loadSettings);
+}
+
 export function saveSettings(settings) {
-  try {
-    window.localStorage.setItem(storageKey(), JSON.stringify(settings));
-  } catch {
-    // stockage indisponible : les réglages restent valables pour cette session
-  }
+  const userId = sessionUserId();
+  publish(userId, settings);
+  if (!userId) return;
+  enregistrerPreferences(settings)
+    .then((saved) => publish(userId, merge(saved)))
+    .catch(() => fetchSettings(userId));
 }
