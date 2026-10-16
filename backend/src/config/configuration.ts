@@ -28,4 +28,22 @@ export default () => ({
     // Sert à construire l'URL publique de vérification encodée dans le QR code des certificats.
     baseUrl: process.env.APP_BASE_URL ?? 'http://localhost:3000',
   },
+  fichiers: {
+    // Cloudflare R2 (voir StockageFichiersR2) : actif seulement si toutes les
+    // variables sont définies, sinon les fichiers restent sur le disque du serveur.
+    r2:
+      process.env.R2_ACCOUNT_ID &&
+      process.env.R2_ACCESS_KEY_ID &&
+      process.env.R2_SECRET_ACCESS_KEY &&
+      process.env.R2_BUCKET &&
+      process.env.R2_PUBLIC_URL
+        ? {
+            compte: process.env.R2_ACCOUNT_ID,
+            cleAcces: process.env.R2_ACCESS_KEY_ID,
+            cleSecrete: process.env.R2_SECRET_ACCESS_KEY,
+            bucket: process.env.R2_BUCKET,
+            urlPublique: process.env.R2_PUBLIC_URL,
+          }
+        : undefined,
+  },
 });
