@@ -1514,6 +1514,7 @@
       },
       "chart": {
         "title": "Mes Coins mois par mois",
+        "empty": "Pas encore de Coins : ils apparaîtront ici mois par mois dès tes premières actions.",
         "cumulative": "{{total}} Coins cumulés",
         "tooltip": "{{month}} : +{{total}} Coins (cumul {{cumulative}})",
         "thisMonth": "Ce mois"
