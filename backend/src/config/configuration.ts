@@ -4,6 +4,13 @@ export default () => ({
   environnement: process.env.NODE_ENV ?? 'development',
   baseDeDonnees: {
     url: process.env.DATABASE_URL, // absent au premier déploiement — voir README
+    // Création/mise à jour automatique des tables (TypeORM synchronize). Active
+    // par défaut hors production ; DB_SYNCHRONIZE=true la force en production
+    // tant qu'il n'existe pas de migrations (voir app.module.ts).
+    synchroniser:
+      process.env.DB_SYNCHRONIZE !== undefined
+        ? process.env.DB_SYNCHRONIZE === 'true'
+        : (process.env.NODE_ENV ?? 'development') !== 'production',
   },
   jwt: {
     secret: process.env.JWT_SECRET ?? 'change-moi-en-production',
