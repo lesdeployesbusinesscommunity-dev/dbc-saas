@@ -15,7 +15,8 @@ import { getCoinsMonthly } from "./coinsData";
 // ("Ce mois") plutôt que par une couleur, et le détail ligne par ligne de
 // chaque mois est juste en dessous (CoinsHistory.jsx) : c'est la "vue
 // tableau" du graphique. Les mois viennent de l'historique, pas d'une
-// liste à part : le graphique s'allonge tout seul avec lui.
+// liste à part : le graphique s'allonge tout seul avec lui — et reste
+// vide, avec un message, tant que le membre n'a gagné aucun Coin.
 const BAR_COLOR = "#2E70B8";
 const CHART_HEIGHT = 128;
 
@@ -23,7 +24,7 @@ export function CoinsChart() {
   const { t } = useTranslation();
   const months = getCoinsMonthly();
   const max = Math.max(...months.map((m) => m.total));
-  const last = months[months.length - 1];
+  const last = months.at(-1);
 
   return (
     <div className="mt-6 rounded-3xl border border-black/5 bg-white p-6 shadow-sm sm:p-8">
@@ -32,10 +33,16 @@ export function CoinsChart() {
           <ChartBarIcon aria-hidden="true" className="size-5 text-[#52A2DF]" />
           {t("membre.coins.chart.title")}
         </h2>
-        <span className="text-xs font-semibold text-gray-500">
-          {t("membre.coins.chart.cumulative", { total: last.cumulative })}
-        </span>
+        {last && (
+          <span className="text-xs font-semibold text-gray-500">
+            {t("membre.coins.chart.cumulative", { total: last.cumulative })}
+          </span>
+        )}
       </div>
+
+      {months.length === 0 && (
+        <p className="mt-6 text-center text-sm text-gray-500">{t("membre.coins.chart.empty")}</p>
+      )}
 
       <div className="mt-6 flex items-end justify-center gap-6 sm:gap-10" role="list">
         {months.map((month, index) => {
