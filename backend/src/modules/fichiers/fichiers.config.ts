@@ -22,7 +22,8 @@ export function typeDeFichier(mimetype: string): TypeFichier {
 }
 
 /**
- * Dossier de stockage (FICHIERS_DOSSIER, "uploads" par défaut), créé au besoin.
+ * Dossier de stockage (FICHIERS_DOSSIER, "uploads" par défaut), créé au besoin —
+ * stockage définitif en local, simple transit avant envoi à R2 en production.
  * Lu directement dans l'environnement car main.ts en a besoin avant
  * l'injection de dépendances (voir useStaticAssets).
  */

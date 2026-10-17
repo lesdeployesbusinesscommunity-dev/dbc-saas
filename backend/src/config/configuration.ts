@@ -4,6 +4,13 @@ export default () => ({
   environnement: process.env.NODE_ENV ?? 'development',
   baseDeDonnees: {
     url: process.env.DATABASE_URL, // absent au premier déploiement — voir README
+    // Création/mise à jour automatique des tables (TypeORM synchronize). Active
+    // par défaut hors production ; DB_SYNCHRONIZE=true la force en production
+    // tant qu'il n'existe pas de migrations (voir app.module.ts).
+    synchroniser:
+      process.env.DB_SYNCHRONIZE !== undefined
+        ? process.env.DB_SYNCHRONIZE === 'true'
+        : (process.env.NODE_ENV ?? 'development') !== 'production',
   },
   jwt: {
     secret: process.env.JWT_SECRET ?? 'change-moi-en-production',
@@ -27,5 +34,23 @@ export default () => ({
   app: {
     // Sert à construire l'URL publique de vérification encodée dans le QR code des certificats.
     baseUrl: process.env.APP_BASE_URL ?? 'http://localhost:3000',
+  },
+  fichiers: {
+    // Cloudflare R2 (voir StockageFichiersR2) : actif seulement si toutes les
+    // variables sont définies, sinon les fichiers restent sur le disque du serveur.
+    r2:
+      process.env.R2_ACCOUNT_ID &&
+      process.env.R2_ACCESS_KEY_ID &&
+      process.env.R2_SECRET_ACCESS_KEY &&
+      process.env.R2_BUCKET &&
+      process.env.R2_PUBLIC_URL
+        ? {
+            compte: process.env.R2_ACCOUNT_ID,
+            cleAcces: process.env.R2_ACCESS_KEY_ID,
+            cleSecrete: process.env.R2_SECRET_ACCESS_KEY,
+            bucket: process.env.R2_BUCKET,
+            urlPublique: process.env.R2_PUBLIC_URL,
+          }
+        : undefined,
   },
 });

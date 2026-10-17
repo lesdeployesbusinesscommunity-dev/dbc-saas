@@ -56,6 +56,21 @@ Sur Railway : *New* → *Database* → *PostgreSQL*. La variable `DATABASE_URL`
 est injectée automatiquement dans le service backend — il suffira de la lire
 depuis `src/config/configuration.ts` (déjà prévu).
 
+### Stocker les fichiers téléversés dans Cloudflare R2
+Affiches, PDF et photos (`POST /api/v1/fichiers`) sont gardés dans `uploads/`
+en local, mais ce dossier est effacé à chaque redéploiement. En production,
+ils vont dans un bucket Cloudflare R2 :
+1. Sur Cloudflare : *R2* → *Create bucket* (ex. `dbc-fichiers`), puis dans le
+   bucket *Settings* → *Public access* : activer le domaine `r2.dev` (ou
+   brancher un domaine personnalisé).
+2. *R2* → *Manage API tokens* → *Create API token* avec la permission
+   *Object Read & Write* limitée à ce bucket.
+3. Dans les *Variables* du service backend, ajouter `R2_ACCOUNT_ID`,
+   `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` et `R2_PUBLIC_URL`
+   (URL publique du bucket, sans `/` final). Voir `.env.example`.
+
+Si une seule de ces variables manque, le backend revient au dossier `uploads/`.
+
 ## Structure d'un module (à répliquer pour chaque nouveau module)
 
 ```

@@ -30,8 +30,8 @@ import { ParametresPlateformeModule } from './modules/parametres-plateforme/para
         url: config.get<string>('baseDeDonnees.url'),
         autoLoadEntities: true, // chaque module enregistre ses entités via forFeature()
         // Pas encore de système de migrations : acceptable tant que le schéma est simple,
-        // à remplacer par des migrations TypeORM explicites avant la mise en production.
-        synchronize: config.get<string>('environnement') !== 'production',
+        // à remplacer par des migrations TypeORM explicites (voir DB_SYNCHRONIZE).
+        synchronize: config.get<boolean>('baseDeDonnees.synchroniser'),
       }),
     }),
     SanteModule,

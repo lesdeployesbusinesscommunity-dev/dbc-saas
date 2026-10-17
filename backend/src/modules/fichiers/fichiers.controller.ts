@@ -6,14 +6,15 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { randomUUID } from 'crypto';
 import { extname } from 'path';
+import { unlink } from 'fs/promises';
 import { JwtAuthGuard } from '../identite-acces/interface/jwt-auth.guard';
 import { TYPES_AUTORISES, TAILLE_MAXIMUM_OCTETS, dossierFichiers, typeDeFichier } from './fichiers.config';
+import { StockageFichiersPort } from './stockage-fichiers.port';
 
 /** Sous-ensemble du fichier fourni par multer dont on a besoin. */
 interface FichierTeleverse {
@@ -21,19 +22,20 @@ interface FichierTeleverse {
   mimetype: string;
   size: number;
   filename: string;
+  path: string;
 }
 
 /**
  * Téléversement de fichiers (photo de profil, affiche ou vidéo de formation,
  * support PDF...). Le fichier est stocké sous un nom aléatoire — jamais celui
- * fourni par le navigateur — et servi en lecture seule sous /fichiers (voir
- * main.ts). Seuls les types listés dans fichiers.config.ts sont acceptés,
+ * fourni par le navigateur — puis publié par StockageFichiersPort (Cloudflare
+ * R2 en production, disque du serveur en local). Seuls les types listés dans fichiers.config.ts sont acceptés,
  * avec une taille maximum par type.
  */
 @ApiTags('fichiers')
 @Controller('fichiers')
 export class FichiersController {
-  constructor(private readonly config: ConfigService) {}
+  constructor(private readonly stockage: StockageFichiersPort) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -63,11 +65,17 @@ export class FichiersController {
     }
     const type = typeDeFichier(fichier.mimetype);
     if (fichier.size > TAILLE_MAXIMUM_OCTETS[type]) {
+      await unlink(fichier.path).catch(() => undefined);
       throw new BadRequestException(`Fichier trop volumineux pour un fichier de type ${type}`);
     }
-    const baseUrl = this.config.get<string>('app.baseUrl');
+    const url = await this.stockage.publier({
+      chemin: fichier.path,
+      nom: fichier.filename,
+      mimetype: fichier.mimetype,
+      taille: fichier.size,
+    });
     return {
-      url: `${baseUrl}/fichiers/${fichier.filename}`,
+      url,
       type,
       name: fichier.originalname,
       size: fichier.size,
