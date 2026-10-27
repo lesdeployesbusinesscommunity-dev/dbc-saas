@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 // Local Imports
+import { useMyAnnouncements } from "app/pages/Annonces/useMyAnnouncements";
 import { currentMember } from "../currentMember";
 import { NewsCarousel } from "./NewsCarousel";
 import { getNewsSlides } from "./newsData";
@@ -27,9 +28,14 @@ import { getNewsSlides } from "./newsData";
 // change, le changer aussi dans NewsCarousel.jsx ("min-[1800px]").
 export function WelcomeBanner() {
   const { t } = useTranslation();
-  // Les niveaux du membre ne changent pas pendant la visite : les
-  // diapositives sont calculées une seule fois.
-  const slides = useMemo(() => getNewsSlides(currentMember.levelKeys), []);
+  // Les annonces publiées pour ce membre passent en tête du carrousel (les
+  // plus récentes d'abord) ; les niveaux du membre ne changent pas pendant la
+  // visite.
+  const { items } = useMyAnnouncements();
+  const slides = useMemo(
+    () => getNewsSlides(currentMember.levelKeys, items.map(({ announcement }) => announcement)),
+    [items],
+  );
 
   return (
     <div className="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm min-[1800px]:flex min-[1800px]:min-h-[18rem]">

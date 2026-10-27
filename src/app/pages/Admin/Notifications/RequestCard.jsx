@@ -80,8 +80,8 @@ function DeleteDecisionDialog({ open, decision, onClose, onConfirm }) {
   return (
     <Dialog open={open} onClose={onClose} className="relative z-[100]">
       <div aria-hidden="true" className="fixed inset-0 bg-black/50" />
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-xl">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-xl">
           <span
             className={clsx(
               "mx-auto flex size-12 items-center justify-center rounded-full",

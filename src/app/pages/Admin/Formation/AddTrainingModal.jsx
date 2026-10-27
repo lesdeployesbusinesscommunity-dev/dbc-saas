@@ -162,8 +162,8 @@ export function AddTrainingModal({ open, defaultLevel, onClose, onSubmit }) {
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
 
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
           <div className="flex items-center justify-between border-b border-gray-100 p-6">
             <DialogTitle className="text-base font-bold text-gray-900">
               {t("admin.formation.modal.addTitle")}
@@ -191,7 +191,7 @@ export function AddTrainingModal({ open, defaultLevel, onClose, onSubmit }) {
                 />
               </label>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label className="block text-xs font-semibold text-gray-500">
                   {t("admin.formation.modal.trainer")}
                   <input
@@ -220,7 +220,7 @@ export function AddTrainingModal({ open, defaultLevel, onClose, onSubmit }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-xs font-semibold text-gray-500">
                     {t("admin.formation.modal.duration")}

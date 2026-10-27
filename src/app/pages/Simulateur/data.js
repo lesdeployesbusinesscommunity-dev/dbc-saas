@@ -119,16 +119,16 @@ export const levels = [
 ];
 
 // Formate un montant, séparateur de milliers selon la langue active
-// (espace en français, virgule en anglais — ex: "1 815 000 F" vs
-// "1,815,000 F"). "Infinity" (borne haute du niveau Légende) donne "∞ F".
+// (espace en français, virgule en anglais — ex: "1 815 000 FCFA" vs
+// "1,815,000 FCFA"). "Infinity" (borne haute du niveau Légende) donne "∞ FCFA".
 export function formatMoney(value, locale = "fr-FR") {
-  if (value === Infinity) return "∞ F";
-  return `${Math.round(value).toLocaleString(locale)} F`;
+  if (value === Infinity) return "∞\u00a0FCFA";
+  return `${Math.round(value).toLocaleString(locale)}\u00a0FCFA`;
 }
 
-// Formate une fourchette potentiel/an (ex: "36 000–200 000 F").
+// Formate une fourchette potentiel/an (ex: "36 000–200 000 FCFA").
 export function formatRange(min, max, locale = "fr-FR") {
   const formattedMin = Math.round(min).toLocaleString(locale);
   const formattedMax = max === Infinity ? "∞" : Math.round(max).toLocaleString(locale);
-  return `${formattedMin}–${formattedMax} F`;
+  return `${formattedMin}–${formattedMax}\u00a0FCFA`;
 }

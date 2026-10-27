@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { currentMember } from "../currentMember";
 import { levels } from "app/pages/Simulateur/data";
 import { getContributionDay } from "app/pages/Admin/Parametres/platformSettings";
+import { GROUP_SIZE, PER_TOUR, TOTAL_TOURS, demoPersonAt } from "./tontineModel";
 
 // ----------------------------------------------------------------------
 // Données de démonstration pour "Ma Tontine" — à remplacer par de vrais
@@ -13,14 +14,15 @@ import { getContributionDay } from "app/pages/Admin/Parametres/platformSettings"
 // forme de ce que ces fonctions renvoient.
 //
 // "getMyMemberId" (plus bas) retrouve l'entrée du membre connecté dans ce
-// groupe par son nom — ce qui suppose qu'il y figure à CHAQUE niveau
-// auquel il cotise (corrigé ici : il ne figurait avant que dans le
-// groupe "batisseur" (tb-3), pas "starter", ce qui aurait empêché
-// "Mon prochain versement" et "C'est votre tour dans X mois" de
-// fonctionner sur ce niveau — remplace maintenant "ts-3").
+// groupe par son matricule — ce qui suppose qu'il y figure à CHAQUE niveau
+// auquel il cotise (Thierry Mbida est dans les groupes "starter" et
+// "batisseur").
 //
 // Groupe de tontine par niveau, dans l'ORDRE DE PASSAGE (qui reçoit la
-// cagnotte à quel tour du cycle annuel) — même groupe que celui utilisé
+// cagnotte à quel tour du cycle annuel). Un groupe réunit 36 personnes sur
+// 12 mois : 3 personnes reçoivent la cagnotte chaque mois, donc les 3
+// premières du groupe au tour 1, les 3 suivantes au tour 2, etc. (voir
+// tontineModel.js). C'est le même groupe que celui utilisé
 // pour la cotisation du mois sur le Dashboard (voir
 // Dashboard/mockData.js, qui réutilise "getTontineGroup" ci-dessous
 // plutôt que de garder sa propre liste séparée). Le membre connecté
@@ -55,23 +57,50 @@ function mySlot(id, matricule, fallbackName, fallbackCity) {
   };
 }
 
+// Le groupe d'un niveau : 36 places dans l'ordre de passage. "fixed" donne
+// les personnes connues de l'application à leur position (0 à 35) ; les
+// autres places sont remplies avec des noms de démonstration, à partir de
+// l'indice "firstIndex" (voir tontineModel.js).
+function buildGroup(prefix, fixed, firstIndex) {
+  let next = firstIndex;
+  return Array.from({ length: GROUP_SIZE }, (_, position) => {
+    const id = `${prefix}-${position + 1}`;
+    const known = fixed[position];
+    if (known) return typeof known === "function" ? known(id) : { id, ...known };
+    const person = demoPersonAt(next);
+    next += 1;
+    return { id, name: person.name, city: person.city };
+  });
+}
+
+// Starter : le tour 7 est en cours, donc les places 19 à 21 (tour 7) reçoivent
+// ce mois-ci — dont l'administrateur (place 20). Thierry Mbida reçoit au tour 9.
+// Bâtisseur : cycle terminé ; Thierry y a reçu au tour 5.
 const tontineMembersByLevel = {
-  starter: [
-    mySlot("ts-1", "DBC-1-0001", "Hubert Wakap", "Douala, Cameroun"),
-    { id: "ts-2", name: "Marie Atangana", city: "Yaoundé, Cameroun" },
-    mySlot("ts-3", "DBC-1-0042", "Thierry Mbida", "Douala, Cameroun"),
-    { id: "ts-4", name: "Céleste Mbida", city: "Douala, Cameroun" },
-    { id: "ts-5", name: "Patrick Essono", city: "Yaoundé, Cameroun" },
-    { id: "ts-6", name: "Diane Fouda", city: "Garoua, Cameroun" },
-  ],
-  batisseur: [
-    { id: "tb-1", name: "Samuel Okafor", city: "Lagos, Nigéria" },
-    { id: "tb-2", name: "Kwame Asante", city: "Kumasi, Ghana" },
-    mySlot("tb-3", "DBC-1-0042", "Thierry Mbida", "Douala, Cameroun"),
-    { id: "tb-4", name: "Amara Chukwu", city: "Abuja, Nigéria" },
-    { id: "tb-5", name: "Fatou Diallo", city: "Dakar, Sénégal" },
-    { id: "tb-6", name: "Ibrahim Touré", city: "Abidjan, Côte d'Ivoire" },
-  ],
+  starter: buildGroup(
+    "ts",
+    {
+      4: { name: "Marie Atangana", city: "Yaoundé, Cameroun" },
+      5: { name: "Patrick Essono", city: "Yaoundé, Cameroun" },
+      10: { name: "Céleste Mbida", city: "Douala, Cameroun" },
+      19: (id) => mySlot(id, "DBC-1-0001", "Hubert Wakap", "Douala, Cameroun"),
+      26: (id) => mySlot(id, "DBC-1-0042", "Thierry Mbida", "Douala, Cameroun"),
+      30: { name: "Diane Fouda", city: "Garoua, Cameroun" },
+    },
+    500,
+  ),
+  batisseur: buildGroup(
+    "tb",
+    {
+      2: { name: "Samuel Okafor", city: "Lagos, Nigéria" },
+      7: { name: "Kwame Asante", city: "Kumasi, Ghana" },
+      13: (id) => mySlot(id, "DBC-1-0042", "Thierry Mbida", "Douala, Cameroun"),
+      15: { name: "Amara Chukwu", city: "Abuja, Nigéria" },
+      22: { name: "Fatou Diallo", city: "Dakar, Sénégal" },
+      29: { name: "Ibrahim Touré", city: "Abidjan, Côte d'Ivoire" },
+    },
+    540,
+  ),
 };
 
 // Historique de cotisation, tour par tour, par membre — "true" = cotisé,
@@ -80,22 +109,19 @@ const tontineMembersByLevel = {
 // le suivi (voir CotisationTracking.jsx). Donnée de démonstration : les
 // vrais montants/mois viendront du backend, seule la FORME (un booléen
 // par tour déjà entamé) restera la même.
+const PAID_6_THEN_UNPAID = [true, true, true, true, true, true, false];
+
 const paidHistoryByLevel = {
   starter: {
-    "ts-1": [true, true, true, true, true, true, true],
-    "ts-2": [true, true, true, true, true, true, true],
-    "ts-3": [true, true, true, true, true, true, false],
-    "ts-4": [true, true, true, true, true, true, true],
-    "ts-5": [true, true, true, false, true, false, false],
-    "ts-6": [true, true, true, true, true, true, true],
+    "ts-9": PAID_6_THEN_UNPAID,
+    "ts-6": [true, true, true, false, true, false, false],
+    "ts-27": PAID_6_THEN_UNPAID,
+    "ts-34": PAID_6_THEN_UNPAID,
   },
   batisseur: {
-    "tb-1": [true, true, true, true, true, true, true],
-    "tb-2": [true, false, true, true, false, true, false],
-    "tb-3": [true, true, true, true, true, true, true],
-    "tb-4": [true, true, true, true, true, true, true],
-    "tb-5": [true, true, false, true, true, true, true],
-    "tb-6": [true, true, true, false, true, true, true],
+    "tb-8": [true, false, true, true, false, true, false],
+    "tb-23": [true, true, false, true, true, true, true],
+    "tb-30": [true, true, true, false, true, true, true],
   },
 };
 
@@ -175,21 +201,24 @@ function getTourStatus(month) {
 }
 
 // Les 12 tours du cycle annuel pour le niveau consulté : qui reçoit la
-// cagnotte, quel mois, et où ce tour en est ("closed" = déjà distribué,
-// "current" = ce mois-ci, "upcoming" = pas encore atteint).
+// cagnotte (3 personnes par tour), quel mois, et où ce tour en est
+// ("closed" = déjà distribué, "current" = ce mois-ci, "upcoming" = pas
+// encore atteint). "members" : les bénéficiaires du tour, { id, name, city }.
 export function getTontineCycle(levelKey) {
   const members = tontineMembersByLevel[levelKey] ?? [];
   if (members.length === 0) return [];
 
   const cycleStart = getCycleStart(levelKey);
 
-  return Array.from({ length: 12 }, (_, i) => {
+  return Array.from({ length: TOTAL_TOURS }, (_, i) => {
     const month = cycleStart.add(i, "month");
-    const member = members[i % members.length];
+    const beneficiaries = members
+      .slice(i * PER_TOUR, (i + 1) * PER_TOUR)
+      .map(({ id, name, city }) => ({ id, name, city }));
     return {
       tour: i + 1,
-      memberId: member.id,
-      memberName: member.name,
+      members: beneficiaries,
+      memberIds: beneficiaries.map((member) => member.id),
       month,
       status: getTourStatus(month),
     };
@@ -255,30 +284,17 @@ export function getMyNextPayment(levelKey) {
 // "C'est votre tour dans X mois" : retrouve le tour du cycle qui revient
 // au membre connecté et sa position par rapport au tour en cours
 // ("monthsAway" : 0 = ce mois-ci, >0 = dans X mois, <0 = déjà passé).
-// "null" si le membre n'est pas dans ce groupe (ne devrait plus arriver
-// depuis le correctif ci-dessus, mais on reste défensif).
-//
-// Avec 6 membres sur un cycle de 12 tours, CHAQUE membre revient deux
-// fois (ex: tours 3 ET 9) — prendre le premier trouvé dans l'ordre du
-// cycle aurait presque toujours renvoyé l'occurrence la plus ANCIENNE
-// (donc "déjà passée"), même quand une occurrence à venir existe plus
-// loin dans le même cycle (constaté en testant : le tour 3, déjà passé,
-// masquait le tour 9, encore à venir). On choisit donc, par ordre de
-// préférence : l'occurrence "en cours" s'il y en a une, sinon la plus
-// proche "à venir", et seulement à défaut la plus récente déjà close.
+// Chaque membre reçoit la cagnotte UNE seule fois par cycle (36 membres,
+// 12 tours, 3 bénéficiaires par tour). "null" si le membre n'est pas dans
+// ce groupe, pour se dégrader proprement plutôt que planter.
 export function getMyNextTurn(levelKey) {
   const myId = getMyMemberId(levelKey);
   if (!myId) return null;
 
   const cycle = getTontineCycle(levelKey);
-  const myTours = cycle.filter((t) => t.memberId === myId);
+  const myTour = cycle.find((t) => t.memberIds.includes(myId));
   const current = getCurrentTour(levelKey);
-  if (myTours.length === 0 || !current) return null;
-
-  const myTour =
-    myTours.find((t) => t.status === "current") ??
-    myTours.find((t) => t.status === "upcoming") ??
-    myTours[myTours.length - 1];
+  if (!myTour || !current) return null;
 
   return {
     tour: myTour.tour,
@@ -296,7 +312,7 @@ export function getMyNextTurn(levelKey) {
 // par le vrai historique une fois le backend branché.
 const CYCLE_HISTORY_BY_LEVEL = {
   starter: [],
-  batisseur: [{ cycleLabel: "2024", totalTours: 12, myTour: 5 }],
+  batisseur: [{ cycleLabel: "2024", totalTours: TOTAL_TOURS, myTour: 5 }],
 };
 
 export function getCycleHistory(levelKey) {

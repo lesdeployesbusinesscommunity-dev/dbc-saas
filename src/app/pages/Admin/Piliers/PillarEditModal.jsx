@@ -32,8 +32,8 @@ export function PillarEditModal({ pillar, open, onClose, onSave, onResetTexts, o
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl sm:p-7">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl sm:p-7">
           {pillar && (
             <EditForm
               // "key" : le formulaire repart des valeurs du pilier à chaque ouverture

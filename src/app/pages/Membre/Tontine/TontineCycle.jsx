@@ -12,8 +12,8 @@ import { STATUS_STYLES } from "./statusStyles";
 
 // ----------------------------------------------------------------------
 
-// Les 12 tours du cycle annuel : qui reçoit la cagnotte, quel mois, et où
-// ce tour en est (voir statusStyles.js pour la légende juste au-dessus).
+// Les 12 tours du cycle annuel : qui reçoit la cagnotte (3 personnes par
+// mois), quel mois, et où ce tour en est (voir statusStyles.js pour la légende juste au-dessus).
 // Présenté en liste de cartes (comme le reste du site) plutôt qu'un
 // <table> HTML : plus lisible sur mobile, et cohérent avec le motif déjà
 // utilisé ailleurs (Activités récentes, Cotisation du mois...). Le tour
@@ -24,7 +24,7 @@ export function TontineCycle({ query = "", onMatches }) {
   const { t } = useTranslation();
   const { activeLevelKey } = useMemberLevel();
   const cycle = getTontineCycle(activeLevelKey).filter((tour) =>
-    searchTextIncludes(tour.memberName, query),
+    tour.members.some((member) => searchTextIncludes(member.name, query)),
   );
   const months = t("membre.common.months", { returnObjects: true });
   const hasQuery = query.trim() !== "";
@@ -45,7 +45,7 @@ export function TontineCycle({ query = "", onMatches }) {
             <div
               key={tour.tour}
               className={clsx(
-                "relative flex items-center gap-3 border-b border-black/5 px-4 py-3 last:border-b-0 sm:px-5",
+                "relative flex items-start gap-3 border-b border-black/5 px-4 py-3 last:border-b-0 sm:px-5",
                 isCurrent && "bg-[#EE7115]/[0.05]",
               )}
             >
@@ -60,13 +60,18 @@ export function TontineCycle({ query = "", onMatches }) {
                 {tour.tour}
               </span>
 
-              <Avatar name={tour.memberName} size="size-9" />
-
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-gray-900">{tour.memberName}</p>
-                <p className="truncate text-xs text-gray-500">
+                <p className="truncate text-xs font-semibold text-gray-500">
                   {months[tour.month.month()]} {tour.month.year()}
                 </p>
+                <ul className="mt-1.5 grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-3">
+                  {tour.members.map((member) => (
+                    <li key={member.id} className="flex min-w-0 items-center gap-2">
+                      <Avatar name={member.name} size="size-7" />
+                      <span className="truncate text-sm font-semibold text-gray-900">{member.name}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               <span

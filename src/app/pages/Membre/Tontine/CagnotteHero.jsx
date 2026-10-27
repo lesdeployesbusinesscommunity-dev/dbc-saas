@@ -30,6 +30,9 @@ export function CagnotteHero() {
 
   if (!currentTour) return null;
 
+  // Trois personnes reçoivent la cagnotte chaque mois (voir tontineModel.js).
+  const names = currentTour.members.map((member) => member.name).join(", ");
+
   return (
     <div className="relative mt-6 overflow-hidden rounded-3xl bg-gradient-to-br from-[#52A2DF] to-[#3d6fb0] p-8 sm:p-10">
       <BanknotesIcon
@@ -48,7 +51,7 @@ export function CagnotteHero() {
           </p>
           <p className="relative mt-3 text-sm text-white/80">
             {t("membre.tontine.hero.cycleCompleteLastBeneficiary", {
-              name: currentTour.memberName,
+              names,
               amount: formatMoney(amount),
             })}
           </p>
@@ -61,8 +64,9 @@ export function CagnotteHero() {
           <p className="relative mt-3 text-4xl font-black text-white sm:text-5xl">
             {formatMoney(amount)}
           </p>
+          <p className="relative mt-1 text-xs font-semibold text-white/80">{t("membre.tontine.hero.each")}</p>
           <p className="relative mt-4 text-base font-semibold text-white">
-            {t("membre.tontine.hero.beneficiary", { name: currentTour.memberName })}
+            {t("membre.tontine.hero.beneficiary", { count: currentTour.members.length, names })}
           </p>
 
           <div className="relative mt-5 max-w-xs">

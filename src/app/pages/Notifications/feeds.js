@@ -4,7 +4,13 @@ import dayjs from "dayjs";
 // Local Imports
 import { getContributionDay, getPlatformSettings, getReminderDays, usePlatformSettings } from "app/pages/Admin/Parametres/platformSettings";
 import { initialMembersByLevel } from "app/pages/Admin/Membres/mockData";
+import { campaignsFor, isPastDeadline, useMonthChoices } from "app/pages/Admin/Tontine/monthChoices";
+import { getRegistrations, useRegistrations } from "app/pages/Admin/Inscriptions/registrationsStore";
+import { fullName } from "app/pages/Admin/Inscriptions/registrationUtils";
+import { getMembersState, listMembers } from "app/pages/Admin/Membres/membersStore";
 import { currentMember } from "app/pages/Membre/currentMember";
+import { deadlineState, interviewStage } from "app/pages/Membre/Leader/interviewModel";
+import { buildAntenneRoster } from "app/pages/Membre/Leader/leaderAccess";
 import { getCoinsHistory } from "app/pages/Membre/Coins/mockData";
 import { getNewsSlides } from "app/pages/Membre/Dashboard/newsData";
 import { getCourseCatalog } from "app/pages/Membre/Formation/mockData";
@@ -18,6 +24,9 @@ import {
   getTontineGroup,
   isCycleComplete,
 } from "app/pages/Membre/Tontine/mockData";
+import { getAnnouncements, isActive, useAnnouncements } from "app/pages/Annonces/announcementsStore";
+import { isForMe } from "app/pages/Annonces/audience";
+import { noticeId } from "app/pages/Annonces/useMyAnnouncements";
 import { isMine, isRead, markAllRead, markRead, useNotificationState } from "./notificationsStore";
 
 // ----------------------------------------------------------------------
@@ -57,7 +66,7 @@ const make = (audience, kind, id, at, group, extra = {}) => ({
 
 // ----------------------------------------------------------------------
 // Fil MEMBRE
-function memberDerived(platform) {
+function memberDerived(platform, choices) {
   const items = [];
   const today = dayjs().startOf("day");
   const ownedLevelKeys = currentMember.levelKeys ?? [];
@@ -112,7 +121,13 @@ function memberDerived(platform) {
       if (tour) {
         items.push(
           make("membre", "tourAttribue", `tour-${levelKey}`, today.subtract(1, "day").add(18, "hour"), "tontine", {
-            params: { levelKey, tour: tour.tour, name: tour.memberName, amount: getMonthlyCagnotte(levelKey) },
+            params: {
+              levelKey,
+              tour: tour.tour,
+              names: tour.members.map((member) => member.name),
+              count: tour.members.length,
+              amount: getMonthlyCagnotte(levelKey),
+            },
             to: "/membre/tontine",
             matrixKey: "tourAttribue",
             prefKey: "tontineTurn",
@@ -130,6 +145,42 @@ function memberDerived(platform) {
           }),
         );
       }
+    }
+  });
+
+  // Choix des mois de passage : l'administration demande au membre de classer
+  // 3 mois (message sur la plateforme, doublé d'un rappel par e-mail et
+  // WhatsApp, voir Admin/Tontine/choiceMessages.js). Trois étapes : la demande
+  // à traiter, la confirmation une fois les mois envoyés, puis le mois attribué
+  // quand l'administration a validé l'ordre. Jamais filtrées par les réglages
+  // de type : c'est une action à suivre.
+  campaignsFor(choices, currentMember.matricule).forEach((campaign) => {
+    const response = campaign.responses[currentMember.matricule];
+    const base = { levelKey: campaign.levelKey, start: campaign.months[0], end: campaign.months.at(-1) };
+    if (campaign.status === "validated") {
+      const month = campaign.order[currentMember.matricule];
+      if (month) {
+        items.push(
+          make("membre", "choixMoisOrdre", `ordre-${campaign.id}`, dayjs(campaign.validatedAt ?? campaign.createdAt), "tontine", {
+            params: { ...base, month },
+            to: "/membre/tontine",
+          }),
+        );
+      }
+    } else if (response) {
+      items.push(
+        make("membre", "choixMoisEnvoye", `envoye-${campaign.id}`, dayjs(response.at), "tontine", {
+          params: { ...base, months: response.months },
+          to: "/membre/tontine",
+        }),
+      );
+    } else if (campaign.status === "open" && !isPastDeadline(campaign)) {
+      items.push(
+        make("membre", "choixMois", `choix-${campaign.id}`, dayjs(campaign.createdAt), "tontine", {
+          params: { ...base, date: campaign.deadline },
+          to: "/membre/tontine",
+        }),
+      );
     }
   });
 
@@ -202,10 +253,60 @@ function memberDerived(platform) {
     }
   });
 
+  // Espace leader : les dossiers d'inscription confiés (avec le dossier du
+  // candidat en lien), le rappel quand le délai approche ou est dépassé, et
+  // les membres de l'antenne en retard de cotisation.
+  const leader = currentMember.leader;
+  if (leader) {
+    getRegistrations()
+      .filter((item) => item.assignment?.leaderId === leader.memberId)
+      .filter((item) => ["todo", "unreachable"].includes(interviewStage(item)))
+      .forEach((item) => {
+        const deadline = deadlineState(item.assignment);
+        const params = {
+          name: fullName(item),
+          ref: item.ref,
+          place: [item.ville, item.pays].filter(Boolean).join(", "),
+          due: deadline?.due,
+        };
+        const to = `/membre/leader/dossier/${item.id}`;
+        items.push(
+          make("membre", "leaderDossier", `dossier-${item.id}`, dayjs(item.assignment.assignedAt), "leader", { params, to }),
+        );
+        if (deadline?.overdue) {
+          items.push(
+            make("membre", "leaderRetard", `retard-${item.id}`, today.add(8, "hour"), "leader", {
+              params: { ...params, days: Math.abs(deadline.daysLeft) },
+              to,
+            }),
+          );
+        } else if (deadline?.soon) {
+          items.push(
+            make("membre", "leaderRappel", `rappel-${item.id}`, today.add(8, "hour"), "leader", {
+              params: { ...params, days: deadline.daysLeft },
+              to,
+            }),
+          );
+        }
+      });
+
+    const lateMembers = buildAntenneRoster(leader, listMembers(getMembersState())).filter(
+      (member) => member.contribution.state === "late",
+    );
+    if (lateMembers.length > 0) {
+      items.push(
+        make("membre", "leaderRetards", "retards-antenne", today.add(9, "hour"), "leader", {
+          params: { count: lateMembers.length, names: lateMembers.slice(0, 3).map((member) => member.name) },
+          to: "/membre/leader/antenne",
+        }),
+      );
+    }
+  }
+
   return items;
 }
 
-function memberFeed(platform, stored) {
+function memberFeed(platform, stored, choices) {
   const prefs = loadSettings();
   const wantsKind = (item) => {
     if (!platform.notificationsEnabled) return false;
@@ -227,7 +328,25 @@ function memberFeed(platform, stored) {
       to: decisionLink(item.type),
     }));
 
-  return [...memberDerived(platform).filter(wantsKind), ...decisions];
+  // Les annonces de l'administration et des leaders qui visent ce membre (voir
+  // Annonces/). Une annonce "importante" passe toujours ; les autres suivent les
+  // mêmes réglages que les annonces de la DBC.
+  const announcements = getAnnouncements()
+    .filter((announcement) => isActive(announcement) && isForMe(announcement, currentMember))
+    .map((announcement) => ({
+      id: noticeId(announcement),
+      audience: "membre",
+      kind: "annonce",
+      at: announcement.createdAt,
+      group: "annonces",
+      announcement,
+      to: "/membre/dashboard",
+      matrixKey: "annonceGouvernance",
+      prefKey: "community",
+    }))
+    .filter((item) => item.announcement.importance === "important" || wantsKind(item));
+
+  return [...memberDerived(platform, choices).filter(wantsKind), ...announcements, ...decisions];
 }
 
 function decisionLink(type) {
@@ -292,8 +411,34 @@ function adminDerived(platform) {
       if (tour) {
         items.push(
           make("admin", "adminTour", `tour-${levelKey}`, today.subtract(1, "day").add(18, "hour"), "system", {
-            params: { levelKey, tour: tour.tour, name: tour.memberName },
+            params: { levelKey, tour: tour.tour, names: tour.members.map((member) => member.name), count: tour.members.length },
             to: "/admin/finance",
+          }),
+        );
+      }
+    }
+  });
+
+  // Entretiens d'inscription : un compte-rendu rendu par un leader, ou un
+  // compte-rendu en retard (délai de 7 jours dépassé) à relancer ou à confier
+  // à un autre leader.
+  getRegistrations().forEach((item) => {
+    if (!item.assignment) return;
+    if (item.interview && item.status !== "acceptee") {
+      items.push(
+        make("admin", "adminEntretienRendu", `entretien-${item.id}-${item.interview.at}`, dayjs(item.interview.at), "system", {
+          params: { name: fullName(item), leader: item.interview.leaderName, decision: item.interview.decision },
+          to: "/admin/inscriptions",
+        }),
+      );
+    }
+    if (item.status === "entretien" && interviewStage(item) !== "done") {
+      const deadline = deadlineState(item.assignment);
+      if (deadline?.overdue) {
+        items.push(
+          make("admin", "adminEntretienRetard", `entretien-retard-${item.id}`, today.add(8, "hour"), "system", {
+            params: { name: fullName(item), leader: item.assignment.leaderName, days: Math.abs(deadline.daysLeft) },
+            to: "/admin/inscriptions",
           }),
         );
       }
@@ -320,8 +465,14 @@ function adminFeed(platform, stored) {
 export function useNotifications(space) {
   const platform = usePlatformSettings();
   const stored = useNotificationState();
+  const choices = useMonthChoices();
+  // Le fil dépend aussi des dossiers d'inscription (entretiens, délais) : on
+  // les écoute pour qu'il se mette à jour dès qu'un dossier change.
+  useRegistrations();
+  // ... et des annonces : une annonce publiée ou retirée met le fil à jour.
+  useAnnouncements();
 
-  const feed = space === "admin" ? adminFeed(platform, stored) : memberFeed(platform, stored);
+  const feed = space === "admin" ? adminFeed(platform, stored) : memberFeed(platform, stored, choices);
   const items = feed
     .map((item) => ({ ...item, read: isRead(item, stored) }))
     .sort((a, b) => b.at - a.at);

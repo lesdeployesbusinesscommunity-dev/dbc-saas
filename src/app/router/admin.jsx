@@ -34,6 +34,36 @@ const adminRoutes = {
       }),
     },
     {
+      path: "inscriptions",
+      lazy: async () => ({
+        Component: (await import("app/pages/Admin/Inscriptions")).default,
+      }),
+    },
+    {
+      path: "annonces",
+      lazy: async () => ({
+        Component: (await import("app/pages/Admin/Annonces")).default,
+      }),
+    },
+    {
+      path: "tontine",
+      lazy: async () => ({
+        Component: (await import("app/pages/Admin/Tontine")).default,
+      }),
+    },
+    {
+      path: "tontine/guide",
+      lazy: async () => ({
+        Component: (await import("app/pages/Admin/Tontine/GuidePage")).default,
+      }),
+    },
+    {
+      path: "tontine/cotisations",
+      lazy: async () => ({
+        Component: (await import("app/pages/Admin/Tontine/Cotisations")).default,
+      }),
+    },
+    {
       path: "reseau",
       lazy: async () => ({
         Component: (await import("app/pages/Admin/Reseau")).default,
@@ -55,6 +85,12 @@ const adminRoutes = {
       path: "formation",
       lazy: async () => ({
         Component: (await import("app/pages/Admin/Formation")).default,
+      }),
+    },
+    {
+      path: "invest-club",
+      lazy: async () => ({
+        Component: (await import("app/pages/Admin/InvestClub")).default,
       }),
     },
     {

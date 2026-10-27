@@ -103,8 +103,8 @@ export function QuizEditorDialog({ open, initial, heading, onSave, onClose }) {
     <Dialog open={open} onClose={onClose} className="relative z-[70]">
       <div aria-hidden="true" className="fixed inset-0 bg-black/50" />
 
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
           <div className="flex items-center justify-between border-b border-gray-100 p-5">
             <DialogTitle className="text-base font-bold text-gray-900">{heading}</DialogTitle>
             <button

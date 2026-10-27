@@ -1,11 +1,11 @@
 // Import Dependencies
-import { NavLink } from "react-router";
 import { useTranslation } from "react-i18next";
-import clsx from "clsx";
 
 // Local Imports
 import { useNotifications } from "app/pages/Notifications/feeds";
-import { adminNavItems, adminSettingsItem } from "../adminNav";
+import { useRegistrations } from "../Inscriptions/registrationsStore";
+import { SidebarNav } from "components/shared/SidebarNav";
+import { adminNavEntries, adminSettingsItem } from "../adminNav";
 
 // ----------------------------------------------------------------------
 
@@ -25,37 +25,28 @@ function UnreadBadge({ space }) {
   );
 }
 
-function NavItem({ item }) {
+// Pastille de la ligne "Demandes d'inscription" : les nouvelles demandes qui
+// attendent encore d'être attribuées à un leader.
+function NewRequestsBadge() {
   const { t } = useTranslation();
-  const { labelKey, to, Icon } = item;
-
+  const count = useRegistrations().filter((item) => item.status === "nouvelle").length;
+  if (count === 0) return null;
   return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        clsx(
-          "relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-colors",
-          isActive
-            ? "bg-[#EE7115]/[0.1] text-[#EE7115]"
-            : "text-gray-500 hover:bg-gray-50 hover:text-gray-800",
-        )
-      }
+    <span
+      aria-label={t("admin.inscriptions.navBadge", { count })}
+      className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#EE7115] px-1.5 text-[11px] font-bold leading-none text-white"
     >
-      {({ isActive }) => (
-        <>
-          <Icon aria-hidden="true" className="size-5 shrink-0" />
-          <span className="truncate">{t(labelKey)}</span>
-          {item.key === "notifications" && <UnreadBadge space="admin" />}
-          {isActive && (
-            <span
-              aria-hidden="true"
-              className="absolute inset-y-2 -right-3 w-1 rounded-full bg-[#EE7115]"
-            />
-          )}
-        </>
-      )}
-    </NavLink>
+      {count > 99 ? "99+" : count}
+    </span>
   );
+}
+
+// Pastille d'une page du menu : non lues (Notifications), nouvelles demandes
+// (Inscriptions).
+function renderBadge(item) {
+  if (item.key === "notifications") return <UnreadBadge space="admin" />;
+  if (item.key === "inscriptions") return <NewRequestsBadge />;
+  return null;
 }
 
 // Barre latérale de l'espace admin : logo + nom du site en haut, menu de
@@ -71,6 +62,8 @@ function NavItem({ item }) {
 // bannière plus large, voir PatternStrip.jsx, plutôt qu'à une bordure de
 // quelques pixels de haut).
 export function AdminSidebar() {
+  const { unreadCount } = useNotifications("admin");
+  const newRequests = useRegistrations().filter((item) => item.status === "nouvelle").length;
   return (
     <aside className="hidden h-full w-72 shrink-0 flex-col border-r border-black/5 bg-white lg:flex">
       <div className="h-1 w-full shrink-0 bg-gradient-to-r from-[#EE7115] via-dbc-gold to-[#EE7115]" />
@@ -90,14 +83,16 @@ export function AdminSidebar() {
         </div>
         <div className="mt-4 h-px w-full bg-gradient-to-r from-dbc-gold/60 via-dbc-gold/10 to-transparent" />
 
-        <nav className="mt-8 flex flex-1 flex-col gap-1.5">
-          {adminNavItems.map((item) => (
-            <NavItem key={item.key} item={item} />
-          ))}
-        </nav>
+        <SidebarNav
+          entries={adminNavEntries}
+          storageKey="dbc-admin-nav-v1"
+          renderBadge={renderBadge}
+          badgeCounts={{ notifications: unreadCount, inscriptions: newRequests }}
+          className="mt-8 flex-1 overflow-y-auto"
+        />
 
         <div className="mt-auto pt-4">
-          <NavItem item={adminSettingsItem} />
+          <SidebarNav entries={[adminSettingsItem]} storageKey="dbc-admin-nav-settings-v1" />
         </div>
       </div>
     </aside>

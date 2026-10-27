@@ -10,7 +10,8 @@ import { LevelSwitcherBadge } from "../components/LevelSwitcherBadge";
 import { SearchEmpty } from "../components/SearchEmpty";
 import { useReportMatches, useSearchSummary } from "../components/searchSummary";
 import { useMemberLevel } from "../context/MemberLevelContext";
-import { formationDomains, getDomain } from "./domains";
+import { formationDomains, formerProgramOf, getDomain } from "./domains";
+import { AcademicCapIcon } from "@heroicons/react/24/solid";
 import { getCourseCatalog, getLockedCatalog } from "./mockData";
 import { courseMatches } from "./searchFilter";
 import { getCourseProgress, isCourseRewarded, useProgressState, useRewards } from "./progressStore";
@@ -78,8 +79,11 @@ export default function MembreFormation() {
       (activeDomain === "all" || item.course.domainKey === activeDomain) &&
       (status === "all" || item.progress.status === status),
   );
+  // Les programmes du pilier Former passent en premier, dans une section à part.
+  const formerItems = visible.filter((item) => formerProgramOf(item.course.id));
+  const others = visible.filter((item) => !formerProgramOf(item.course.id));
   const groups = domainCounts
-    .map(({ key }) => ({ key, items: visible.filter((item) => item.course.domainKey === key) }))
+    .map(({ key }) => ({ key, items: others.filter((item) => item.course.domainKey === key) }))
     .filter((group) => group.items.length > 0);
 
   return (
@@ -106,10 +110,30 @@ export default function MembreFormation() {
           />
         )}
 
-        {searched.length > 0 && groups.length === 0 && (
+        {searched.length > 0 && groups.length === 0 && formerItems.length === 0 && (
           <p className="mt-8 rounded-3xl border border-black/5 bg-white p-8 text-center text-sm text-gray-500 shadow-sm">
             {t("membre.formation.emptyFilter")}
           </p>
+        )}
+
+        {formerItems.length > 0 && (
+          <section className="mt-8">
+            <h2 className="flex items-center gap-2 text-base font-bold text-gray-900">
+              <AcademicCapIcon aria-hidden="true" className="size-5 text-[#EE7115]" />
+              {t("membre.formation.formerSection")}
+              <span className="text-xs font-semibold text-gray-400">{formerItems.length}</span>
+            </h2>
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {formerItems.map(({ course, progress }) => (
+                <TrainingCard
+                  key={course.id}
+                  course={course}
+                  progress={progress}
+                  rewarded={isCourseRewarded(course, rewards)}
+                />
+              ))}
+            </div>
+          </section>
         )}
 
         {groups.map((group) => {

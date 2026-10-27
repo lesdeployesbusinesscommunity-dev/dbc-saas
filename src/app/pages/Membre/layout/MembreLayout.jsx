@@ -29,7 +29,7 @@ import { MemberLevelProvider } from "../context/MemberLevelContext";
 export default function MembreLayout() {
   return (
     <MemberLevelProvider>
-      <div className="flex h-screen overflow-hidden bg-[#FAF7F4]">
+      <div className="fixed inset-0 flex overflow-hidden bg-[#FAF7F4]">
         <MembreSidebar />
         <div className="h-full min-w-0 flex-1 overflow-y-auto">
           <Outlet />

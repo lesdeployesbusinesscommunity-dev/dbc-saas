@@ -6,6 +6,7 @@ import {
   CheckIcon,
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
+  MapPinIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
@@ -28,8 +29,10 @@ import { normalizeSearchText } from "../searchUtils";
 //   cliqué) et son EMPLACEMENT par rapport à elle : "insertMode" = "child"
 //   (en dessous, comportement historique) ou "above" (juste au-dessus —
 //   insère un échelon intermédiaire, la référence devenant une sous-branche
-//   de la nouvelle branche). On choisit ensuite son nom puis le membre qui
-//   l'occupe, en une seule étape (annuler ne laisse donc jamais de branche
+//   de la nouvelle branche). On saisit ensuite son NOM (affiché au-dessus du
+//   responsable) et sa LOCALISATION spécifique (affichée en dessous, avec
+//   l'icône de localisation, et utilisée pour la carte), puis on choisit le
+//   membre qui l'occupe, en une seule étape (annuler ne laisse donc jamais de branche
 //   fantôme sans responsable ni de branche orpheline).
 // - mode "createRoot" : premier poste (Superviseur National) d'un pays qui
 //   n'a pas encore de réseau -> pas de branche de référence, juste le membre.
@@ -50,6 +53,7 @@ export function MemberPickerModal({
   onConfirm,
 }) {
   const { t } = useTranslation();
+  const [branchName, setBranchName] = useState("");
   const [branchLabel, setBranchLabel] = useState("");
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("all");
@@ -58,6 +62,7 @@ export function MemberPickerModal({
 
   useEffect(() => {
     if (!open) return;
+    setBranchName("");
     setBranchLabel("");
     setSearch("");
     setCountryFilter("all");
@@ -95,13 +100,14 @@ export function MemberPickerModal({
   }, [search, countryFilter, levelFilter]);
 
   const needsBranchLabel = mode === "create";
-  const canConfirm = Boolean(selectedId) && (!needsBranchLabel || branchLabel.trim());
+  const canConfirm =
+    Boolean(selectedId) && (!needsBranchLabel || (branchName.trim() && branchLabel.trim()));
   const referenceDescription = parentOptions?.find((option) => option.id === parentId)?.description ?? "";
 
-  // Suggestions de nom de branche : les régions connues du pays actif (si
-  // sa carte existe, voir countryMaps.js) — un texte libre reste toujours
-  // possible (ville, regroupement personnalisé...), ces noms n'apparaissent
-  // qu'en suggestion, jamais en choix imposé. "isDuplicateLabel" avertit
+  // Suggestions de localisation : les régions connues du pays actif (si sa
+  // carte existe, voir countryMaps.js) — un texte libre reste toujours
+  // possible (ville, quartier...), ces noms n'apparaissent qu'en suggestion,
+  // jamais en choix imposé. "isDuplicateLabel" avertit
   // (sans jamais bloquer, voir "canConfirm" ci-dessus, qui ne dépend pas de
   // ce calcul) si une branche du même nom existe déjà juste à cet endroit
   // de l'arbre (voir "existingSiblingLabels", calculé dans Reseau/index.jsx).
@@ -124,6 +130,7 @@ export function MemberPickerModal({
     if (!canConfirm) return;
     onConfirm({
       memberId: selectedId,
+      name: needsBranchLabel ? branchName.trim() : undefined,
       label: needsBranchLabel ? branchLabel.trim() : undefined,
     });
   };
@@ -132,8 +139,8 @@ export function MemberPickerModal({
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
 
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white p-6 shadow-xl sm:p-7">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto flex max-h-[85dvh] w-full max-w-lg flex-col rounded-2xl bg-white p-6 shadow-xl sm:p-7">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-base font-bold text-gray-900">{title}</DialogTitle>
             <button
@@ -218,30 +225,46 @@ export function MemberPickerModal({
             )}
 
             {needsBranchLabel && (
-              <label className="block text-xs font-semibold text-gray-500">
-                {t("admin.reseau.picker.branchName")}
-                <input
-                  type="text"
-                  list={regionSuggestions.length > 0 ? "reseau-region-suggestions" : undefined}
-                  value={branchLabel}
-                  onChange={(event) => setBranchLabel(event.target.value)}
-                  placeholder={t("admin.reseau.picker.branchNamePlaceholder")}
-                  className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#52A2DF]"
-                />
-                {regionSuggestions.length > 0 && (
-                  <datalist id="reseau-region-suggestions">
-                    {regionSuggestions.map((name) => (
-                      <option key={name} value={name} />
-                    ))}
-                  </datalist>
-                )}
-                {isDuplicateLabel && (
-                  <span className="mt-1.5 flex items-start gap-1.5 text-xs font-normal text-amber-600">
-                    <ExclamationTriangleIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-                    {t("admin.reseau.picker.duplicateWarning", { name: trimmedBranchLabel })}
+              <div className="space-y-3">
+                <label className="block text-xs font-semibold text-gray-500">
+                  {t("admin.reseau.picker.branchName")}
+                  <input
+                    type="text"
+                    value={branchName}
+                    onChange={(event) => setBranchName(event.target.value)}
+                    placeholder={t("admin.reseau.picker.branchNamePlaceholder")}
+                    className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal text-gray-800 outline-none focus:border-[#52A2DF]"
+                  />
+                </label>
+
+                <label className="block text-xs font-semibold text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <MapPinIcon aria-hidden="true" className="size-3.5 text-[#52A2DF]" />
+                    {t("admin.reseau.picker.branchLocation")}
                   </span>
-                )}
-              </label>
+                  <input
+                    type="text"
+                    list={regionSuggestions.length > 0 ? "reseau-region-suggestions" : undefined}
+                    value={branchLabel}
+                    onChange={(event) => setBranchLabel(event.target.value)}
+                    placeholder={t("admin.reseau.picker.branchLocationPlaceholder")}
+                    className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal text-gray-800 outline-none focus:border-[#52A2DF]"
+                  />
+                  {regionSuggestions.length > 0 && (
+                    <datalist id="reseau-region-suggestions">
+                      {regionSuggestions.map((name) => (
+                        <option key={name} value={name} />
+                      ))}
+                    </datalist>
+                  )}
+                  {isDuplicateLabel && (
+                    <span className="mt-1.5 flex items-start gap-1.5 text-xs font-normal text-amber-600">
+                      <ExclamationTriangleIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+                      {t("admin.reseau.picker.duplicateWarning", { name: trimmedBranchLabel })}
+                    </span>
+                  )}
+                </label>
+              </div>
             )}
 
             <div className="flex flex-wrap items-center gap-2">

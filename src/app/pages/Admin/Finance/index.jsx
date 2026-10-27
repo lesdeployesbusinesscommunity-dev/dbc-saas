@@ -15,6 +15,7 @@ import { Page } from "components/shared/Page";
 import { formatMoney, levels } from "app/pages/Simulateur/data";
 import { ComparisonTable } from "app/pages/Simulateur/ComparisonTable";
 import { AdminTopBar } from "../components/AdminTopBar";
+import { BankSection } from "./BankSection";
 import { FinanceStatCard } from "./FinanceStatCard";
 import { getFinanceForLevel } from "./mockData";
 
@@ -34,6 +35,7 @@ import { getFinanceForLevel } from "./mockData";
 export default function Finance() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("fr") ? "fr-FR" : "en-US";
+  const [tab, setTab] = useState("levels");
   const [selectedLevel, setSelectedLevel] = useState(levels[0]);
   const finance = getFinanceForLevel(selectedLevel.key);
 
@@ -41,6 +43,29 @@ export default function Finance() {
     <Page title={`Admin – ${t("admin.finance.title")}`}>
       <div className="p-6 lg:p-8">
         <AdminTopBar title={t("admin.finance.title")} />
+
+        <div role="tablist" aria-label={t("admin.finance.title")} className="mt-6 flex flex-wrap gap-2">
+          {["levels", "bank"].map((key) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => setTab(key)}
+              className={clsx(
+                "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+                tab === key ? "bg-[#EE7115] text-white" : "bg-white text-gray-600 ring-1 ring-black/5 hover:text-gray-900",
+              )}
+            >
+              {t(`admin.finance.tabs.${key}`)}
+            </button>
+          ))}
+        </div>
+
+        {tab === "bank" && <BankSection />}
+
+        {tab === "levels" && (
+          <>
 
         <div className="mt-6 flex flex-wrap items-center gap-2">
           <span
@@ -91,9 +116,11 @@ export default function Finance() {
           <UserGroupIcon aria-hidden="true" className="size-4 text-gray-400" />
           {t("admin.finance.memberCount", { count: finance.memberCount })}
         </div>
+          </>
+        )}
       </div>
 
-      <ComparisonTable levels={levels} selectedKey={selectedLevel.key} onSelect={setSelectedLevel} />
+      {tab === "levels" && <ComparisonTable levels={levels} selectedKey={selectedLevel.key} onSelect={setSelectedLevel} />}
     </Page>
   );
 }

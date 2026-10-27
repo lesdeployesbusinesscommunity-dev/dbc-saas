@@ -22,7 +22,7 @@ import { RightPanel } from "./RightPanel";
 // ----------------------------------------------------------------------
 
 // Page d'accueil de l'espace membre (/membre/dashboard) : colonne
-// principale (recherche, bandeau de bienvenue, carte de profil, actualité
+// principale (recherche, bandeau de bienvenue, annonces reçues, carte de profil, actualité
 // du mois, activités récentes, graphe du mois, tableau comparatif des
 // niveaux) + panneau de droite (profil, calendrier, cotisation tontine du
 // mois, formations en cours) — même structure que le dashboard admin

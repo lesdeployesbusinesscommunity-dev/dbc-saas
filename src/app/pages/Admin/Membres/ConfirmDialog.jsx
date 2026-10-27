@@ -27,8 +27,8 @@ export function ConfirmDialog({
     <Dialog open={open} onClose={onCancel} className="relative z-50">
       <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
 
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
           <div className="flex items-start gap-3">
             <span
               aria-hidden="true"

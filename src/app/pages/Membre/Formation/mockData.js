@@ -1,7 +1,7 @@
 // Import Dependencies
 import { initialTrainingsByLevel } from "app/pages/Admin/Formation/mockData";
 import { levels } from "app/pages/Simulateur/data";
-import { trainingDomains } from "./domains";
+import { formerFirst, trainingDomains } from "./domains";
 import { getAccountOverrides } from "../accountData";
 
 // ----------------------------------------------------------------------
@@ -102,7 +102,8 @@ function buildCourse(training, levelKey) {
 // Les formations d'UN niveau : la page Formation change quand le membre
 // change de niveau (voir MemberLevelContext).
 export function getCourseCatalog(levelKey) {
-  return (initialTrainingsByLevel[levelKey] ?? []).map((training) =>
+  // Les formations du pilier Former d'abord (voir domains.js).
+  return formerFirst(initialTrainingsByLevel[levelKey] ?? []).map((training) =>
     buildCourse(training, levelKey),
   );
 }

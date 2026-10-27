@@ -122,6 +122,33 @@ export const initialMembersByLevel = {
       awards: [],
       joinedAt: "2026-07-05",
     },
+    // Le compte MEMBRE de démonstration (celui qui se connecte avec
+    // DBC-1-0042, voir Membre/currentMember.js) : il doit exister ici pour que
+    // l'administration puisse lui envoyer des demandes (choix des mois...) et
+    // qu'il les reçoive dans ses notifications.
+    {
+      id: "m10",
+      matricule: "DBC-1-0042",
+      name: "Thierry Mbida",
+      role: "Membre",
+      domain: "Entrepreneur · Membre actif",
+      coins: 320,
+      status: "actif",
+      city: "Douala",
+      country: "Cameroun",
+      email: "thierry.mbida@example.com",
+      whatsapp: "+237000000042",
+      sponsorName: null,
+      sponsorMatricule: null,
+      nextTontineDate: "2026-09-25",
+      contributed: 120000,
+      trainingsCompleted: ["Fondamentaux DBC"],
+      trainingInProgress: null,
+      sponsoredMembers: [],
+      referralEarnings: 45000,
+      awards: [],
+      joinedAt: "2026-07-20",
+    },
   ],
   batisseur: [
     {

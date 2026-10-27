@@ -38,8 +38,77 @@ import { withDemoAssessments } from "./demoAssessments";
 // "Ajouter une formation" (voir AddTrainingModal.jsx) et l'ajout de
 // vidéos puissent l'enrichir sans toucher ce fichier — comme pour
 // initialMembersByLevel ailleurs dans l'admin.
+// ----------------------------------------------------------------------
+// Les formations du pilier FORMER : un programme du pilier (École des Affaires
+// DBC, Leadership Academy, Digital Masters, Pitch School, Sales Academy, DBC
+// Challenge — voir Admin/Piliers/mockData.js) est aussi une formation du
+// catalogue, et passe EN PREMIER dans "Gestion des formations" comme dans la
+// page Formation du membre (voir Membre/Formation/domains.js). Chaque
+// programme apparaît au niveau où il s'ouvre ("Niv.1" = DBC Starter, "Niv.3" =
+// DBC Bâtisseur Pro) ; "pillar" est l'id du programme. Contenu de démonstration
+// (formateurs, dates, chapitres), à remplacer par celui de la DBC.
+const former = (pillar, id, data) => ({
+  id,
+  pillar,
+  progress: 0,
+  objectives: {
+    global: data.global,
+    chapters: data.chapters.map((title, index) => ({
+      title: `Module ${index + 1} — ${title}`,
+      objectives: [`Comprendre les notions clés : ${title.toLowerCase()}`, `Les appliquer à son propre projet`],
+      videos: [],
+    })),
+    outcomes: data.outcomes,
+  },
+  poster: "/former.jpg",
+  ...data.card,
+});
+
+const formerStarter = [
+  former("ecole-affaires", "p-ecole-affaires", {
+    card: { name: "École des Affaires DBC", trainer: "Aïcha Konaté", startDate: "2026-10-05", duration: "12 semaines", poster: "/former.jpg" },
+    global: ["Créer, structurer, financer et manager son entreprise", "Suivre un parcours progressif du niveau 1 au niveau 4"],
+    chapters: ["Créer son projet", "Structurer son entreprise", "Financer son activité", "Manager son équipe", "Vendre et fidéliser", "Piloter sa performance"],
+    outcomes: ["Lancer une activité sur des bases solides", "Structurer et financer son entreprise", "Manager une équipe au quotidien"],
+  }),
+  former("digital-masters", "p-digital-masters", {
+    card: { name: "Digital Masters", trainer: "Grace Owusu", startDate: "2026-10-12", duration: "6 semaines", poster: "/former 2.jpg" },
+    global: ["Maîtriser le marketing digital et les réseaux sociaux", "Développer son e-influence et vendre en ligne"],
+    chapters: ["Marketing digital", "Réseaux sociaux", "E-influence", "E-commerce"],
+    outcomes: ["Bâtir une présence en ligne crédible", "Vendre ses produits et services sur internet"],
+  }),
+  former("dbc-challenge", "p-dbc-challenge", {
+    card: { name: "DBC Challenge", trainer: "Fatou Ndiaye", startDate: "2026-10-19", duration: "4 semaines", poster: "/former 2.jpg" },
+    global: ["Se lancer des défis mutuels pour évoluer ensemble et vite"],
+    chapters: ["Fixer ses objectifs", "Relever les défis de la semaine", "Mesurer et célébrer ses progrès"],
+    outcomes: ["Tenir ses engagements grâce à l'émulation du groupe"],
+  }),
+];
+
+const formerBatisseurPro = [
+  former("leadership-academy", "p-leadership-academy", {
+    card: { name: "Leadership Academy", trainer: "David Mbeki", startDate: "2026-10-26", duration: "8 semaines", poster: "/former.jpg" },
+    global: ["Développer son leadership transformationnel", "Grandir personnellement pour mieux faire grandir son réseau"],
+    chapters: ["Connaissance de soi avancée", "Vision et influence", "Leadership transformationnel", "Accompagner son équipe"],
+    outcomes: ["Incarner un leadership qui inspire", "Faire grandir les membres de son réseau"],
+  }),
+  former("pitch-school", "p-pitch-school", {
+    card: { name: "Pitch School", trainer: "Junior Kabongo", startDate: "2026-11-02", duration: "4 semaines", poster: "/former 2.jpg" },
+    global: ["Convaincre les investisseurs, les partenaires et les clients"],
+    chapters: ["Construire son message", "Raconter son projet", "Défendre ses chiffres"],
+    outcomes: ["Présenter son projet en trois minutes", "Répondre aux objections d'un investisseur"],
+  }),
+  former("sales-academy", "p-sales-academy", {
+    card: { name: "Sales Academy", trainer: "Grace Owusu", startDate: "2026-11-09", duration: "6 semaines", poster: "/former.jpg" },
+    global: ["Maîtriser les techniques de vente, de persuasion et de négociation"],
+    chapters: ["Techniques de vente", "Persuasion", "Négociation", "Conclure et fidéliser"],
+    outcomes: ["Conduire un entretien de vente de bout en bout", "Négocier sans brader sa valeur"],
+  }),
+];
+
 const baseTrainingsByLevel = {
   starter: [
+    ...formerStarter,
     {
       id: "f1",
       name: "Fondamentaux DBC",
@@ -229,6 +298,7 @@ const baseTrainingsByLevel = {
     },
   ],
   batisseurPro: [
+    ...formerBatisseurPro,
     {
       id: "f5",
       name: "Gouvernance associative",

@@ -19,6 +19,7 @@ export function StatusBadge({ status }) {
 
   return (
     <span
+      title={t(`admin.membres.statusHelp.${status}`, { defaultValue: "" })}
       className={clsx(
         "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold",
         STYLES[status] ?? STYLES.attente,

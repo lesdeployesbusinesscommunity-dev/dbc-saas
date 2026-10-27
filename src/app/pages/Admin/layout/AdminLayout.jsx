@@ -32,7 +32,7 @@ import { NetworkDataProvider } from "../context/NetworkDataContext";
 export default function AdminLayout() {
   return (
     <NetworkDataProvider>
-      <div className="flex h-screen overflow-hidden bg-[#FAF7F4]">
+      <div className="fixed inset-0 flex overflow-hidden bg-[#FAF7F4]">
         <AdminSidebar />
         <div className="h-full min-w-0 flex-1 overflow-y-auto">
           <Outlet />

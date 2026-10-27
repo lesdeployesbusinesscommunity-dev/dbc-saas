@@ -41,6 +41,12 @@ const membreRoutes = {
           }),
         },
         {
+          path: "tontine/guide",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Tontine/Guide")).default,
+          }),
+        },
+        {
           path: "mlm",
           lazy: async () => ({
             Component: (await import("app/pages/Membre/Mlm")).default,
@@ -93,6 +99,69 @@ const membreRoutes = {
           path: "piliers/:pillarId",
           lazy: async () => ({
             Component: (await import("app/pages/Membre/Piliers/PillarPage")).default,
+          }),
+        },
+        {
+          // Espace leader (réservé aux leaders d'antenne, voir
+          // Membre/Leader/LeaderShell.jsx) : entretiens à mener, dossier d'un
+          // candidat + compte-rendu, membres de l'antenne, guide, rôle.
+          path: "leader",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Leader")).default,
+          }),
+        },
+        {
+          path: "leader/dossier/:id",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Leader/DossierPage")).default,
+          }),
+        },
+        {
+          path: "leader/antenne",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Leader/Antenne")).default,
+          }),
+        },
+        {
+          path: "leader/relances",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Leader/Relances")).default,
+          }),
+        },
+        {
+          path: "leader/relance/:id",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Leader/RelancePage")).default,
+          }),
+        },
+        {
+          path: "leader/tontine",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Leader/Tontine")).default,
+          }),
+        },
+        {
+          path: "leader/annonces",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Leader/Annonces")).default,
+          }),
+        },
+        {
+          path: "leader/guide",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Leader/Guide")).default,
+          }),
+        },
+        {
+          path: "leader/role",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Leader/Role")).default,
+          }),
+        },
+        {
+          path: "annonces",
+          lazy: async () => ({
+            Component: (await import("app/pages/Membre/Annonces")).default,
           }),
         },
         {

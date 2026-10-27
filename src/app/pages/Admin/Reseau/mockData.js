@@ -83,9 +83,22 @@ let nodeSeq = 0;
 // Crée un nœud de l'arbre (id unique auto-incrémenté) — utilisé aussi bien
 // pour les données de démo ci-dessous qu'à l'exécution, quand on ajoute
 // une nouvelle branche depuis l'UI (voir Reseau/index.jsx).
-export function createNetworkNode({ memberId = null, label = null, children = [] } = {}) {
+//
+// Une branche a deux textes distincts :
+// - "name"  : le NOM de la branche (ex: "Antenne Centre"), affiché au-dessus
+//             du responsable (à la place du titre de rôle de l'échelon, qui
+//             ne sert plus que de repli pour une branche sans nom) ;
+// - "label" : sa LOCALISATION spécifique (ex: "Yaoundé"), affichée sous le
+//             responsable avec l'icône de localisation — c'est aussi elle
+//             qui place le pin sur la carte du pays (voir getPresenceRegions).
+export function createNetworkNode({
+  memberId = null,
+  name = null,
+  label = null,
+  children = [],
+} = {}) {
   nodeSeq += 1;
-  return { id: `node-${nodeSeq}`, memberId, label, children };
+  return { id: `node-${nodeSeq}`, memberId, name, label, children };
 }
 const makeNode = createNetworkNode;
 
@@ -158,7 +171,11 @@ export function flattenTree(root) {
 // recevoir une nouvelle branche au-dessus d'elle, sauf la racine "National"
 // (un seul poste par pays, rien ne peut lui être ajouté par-dessus) : dans
 // ce cas la fonction ne fait rien et renvoie l'arbre inchangé.
-export function insertNodeAbove(root, targetNodeId, { memberId = null, label = null } = {}) {
+export function insertNodeAbove(
+  root,
+  targetNodeId,
+  { memberId = null, name = null, label = null } = {},
+) {
   if (root.id === targetNodeId) return root;
 
   const walk = (node) => {
@@ -167,9 +184,30 @@ export function insertNodeAbove(root, targetNodeId, { memberId = null, label = n
       return { ...node, children: node.children.map(walk) };
     }
     const target = node.children[index];
-    const inserted = createNetworkNode({ memberId, label, children: [target] });
+    const inserted = createNetworkNode({ memberId, name, label, children: [target] });
     const children = [...node.children];
     children[index] = inserted;
+    return { ...node, children };
+  };
+
+  return walk(root);
+}
+
+// Supprime (immuablement) la branche "nodeId" de l'arbre. Deux façons de
+// traiter ce qui est en dessous :
+// - "keepChildren: true"  : ses sous-branches ne disparaissent pas, elles
+//   remontent d'un niveau et prennent sa place sous son parent ;
+// - "keepChildren: false" : toute la descendance part avec elle.
+// La racine "National" ne peut pas être supprimée (un pays n'a qu'un seul
+// poste national) : dans ce cas l'arbre est renvoyé inchangé.
+export function removeNodeFromTree(root, nodeId, { keepChildren = true } = {}) {
+  if (root.id === nodeId) return root;
+
+  const walk = (node) => {
+    const children = node.children.flatMap((child) => {
+      if (child.id !== nodeId) return [walk(child)];
+      return keepChildren ? child.children : [];
+    });
     return { ...node, children };
   };
 
@@ -187,10 +225,13 @@ export const initialNetworksByCountry = {
     children: [
       makeNode({
         memberId: "m5", // Nadège Mbarga, Yaoundé
+        name: "Antenne Centre",
         label: "Centre",
-        children: [makeNode({ memberId: null, label: "Yaoundé", children: [] })],
+        children: [
+          makeNode({ memberId: null, name: "Antenne Yaoundé", label: "Yaoundé", children: [] }),
+        ],
       }),
-      makeNode({ memberId: null, label: "Littoral", children: [] }),
+      makeNode({ memberId: null, name: "Antenne Littoral", label: "Littoral", children: [] }),
     ],
   }),
   Nigéria: makeNode({
@@ -201,13 +242,20 @@ export const initialNetworksByCountry = {
       // countryMaps.js) — un admin qui recrée cette branche verra la liste
       // de suggestions du champ "Nom de la branche" (voir MemberPickerModal)
       // et n'a pas besoin de connaître ce nom officiel par cœur.
-      makeNode({ memberId: "m8", label: "Federal Capital Territory", children: [] }), // Chidi Eze
-      makeNode({ memberId: null, label: "Lagos", children: [] }),
+      makeNode({
+        memberId: "m8",
+        name: "Antenne Abuja",
+        label: "Federal Capital Territory",
+        children: [],
+      }), // Chidi Eze
+      makeNode({ memberId: null, name: "Antenne Lagos", label: "Lagos", children: [] }),
     ],
   }),
   Ghana: makeNode({
     memberId: "m2", // Grace Owusu, Accra
-    children: [makeNode({ memberId: "m6", label: "Ashanti", children: [] })], // Kwame Asante
+    children: [
+      makeNode({ memberId: "m6", name: "Antenne Ashanti", label: "Ashanti", children: [] }),
+    ], // Kwame Asante
   }),
   Sénégal: makeNode({
     memberId: "m7", // Fatou Ndiaye, Dakar
@@ -215,7 +263,9 @@ export const initialNetworksByCountry = {
   }),
   Mali: makeNode({
     memberId: "m4", // Aïcha Konaté, Bamako
-    children: [makeNode({ memberId: "m9", label: "Bamako", children: [] })], // Awa Traoré
+    children: [
+      makeNode({ memberId: "m9", name: "Antenne Bamako", label: "Bamako", children: [] }),
+    ], // Awa Traoré
   }),
 };
 
@@ -249,8 +299,9 @@ export function getTreeSearchMatches(root, query) {
   allNodes.forEach((node) => {
     const member = node.memberId ? getMember(node.memberId) : null;
     const labelMatches = node.label && normalizeSearchText(node.label).includes(trimmed);
+    const nameMatches = node.name && normalizeSearchText(node.name).includes(trimmed);
     const memberMatches = member && normalizeSearchText(member.name).includes(trimmed);
-    if (labelMatches || memberMatches) matchIds.add(node.id);
+    if (labelMatches || nameMatches || memberMatches) matchIds.add(node.id);
   });
 
   const keepIds = new Set(matchIds);

@@ -7,8 +7,10 @@ import {
   ShareIcon,
   AcademicCapIcon,
   BellIcon,
+  MegaphoneIcon,
   BuildingLibraryIcon,
   Cog6ToothIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/solid";
 
 // ----------------------------------------------------------------------
@@ -28,8 +30,47 @@ export const memberNavItems = [
   { key: "formation", labelKey: "membre.nav.formation", to: "/membre/formation", Icon: AcademicCapIcon },
   // "Piliers" (colonnes) : INVESTIR et FINANCER, les deux piliers de la DBC.
   { key: "piliers", labelKey: "membre.nav.piliers", to: "/membre/piliers", Icon: BuildingLibraryIcon },
+  // Annonces de l'administration et des leaders ; pastille des non lues (voir MembreSidebar).
+  { key: "annonces", labelKey: "membre.nav.annonces", to: "/membre/annonces", Icon: MegaphoneIcon },
   // Pastille du nombre de notifications non lues (voir MembreSidebar).
   { key: "notifications", labelKey: "membre.nav.notifications", to: "/membre/notifications", Icon: BellIcon },
+];
+
+// "Espace leader" : réservé aux leaders d'antenne (voir Leader/leaderAccess.js).
+// La barre latérale l'insère avant "Notifications" seulement pour eux (voir
+// MembreSidebar) ; pastille du nombre de dossiers à traiter / membres en retard.
+export const memberLeaderItem = {
+  key: "leader",
+  labelKey: "membre.nav.leader",
+  to: "/membre/leader",
+  Icon: ShieldCheckIcon,
+};
+
+// Le même menu rangé en catégories qui se déplient (voir
+// components/shared/SidebarNav.jsx). Dashboard et l'Espace leader restent seuls ;
+// l'Espace leader (réservé aux leaders) s'insère avant "Communication".
+const byKey = Object.fromEntries(memberNavItems.map((item) => [item.key, item]));
+export const memberNavEntries = (isLeader) => [
+  byKey.dashboard,
+  {
+    key: "groupArgent",
+    labelKey: "membre.navGroups.argent",
+    Icon: BanknotesIcon,
+    items: [byKey.tontine, byKey.mlm, byKey.coins],
+  },
+  {
+    key: "groupDevelopper",
+    labelKey: "membre.navGroups.developper",
+    Icon: AcademicCapIcon,
+    items: [byKey.reseau, byKey.formation, byKey.piliers],
+  },
+  ...(isLeader ? [memberLeaderItem] : []),
+  {
+    key: "groupCommunication",
+    labelKey: "membre.navGroups.communication",
+    Icon: BellIcon,
+    items: [byKey.annonces, byKey.notifications],
+  },
 ];
 
 // Traité à part (voir MembreSidebar) : toujours affiché en bas, séparé du

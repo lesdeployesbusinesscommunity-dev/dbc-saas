@@ -9,6 +9,7 @@ import { AdminTopBar } from "../components/AdminTopBar";
 import { CountrySwitcher } from "./CountrySwitcher";
 import { OrgTree } from "./OrgTree";
 import { MemberPickerModal } from "./MemberPickerModal";
+import { DeleteBranchDialog, DismissMemberDialog } from "./BranchActionDialogs";
 import { MemberDetailsCard } from "../Membres/MemberDetailsCard";
 import { useNetworkData } from "../context/NetworkDataContext";
 import { COUNTRY_MAPS, getPresenceRegions } from "./countryMaps";
@@ -20,6 +21,7 @@ import {
   getTreeSearchMatches,
   initialLevelTitlesByCountry,
   insertNodeAbove,
+  removeNodeFromTree,
   resolveLevelLabel,
   updateNodeInTree,
 } from "./mockData";
@@ -79,6 +81,11 @@ export default function Reseau() {
   // Nœud dont on affiche la fiche complète (poste déjà pourvu, cliqué sur
   // l'avatar/le nom — voir NodeCard.jsx) : { node, depth } | null.
   const [viewingNode, setViewingNode] = useState(null);
+  // Confirmation en cours depuis le menu "..." d'une carte (voir
+  // NodeActionsMenu.jsx) : { type: "dismiss" | "delete", node, depth } | null.
+  // "dismiss" retire le responsable (le poste redevient vacant, la branche
+  // reste) ; "delete" supprime la branche (et, au choix, ses sous-branches).
+  const [pendingAction, setPendingAction] = useState(null);
 
   const root = networksByCountry[activeCountry];
   const levelTitles = levelTitlesByCountry[activeCountry] ?? {};
@@ -115,8 +122,12 @@ export default function Reseau() {
     const member = node.memberId ? getMember(node.memberId) : null;
     const memberLabel = member ? member.name : t("admin.reseau.vacant");
     const levelName = resolveLevelLabel(depth, levelTitles, t);
-    return node.label
-      ? `${levelName} · ${node.label} — ${memberLabel}`
+    // Nom de la branche, puis sa localisation entre parenthèses.
+    const branch = [node.name, node.label && (node.name ? `(${node.label})` : node.label)]
+      .filter(Boolean)
+      .join(" ");
+    return branch
+      ? `${levelName} · ${branch} — ${memberLabel}`
       : `${levelName} — ${memberLabel}`;
   };
 
@@ -124,6 +135,15 @@ export default function Reseau() {
     setLevelTitlesByCountry((prev) => ({
       ...prev,
       [activeCountry]: { ...(prev[activeCountry] ?? {}), [depth]: title },
+    }));
+
+  const renameBranch = (node, name) =>
+    setNetworksByCountry((prev) => ({
+      ...prev,
+      [activeCountry]: updateNodeInTree(prev[activeCountry], node.id, (current) => ({
+        ...current,
+        name,
+      })),
     }));
 
   const parentOptions = useMemo(
@@ -167,6 +187,34 @@ export default function Reseau() {
   const openAddChild = (node) =>
     setPicker({ mode: "create", referenceNodeId: node.id, insertMode: "child" });
   const openCreateRoot = () => setPicker({ mode: "createRoot" });
+  const askDismiss = (node, depth) => setPendingAction({ type: "dismiss", node, depth });
+  const askDelete = (node, depth) => setPendingAction({ type: "delete", node, depth });
+  const cancelPendingAction = () => setPendingAction(null);
+
+  // Destituer : le responsable quitte le poste, qui redevient vacant — la
+  // branche (nom, localisation, sous-branches) ne change pas.
+  const confirmDismiss = () => {
+    if (!pendingAction) return;
+    setNetworksByCountry((prev) => ({
+      ...prev,
+      [activeCountry]: updateNodeInTree(prev[activeCountry], pendingAction.node.id, (node) => ({
+        ...node,
+        memberId: null,
+      })),
+    }));
+    setPendingAction(null);
+  };
+
+  const confirmDelete = ({ keepChildren }) => {
+    if (!pendingAction) return;
+    setNetworksByCountry((prev) => ({
+      ...prev,
+      [activeCountry]: removeNodeFromTree(prev[activeCountry], pendingAction.node.id, {
+        keepChildren,
+      }),
+    }));
+    setPendingAction(null);
+  };
   const closePicker = () => setPicker(null);
   const setReferenceNodeId = (referenceNodeId) =>
     setPicker((prev) => {
@@ -184,7 +232,7 @@ export default function Reseau() {
   const setInsertMode = (insertMode) =>
     setPicker((prev) => (prev ? { ...prev, insertMode } : prev));
 
-  const handleConfirmPicker = ({ memberId, label }) => {
+  const handleConfirmPicker = ({ memberId, name, label }) => {
     if (!picker) return;
 
     if (picker.mode === "createRoot") {
@@ -205,11 +253,12 @@ export default function Reseau() {
         ...prev,
         [activeCountry]: insertNodeAbove(prev[activeCountry], picker.referenceNodeId, {
           memberId,
+          name,
           label,
         }),
       }));
     } else if (picker.mode === "create") {
-      const newNode = createNetworkNode({ memberId, label });
+      const newNode = createNetworkNode({ memberId, name, label });
       setNetworksByCountry((prev) => ({
         ...prev,
         [activeCountry]: updateNodeInTree(prev[activeCountry], picker.referenceNodeId, (node) => ({
@@ -232,11 +281,33 @@ export default function Reseau() {
   const viewingNetworkContext = viewingNode
     ? {
         roleLabel: resolveLevelLabel(viewingNode.depth, levelTitles, t),
-        branchLabel: viewingNode.node.label,
+        branchLabel: viewingNode.node.name
+          ? `${viewingNode.node.name}${viewingNode.node.label ? ` · ${viewingNode.node.label}` : ""}`
+          : viewingNode.node.label,
         country: activeCountry,
         ...countSubtreeStats(viewingNode.node),
       }
     : null;
+
+  // Données affichées dans les confirmations (voir BranchActionDialogs.jsx).
+  const actionMember = pendingAction?.node.memberId ? getMember(pendingAction.node.memberId) : null;
+  const dismissTarget =
+    pendingAction?.type === "dismiss" && actionMember
+      ? {
+          memberName: actionMember.name,
+          branchName: pendingAction.node.name || pendingAction.node.label,
+          levelName: resolveLevelLabel(pendingAction.depth, levelTitles, t),
+        }
+      : null;
+  const deleteTarget =
+    pendingAction?.type === "delete"
+      ? {
+          branchName:
+            pendingAction.node.name || pendingAction.node.label || t("admin.reseau.levels.branche"),
+          memberName: actionMember?.name ?? null,
+          ...countSubtreeStats(pendingAction.node),
+        }
+      : null;
 
   return (
     <Page title={`Admin – ${t("admin.reseau.title")}`}>
@@ -293,7 +364,10 @@ export default function Reseau() {
                   onAssign={openAssign}
                   onAddChild={(node) => openAddChild(node)}
                   onRenameLevel={renameLevel}
+                  onRenameBranch={renameBranch}
                   onViewMember={openMemberDetails}
+                  onDismiss={askDismiss}
+                  onDelete={askDelete}
                   searchMatches={searchMatches}
                 />
               </div>
@@ -337,6 +411,18 @@ export default function Reseau() {
         existingSiblingLabels={siblingLabelsForPicker}
         onClose={closePicker}
         onConfirm={handleConfirmPicker}
+      />
+
+      <DismissMemberDialog
+        target={dismissTarget}
+        onConfirm={confirmDismiss}
+        onCancel={cancelPendingAction}
+      />
+
+      <DeleteBranchDialog
+        target={deleteTarget}
+        onConfirm={confirmDelete}
+        onCancel={cancelPendingAction}
       />
 
       <MemberDetailsCard
