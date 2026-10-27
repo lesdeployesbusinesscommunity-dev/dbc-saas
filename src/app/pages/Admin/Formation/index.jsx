@@ -7,6 +7,7 @@ import { PlusIcon } from "@heroicons/react/24/solid";
 // Local Imports
 import { Page } from "components/shared/Page";
 import { levels } from "app/pages/Simulateur/data";
+import { formerFirst } from "app/pages/Membre/Formation/domains";
 import { AdminTopBar } from "../components/AdminTopBar";
 import { LevelFilter } from "./LevelFilter";
 import { TrainingCard } from "./TrainingCard";
@@ -111,9 +112,13 @@ export default function Formation() {
     // normalizeSearchText tolère accents/casse/tirets des deux côtés (voir
     // searchUtils.js) — un clavier réglé en anglais retrouve "Aïcha Konaté"
     // en tapant "aicha konate".
+    // Les formations du pilier Former d'abord (École des Affaires, Leadership
+    // Academy, Digital Masters, Sales Academy...), puis les autres ; à rang égal,
+    // l'ordre des niveaux est gardé (voir Membre/Formation/domains.js).
+    const ordered = formerFirst(byLevel, ({ training }) => training.id);
     const query = normalizeSearchText(search);
-    if (!query) return byLevel;
-    return byLevel.filter(
+    if (!query) return ordered;
+    return ordered.filter(
       ({ training }) =>
         normalizeSearchText(training.name).includes(query) ||
         normalizeSearchText(training.trainer).includes(query),

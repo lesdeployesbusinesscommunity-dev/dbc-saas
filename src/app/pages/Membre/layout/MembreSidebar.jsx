@@ -1,11 +1,12 @@
 // Import Dependencies
-import { NavLink } from "react-router";
 import { useTranslation } from "react-i18next";
-import clsx from "clsx";
 
 // Local Imports
+import { useMyAnnouncements } from "app/pages/Annonces/useMyAnnouncements";
 import { useNotifications } from "app/pages/Notifications/feeds";
-import { memberNavItems, memberSettingsItem } from "../memberNav";
+import { summarizeDossiers, useAntenneMembers, useLeaderDossiers, useLeaderProfile } from "../Leader/leaderAccess";
+import { SidebarNav } from "components/shared/SidebarNav";
+import { memberNavEntries, memberSettingsItem } from "../memberNav";
 
 // ----------------------------------------------------------------------
 
@@ -25,37 +26,47 @@ function UnreadBadge({ space }) {
   );
 }
 
-function NavItem({ item }) {
+// Pastille de la ligne "Annonces" : nombre d'annonces non lues.
+function AnnouncementsBadge() {
   const { t } = useTranslation();
-  const { labelKey, to, Icon } = item;
-
+  const { unreadCount } = useMyAnnouncements();
+  if (unreadCount === 0) return null;
   return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        clsx(
-          "relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-colors",
-          isActive
-            ? "bg-[#EE7115]/[0.1] text-[#EE7115]"
-            : "text-gray-500 hover:bg-gray-50 hover:text-gray-800",
-        )
-      }
+    <span
+      data-testid="announcements-badge"
+      aria-label={t("announcements.feed.unread", { count: unreadCount })}
+      className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#EE7115] px-1.5 text-[11px] font-bold leading-none text-white"
     >
-      {({ isActive }) => (
-        <>
-          <Icon aria-hidden="true" className="size-5 shrink-0" />
-          <span className="truncate">{t(labelKey)}</span>
-          {item.key === "notifications" && <UnreadBadge space="membre" />}
-          {isActive && (
-            <span
-              aria-hidden="true"
-              className="absolute inset-y-2 -right-3 w-1 rounded-full bg-[#EE7115]"
-            />
-          )}
-        </>
-      )}
-    </NavLink>
+      {unreadCount > 99 ? "99+" : unreadCount}
+    </span>
   );
+}
+
+// Pastille de l'"Espace leader" : dossiers à traiter + membres en retard.
+function LeaderBadge() {
+  const { t } = useTranslation();
+  const dossiers = useLeaderDossiers();
+  const roster = useAntenneMembers();
+  const count =
+    summarizeDossiers(dossiers).open + roster.filter((member) => member.contribution.state === "late").length;
+  if (count === 0) return null;
+  return (
+    <span
+      data-testid="leader-badge"
+      aria-label={t("membre.leader.badge", { count })}
+      className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#EE7115] px-1.5 text-[11px] font-bold leading-none text-white"
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
+// Pastille d'une page du menu : non lues, annonces non lues, dossiers du leader.
+function renderBadge(item) {
+  if (item.key === "notifications") return <UnreadBadge space="membre" />;
+  if (item.key === "annonces") return <AnnouncementsBadge />;
+  if (item.key === "leader") return <LeaderBadge />;
+  return null;
 }
 
 // Barre latérale de l'espace membre — même structure que la sidebar
@@ -74,6 +85,11 @@ function NavItem({ item }) {
 // la nav elle-même est un filet de sécurité si la liste de pages devient
 // un jour trop longue pour la hauteur de l'écran.
 export function MembreSidebar() {
+  const leader = useLeaderProfile();
+  const { unreadCount } = useNotifications("membre");
+  const announcements = useMyAnnouncements().unreadCount;
+  const entries = memberNavEntries(Boolean(leader));
+
   return (
     <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r border-black/5 bg-white lg:flex">
       <div className="h-1 w-full shrink-0 bg-gradient-to-r from-[#EE7115] via-dbc-gold to-[#EE7115]" />
@@ -93,14 +109,16 @@ export function MembreSidebar() {
         </div>
         <div className="mt-4 h-px w-full bg-gradient-to-r from-dbc-gold/60 via-dbc-gold/10 to-transparent" />
 
-        <nav className="mt-8 flex flex-1 flex-col gap-1.5">
-          {memberNavItems.map((item) => (
-            <NavItem key={item.key} item={item} />
-          ))}
-        </nav>
+        <SidebarNav
+          entries={entries}
+          storageKey="dbc-member-nav-v1"
+          renderBadge={renderBadge}
+          badgeCounts={{ notifications: unreadCount, annonces: announcements }}
+          className="mt-8 flex-1"
+        />
 
         <div className="mt-auto pt-4">
-          <NavItem item={memberSettingsItem} />
+          <SidebarNav entries={[memberSettingsItem]} storageKey="dbc-member-nav-settings-v1" />
         </div>
       </div>
     </aside>

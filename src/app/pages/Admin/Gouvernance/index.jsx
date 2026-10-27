@@ -57,9 +57,10 @@ export default function Gouvernance() {
   // gouvernance, se gère ici, par id de branche.
   const [coordinatorsByNodeId, setCoordinatorsByNodeId] = useState({});
   const [viewingMemberId, setViewingMemberId] = useState(null);
-  // assigning = { poleId, chapterId, seatId, seatLabel } | null
+  // assigning = { poleId, chapterId, seatId, seatLabel, subPoleId? } | null
   const [assigning, setAssigning] = useState(null);
-  // poleForm = { mode: "add" } | { mode: "edit", pole } | null
+  // poleForm = { mode: "add", parentId? } | { mode: "edit", pole, parentId? } | null
+  // ("parentId" : le formulaire concerne un SOUS-PÔLE de ce pôle)
   const [poleForm, setPoleForm] = useState(null);
   const [deletingPole, setDeletingPole] = useState(null);
 
@@ -75,11 +76,32 @@ export default function Gouvernance() {
 
   const openAssign = (poleId, chapterId, seatId, seatLabel) =>
     setAssigning({ poleId, chapterId, seatId, seatLabel });
+  const openAssignSub = (poleId, subPoleId, seatId, seatLabel) =>
+    setAssigning({ poleId, subPoleId, seatId, seatLabel });
   const closeAssign = () => setAssigning(null);
 
   const handleConfirmAssign = (memberId) => {
     if (!assigning) return;
-    const { poleId, chapterId, seatId } = assigning;
+    const { poleId, chapterId, seatId, subPoleId } = assigning;
+
+    if (subPoleId) {
+      setStructure((prev) =>
+        prev.map((pole) =>
+          pole.id !== poleId
+            ? pole
+            : {
+                ...pole,
+                subPoles: (pole.subPoles ?? []).map((sp) =>
+                  sp.id !== subPoleId
+                    ? sp
+                    : { ...sp, seats: sp.seats.map((seat) => (seat.id === seatId ? { ...seat, memberId } : seat)) },
+                ),
+              },
+        ),
+      );
+      closeAssign();
+      return;
+    }
 
     if (poleId === "antennes") {
       // "chapterId" est ici l'id du nœud de branche (voir
@@ -121,9 +143,31 @@ export default function Gouvernance() {
 
   const openAddPole = () => setPoleForm({ mode: "add" });
   const openEditPole = (pole) => setPoleForm({ mode: "edit", pole });
+  const openAddSubPole = (parentId) => setPoleForm({ mode: "add", parentId });
+  const openEditSubPole = (parentId, pole) => setPoleForm({ mode: "edit", pole, parentId });
   const closePoleForm = () => setPoleForm(null);
 
   const handlePoleSubmit = (payload) => {
+    const parentId = poleForm?.parentId;
+    if (parentId) {
+      // Sous-pôle : ajouté / modifié dans la liste "subPoles" de son pôle.
+      const targetId = poleForm.pole?.id;
+      setStructure((prev) =>
+        prev.map((p) => {
+          if (p.id !== parentId) return p;
+          const subPoles = p.subPoles ?? [];
+          return {
+            ...p,
+            subPoles:
+              poleForm.mode === "edit"
+                ? subPoles.map((sp) => (sp.id === targetId ? { ...sp, ...payload } : sp))
+                : [...subPoles, { id: `sub-${Date.now()}`, ...payload }],
+          };
+        }),
+      );
+      closePoleForm();
+      return;
+    }
     if (poleForm?.mode === "edit") {
       const targetId = poleForm.pole.id;
       setStructure((prev) => prev.map((p) => (p.id === targetId ? { ...p, ...payload } : p)));
@@ -135,6 +179,17 @@ export default function Gouvernance() {
 
   const confirmDeletePole = () => {
     if (!deletingPole) return;
+    if (deletingPole.parentId) {
+      setStructure((prev) =>
+        prev.map((p) =>
+          p.id === deletingPole.parentId
+            ? { ...p, subPoles: (p.subPoles ?? []).filter((sp) => sp.id !== deletingPole.pole.id) }
+            : p,
+        ),
+      );
+      setDeletingPole(null);
+      return;
+    }
     setStructure((prev) => prev.filter((p) => p.id !== deletingPole.id));
     setDeletingPole(null);
   };
@@ -152,6 +207,10 @@ export default function Gouvernance() {
       if (pole.kind === "fixed" || pole.kind === "assignable") {
         const seat = pole.seats.find((s) => s.memberId === viewingMemberId);
         if (seat) return `${getSeatTitle(seat, t)} · ${poleTitle}`;
+      }
+      for (const subPole of pole.subPoles ?? []) {
+        const seat = subPole.seats.find((s) => s.memberId === viewingMemberId);
+        if (seat) return `${getSeatTitle(seat, t)} · ${getPoleTitle(subPole, t)} · ${poleTitle}`;
       }
       if (pole.kind === "networkChapters") {
         for (const chapter of chapters) {
@@ -192,6 +251,17 @@ export default function Gouvernance() {
     if (!query) return true;
 
     if (normalizeSearchText(getPoleTitle(pole, t)).includes(query)) return true;
+
+    const subPoleMatches = (pole.subPoles ?? []).some(
+      (subPole) =>
+        normalizeSearchText(getPoleTitle(subPole, t)).includes(query) ||
+        subPole.seats.some((seat) => {
+          if (normalizeSearchText(getSeatTitle(seat, t)).includes(query)) return true;
+          const member = seat.memberId ? getMember(seat.memberId) : null;
+          return Boolean(member && normalizeSearchText(member.name).includes(query));
+        }),
+    );
+    if (subPoleMatches) return true;
 
     if (pole.kind === "fixed" || pole.kind === "assignable") {
       return pole.seats.some((seat) => {
@@ -285,6 +355,10 @@ export default function Gouvernance() {
               canMoveDown={index < structure.length - 1}
               onEdit={() => openEditPole(pole)}
               onDelete={() => setDeletingPole(pole)}
+              onAddSubPole={() => openAddSubPole(pole.id)}
+              onEditSubPole={(subPole) => openEditSubPole(pole.id, subPole)}
+              onDeleteSubPole={(subPole) => setDeletingPole({ pole: subPole, parentId: pole.id })}
+              onAssignSub={(subPoleId, seatId, label) => openAssignSub(pole.id, subPoleId, seatId, label)}
               dimmed={!poleMatchesSearch(pole)}
             />
           ))}
@@ -308,16 +382,22 @@ export default function Gouvernance() {
       <PoleFormModal
         open={!!poleForm}
         pole={poleForm?.mode === "edit" ? poleForm.pole : null}
+        isSub={!!poleForm?.parentId}
         onClose={closePoleForm}
         onSubmit={handlePoleSubmit}
       />
 
       <ConfirmDialog
         open={!!deletingPole}
-        title={t("admin.gouvernance.confirmDelete.title")}
-        description={t("admin.gouvernance.confirmDelete.description", {
-          title: deletingPole ? getPoleTitle(deletingPole, t) : "",
-        })}
+        title={t(deletingPole?.parentId ? "admin.gouvernance.confirmDeleteSub.title" : "admin.gouvernance.confirmDelete.title")}
+        description={t(
+          deletingPole?.parentId
+            ? "admin.gouvernance.confirmDeleteSub.description"
+            : "admin.gouvernance.confirmDelete.description",
+          {
+            title: deletingPole ? getPoleTitle(deletingPole.parentId ? deletingPole.pole : deletingPole, t) : "",
+          },
+        )}
         confirmLabel={t("admin.gouvernance.confirmDelete.confirmLabel")}
         tone="danger"
         onConfirm={confirmDeletePole}

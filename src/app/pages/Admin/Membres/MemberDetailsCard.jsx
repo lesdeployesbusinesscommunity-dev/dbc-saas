@@ -95,7 +95,11 @@ function InfoRow({ label, value, align = "right" }) {
 // gouvernance" pour rappeler le poste occupé (ex: "Directeur Marketing
 // Digital · Comité Exécutif") sans les statistiques d'arbre ci-dessus,
 // qui ne concernent que "Gestion du réseau".
-export function MemberDetailsCard({ member, open, onClose, networkContext, extraBadge }) {
+//
+// "followUp" (optionnel) est un bloc affiché tout en bas de la fiche —
+// utilisé par "Gestion des membres" pour y mettre la fonction de leader et
+// la chronologie complète du membre (voir MemberFollowUp.jsx).
+export function MemberDetailsCard({ member, open, onClose, networkContext, extraBadge, followUp }) {
   const { t } = useTranslation();
 
   if (!member) return null;
@@ -116,8 +120,8 @@ export function MemberDetailsCard({ member, open, onClose, networkContext, extra
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
 
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
           <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-6">
             <div className="flex items-center gap-4">
               <Avatar name={member.name} size="size-16" />
@@ -360,6 +364,8 @@ export function MemberDetailsCard({ member, open, onClose, networkContext, extra
                 )}
               </InfoSection>
             </div>
+
+            {followUp}
           </div>
         </DialogPanel>
       </div>

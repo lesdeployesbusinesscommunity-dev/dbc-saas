@@ -13,6 +13,10 @@
 // total collecté, cotisations du mois, nombre de membres) varie selon le
 // niveau sélectionné.
 //
+// Les effectifs et les cotisations du mois collent à "Gestion des tontines"
+// (Tontine/mockData.js) : un groupe réunit 36 personnes, donc 4 groupes Starter
+// = 144 membres en cycle + 8 membres qui attendent encore un groupe = 152.
+//
 // "legende" reste à zéro — cohérent avec le Conseil des Légendes, encore
 // vide dans Gestion de la gouvernance (personne n'a encore atteint ce
 // niveau).
@@ -24,51 +28,51 @@ export const financeByLevel = {
     currentPot: 1555000,
     totalCollected: 12250000,
     toursCompleted: 8,
-    contributionsReceived: 5,
-    contributionsExpected: 6,
+    contributionsReceived: 134,
+    contributionsExpected: 144,
     currentTour: CURRENT_TOUR,
     totalTours: TOTAL_TOURS,
-    memberCount: 32,
+    memberCount: 152,
   },
   batisseur: {
     currentPot: 2040000,
     totalCollected: 14280000,
     toursCompleted: 7,
-    contributionsReceived: 4,
-    contributionsExpected: 5,
+    contributionsReceived: 67,
+    contributionsExpected: 72,
     currentTour: CURRENT_TOUR,
     totalTours: TOTAL_TOURS,
-    memberCount: 21,
+    memberCount: 111,
   },
   batisseurPro: {
     currentPot: 4080000,
     totalCollected: 24480000,
     toursCompleted: 6,
-    contributionsReceived: 3,
-    contributionsExpected: 4,
+    contributionsReceived: 70,
+    contributionsExpected: 72,
     currentTour: CURRENT_TOUR,
     totalTours: TOTAL_TOURS,
-    memberCount: 14,
+    memberCount: 74,
   },
   performer: {
     currentPot: 8740000,
     totalCollected: 43700000,
     toursCompleted: 5,
-    contributionsReceived: 2,
-    contributionsExpected: 3,
+    contributionsReceived: 35,
+    contributionsExpected: 36,
     currentTour: CURRENT_TOUR,
     totalTours: TOTAL_TOURS,
-    memberCount: 9,
+    memberCount: 39,
   },
   performerPro: {
     currentPot: 9620000,
     totalCollected: 38480000,
     toursCompleted: 4,
-    contributionsReceived: 2,
-    contributionsExpected: 2,
+    contributionsReceived: 36,
+    contributionsExpected: 36,
     currentTour: CURRENT_TOUR,
     totalTours: TOTAL_TOURS,
-    memberCount: 6,
+    memberCount: 36,
   },
   stratege: {
     currentPot: 13600000,

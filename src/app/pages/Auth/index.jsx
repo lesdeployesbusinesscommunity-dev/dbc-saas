@@ -61,6 +61,16 @@ const TEST_ACCOUNTS = [
     role: "membre",
     redirectTo: "/membre",
   },
+  // Une leader d'antenne : un membre dont le menu contient en plus l'"Espace
+  // leader" (voir Membre/currentMember.js, champ "leader").
+  {
+    nom: "Nadège Mbarga",
+    niveaux: ["starter"],
+    matricule: "DBC-1-0003",
+    motDePasse: import.meta.env.VITE_DEMO_MEMBER_PASSWORD,
+    role: "membre",
+    redirectTo: "/membre",
+  },
 ];
 
 const normalize = (value) => value.trim().toLowerCase();

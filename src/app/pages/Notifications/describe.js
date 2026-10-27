@@ -17,6 +17,7 @@ import {
   UsersIcon,
   XCircleIcon,
   ArrowTrendingUpIcon,
+  ClipboardDocumentCheckIcon,
 } from "@heroicons/react/24/solid";
 
 // ----------------------------------------------------------------------
@@ -42,6 +43,9 @@ const KIND_STYLE = {
   cotisationSuivi: { Icon: UsersIcon, tone: "info" },
   tourAttribue: { Icon: TrophyIcon, tone: "gold" },
   tourProche: { Icon: BellAlertIcon, tone: "gold" },
+  choixMois: { Icon: CalendarDaysIcon, tone: "warning" },
+  choixMoisEnvoye: { Icon: CheckCircleIcon, tone: "success" },
+  choixMoisOrdre: { Icon: TrophyIcon, tone: "gold" },
   coins: { Icon: CircleStackIcon, tone: "gold" },
   filleul: { Icon: UserPlusIcon, tone: "success" },
   formationNouvelle: { Icon: AcademicCapIcon, tone: "info" },
@@ -52,6 +56,13 @@ const KIND_STYLE = {
   adminCotisations: { Icon: BanknotesIcon, tone: "info" },
   adminRetards: { Icon: ExclamationTriangleIcon, tone: "warning" },
   adminTour: { Icon: TrophyIcon, tone: "gold" },
+  // Espace leader (entretiens d'inscription, relances) et leur suivi côté admin.
+  leaderDossier: { Icon: ClipboardDocumentCheckIcon, tone: "info" },
+  leaderRappel: { Icon: ClockIcon, tone: "warning" },
+  leaderRetard: { Icon: ExclamationTriangleIcon, tone: "danger" },
+  leaderRetards: { Icon: BellAlertIcon, tone: "warning" },
+  adminEntretienRendu: { Icon: ClipboardDocumentCheckIcon, tone: "success" },
+  adminEntretienRetard: { Icon: ExclamationTriangleIcon, tone: "warning" },
 };
 
 const REQUEST_ICON = {
@@ -70,6 +81,9 @@ const STATUS_TONE = {
 };
 
 export function styleFor(item) {
+  if (item.kind === "annonce") {
+    return { Icon: MegaphoneIcon, tone: item.announcement?.importance === "important" ? "warning" : "info" };
+  }
   if (item.kind === "request") {
     return { Icon: REQUEST_ICON[item.type] ?? BellAlertIcon, tone: STATUS_TONE[item.status] ?? "info" };
   }
@@ -140,8 +154,17 @@ function requestKey(item) {
   return item.type;
 }
 
+// "2026-11" -> "novembre 2026" (dans la langue courante).
+const formatMonth = (value, locale) =>
+  value ? new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(new Date(`${value}-01T12:00:00`)) : "";
+
 // { title, text } d'une notification, dans la langue courante.
 export function describe(item, t, locale) {
+  // Une annonce est écrite par son auteur : son titre et son texte tels quels.
+  if (item.kind === "annonce") {
+    return { title: item.announcement.title, text: item.announcement.body };
+  }
+
   if (item.kind === "request") {
     const params = requestParams(t, item);
     const key = requestKey(item);
@@ -187,6 +210,20 @@ export function describe(item, t, locale) {
     case "cotisationRappel":
       params.days = p.days;
       break;
+    case "leaderRappel":
+    case "leaderRetard":
+    case "adminEntretienRetard":
+      params.days = p.days;
+      params.count = p.days;
+      break;
+    case "choixMois":
+    case "choixMoisEnvoye":
+    case "choixMoisOrdre":
+      params.start = formatMonth(p.start, locale);
+      params.end = formatMonth(p.end, locale);
+      params.month = formatMonth(p.month, locale);
+      params.months = Array.isArray(p.months) ? p.months.map((value) => formatMonth(value, locale)).join(", ") : "";
+      break;
     case "formationNouvelle":
     case "formationRappel":
       params.percent = p.percent;
@@ -201,6 +238,8 @@ export function describe(item, t, locale) {
   if (item.kind === "cotisationRappel") variant = p.days <= 0 ? ".today" : p.days === 1 ? ".tomorrow" : "";
   if (item.kind === "tourProche") variant = p.monthsAway <= 0 ? ".now" : "";
   if (item.kind === "cotisationSuivi" && p.paid === p.total) variant = ".complete";
+  if (item.kind === "leaderRappel") variant = p.days <= 0 ? ".today" : "";
+  if (item.kind === "adminEntretienRendu") variant = `.${p.decision}`;
 
   return {
     title: t(`notifications.items.${item.kind}${variant}.title`, params),

@@ -2,6 +2,7 @@
 import { useTranslation } from "react-i18next";
 import {
   ChevronDownIcon,
+  PlusIcon,
   ChevronUpIcon,
   PencilIcon,
   TrashIcon,
@@ -11,6 +12,7 @@ import clsx from "clsx";
 // Local Imports
 import { Avatar } from "../components/Avatar";
 import { SeatCard } from "./SeatCard";
+import { POLE_ICON_MAP } from "./poleIcons";
 import { getMember, getPoleTitle, getPoleDescription, getSeatTitle } from "./mockData";
 
 // ----------------------------------------------------------------------
@@ -129,6 +131,10 @@ export function PoleSection({
   canMoveDown,
   onEdit,
   onDelete,
+  onAddSubPole,
+  onEditSubPole,
+  onDeleteSubPole,
+  onAssignSub,
   dimmed = false,
 }) {
   const { t } = useTranslation();
@@ -290,6 +296,83 @@ export function PoleSection({
               {t("admin.gouvernance.poles.legendes.empty")}
             </p>
           ))}
+      </div>
+      {/* Sous-pôles : des groupes de postes rattachés à ce pôle (voir
+          "subPoles" dans Gouvernance/index.jsx). Un seul niveau : un
+          sous-pôle n'a pas lui-même de sous-pôles. */}
+      <div className="mt-6 border-t border-gray-100 pt-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
+            {t("admin.gouvernance.subPoles.label")}
+            {(pole.subPoles?.length ?? 0) > 0 && (
+              <span className="ml-1.5 font-semibold">{pole.subPoles.length}</span>
+            )}
+          </p>
+          <button
+            type="button"
+            onClick={onAddSubPole}
+            className="flex items-center gap-1 text-xs font-semibold text-[#52A2DF] hover:underline"
+          >
+            <PlusIcon aria-hidden="true" className="size-3.5" />
+            {t("admin.gouvernance.addSubPole")}
+          </button>
+        </div>
+
+        {(pole.subPoles?.length ?? 0) > 0 && (
+          <div className="mt-4 space-y-4">
+            {pole.subPoles.map((subPole) => {
+              const SubIcon = POLE_ICON_MAP[subPole.iconKey] ?? Icon;
+              return (
+                <div key={subPole.id} className="rounded-2xl border border-gray-100 bg-gray-50/50 p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                        <SubIcon aria-hidden="true" className="size-4 shrink-0 text-[#EE7115]" />
+                        <span className="truncate">{getPoleTitle(subPole, t)}</span>
+                      </h3>
+                      {getPoleDescription(subPole, t) && (
+                        <p className="mt-1 text-xs text-gray-500">{getPoleDescription(subPole, t)}</p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-0.5">
+                      <HeaderIconButton
+                        Icon={PencilIcon}
+                        label={t("admin.gouvernance.edit")}
+                        onClick={() => onEditSubPole(subPole)}
+                        hoverClassName="hover:text-[#52A2DF]"
+                      />
+                      <HeaderIconButton
+                        Icon={TrashIcon}
+                        label={t("admin.gouvernance.delete")}
+                        onClick={() => onDeleteSubPole(subPole)}
+                        hoverClassName="hover:text-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  {subPole.seats.length > 0 ? (
+                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-6">
+                      {subPole.seats.map((seat) => (
+                        <SeatCard
+                          key={seat.id}
+                          seatTitle={getSeatTitle(seat, t)}
+                          member={seat.memberId ? getMember(seat.memberId) : null}
+                          assignable
+                          onView={() => onView(seat.memberId)}
+                          onAssign={() => onAssignSub(subPole.id, seat.id, getSeatTitle(seat, t))}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-4 rounded-xl bg-white px-4 py-4 text-center text-xs text-gray-400">
+                      {t("admin.gouvernance.poleForm.noSeats")}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

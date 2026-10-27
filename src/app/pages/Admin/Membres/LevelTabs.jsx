@@ -4,7 +4,6 @@ import clsx from "clsx";
 
 // Local Imports
 import { levels, formatMoney } from "app/pages/Simulateur/data";
-import { UserPlusIcon } from "@heroicons/react/24/solid";
 import { levelNumbers } from "./mockData";
 
 // ----------------------------------------------------------------------
@@ -14,10 +13,10 @@ import { levelNumbers } from "./mockData";
 // montant de la cagnotte de ce niveau (level.cagnotte, la même donnée que
 // sur la page Simulateur). Celui actif ressort en orange plein, les
 // autres restent neutres sur fond gris clair — look aligné sur la
-// maquette de référence donnée par l'utilisateur. Le bouton global
-// "Ajouter un nouveau membre" (n'importe quel niveau) est à droite de la
-// rangée, comme demandé.
-export function LevelTabs({ activeLevel, onSelect, onAddAnyLevel }) {
+// maquette de référence donnée par l'utilisateur. La création d'un membre
+// se fait désormais par un seul bouton, "Créer un membre", en haut de la
+// page (voir Membres/index.jsx) : il reprend le niveau ouvert ici.
+export function LevelTabs({ activeLevel, onSelect }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("fr") ? "fr-FR" : "en-US";
 
@@ -64,15 +63,6 @@ export function LevelTabs({ activeLevel, onSelect, onAddAnyLevel }) {
           );
         })}
       </div>
-
-      <button
-        type="button"
-        onClick={onAddAnyLevel}
-        className="flex shrink-0 items-center gap-2 rounded-lg bg-[#52A2DF] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-      >
-        <UserPlusIcon aria-hidden="true" className="size-4" />
-        {t("admin.membres.addNewMember")}
-      </button>
     </div>
   );
 }

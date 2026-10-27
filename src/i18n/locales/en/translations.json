@@ -410,13 +410,17 @@
     "nav": {
       "dashboard": "Dashboard",
       "membres": "Member Management",
+      "tontine": "Tontines",
       "reseau": "Network Management",
       "gouvernance": "Governance",
       "finance": "Finance",
       "formation": "Training",
       "parametres": "Settings",
       "piliers": "Pillars",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "inscriptions": "Sign-ups",
+      "annonces": "Announcements",
+      "investClub": "DBC Invest Club"
     },
     "comingSoon": {
       "message": "This section is under construction and coming soon."
@@ -502,18 +506,28 @@
           "country": "Country",
           "sponsor": "Sponsor",
           "coins": "Coins",
-          "status": "Status"
+          "status": "Status",
+          "member": "Member",
+          "roleFunction": "Role and function",
+          "location": "Location"
         },
         "empty": "No members at this level yet.",
-        "noSponsor": "None"
+        "noSponsor": "None",
+        "tontineFrom": "Tontine from {{month}}",
+        "tontineMissing": "Start to be set"
       },
       "rowMenu": {
         "actions": "Actions",
         "update": "Update",
-        "view": "View",
+        "view": "View profile and history",
         "reactivate": "Reactivate",
         "deactivate": "Deactivate",
-        "delete": "Delete"
+        "delete": "Delete",
+        "activate": "Activate account",
+        "appointLeader": "Appoint as leader",
+        "editLeader": "Edit role",
+        "dismissLeader": "Remove from role",
+        "mustBeActive": "The member must be active first"
       },
       "pagination": {
         "label": "Pagination",
@@ -541,10 +555,16 @@
           "title": "Deactivate this member?",
           "description": "{{name}} will no longer have access to their account until reactivated.",
           "confirmLabel": "Deactivate"
-        }
+        },
+        "activate": {
+          "title": "Activate this member?",
+          "description": "{{name}} will get access to their account.",
+          "confirmLabel": "Activate"
+        },
+        "leaderEnds": "Their leader role will end automatically and be recorded in the journal."
       },
       "modal": {
-        "addTitle": "Add a member",
+        "addTitle": "Create a member",
         "editTitle": "Update member",
         "viewTitle": "Member profile",
         "close": "Close",
@@ -567,8 +587,29 @@
         "sponsorMatriculePlaceholder": "E.g.: DBC-1-0001",
         "status": "Status",
         "matriculePlaceholder": "E.g.: DBC-1-0001",
-        "matriculeHint": "Suggested automatically: you can replace it. This is what the member will give to refer someone.",
-        "matriculeTaken": "This member ID is already assigned to another member."
+        "matriculeHint": "Suggested automatically: it can be replaced. This is what the member will give to sponsor others.",
+        "matriculeTaken": "This member ID is already assigned to another member.",
+        "addHint": "Fill in the blocks below. The member ID is suggested automatically.",
+        "create": "Create member",
+        "sections": {
+          "identity": "Identity",
+          "levelStatus": "Level and status",
+          "activity": "Activity",
+          "location": "Location",
+          "sponsorship": "Sponsorship",
+          "tontine": "Tontine"
+        },
+        "statusHint": "You can activate the member later from the list.",
+        "sponsor": "Sponsor",
+        "noSponsor": "No sponsor",
+        "sponsorHint": "Choose from existing members.",
+        "tontineStart": "Tontine start month",
+        "tontineStartHint": "The month this member starts the tontine. Required: it is used to build the groups.",
+        "email": "Email",
+        "emailPlaceholder": "name@example.com",
+        "whatsapp": "WhatsApp",
+        "whatsappPlaceholder": "+237 6 00 00 00 00",
+        "contactHint": "These details are used to send tontine requests and reminders by email and WhatsApp."
       },
       "details": {
         "coordinates": "Contact details",
@@ -611,6 +652,184 @@
       "top": {
         "title": "Top members",
         "subtitle": "The members standing out right now"
+      },
+      "subtitle": "This is where you create each member, follow their journey, and give or remove a leader role.",
+      "createMember": "Create a member",
+      "notice": {
+        "created": "Member created: {{name}} ({{matricule}}). This member ID is the one to share for sponsoring.",
+        "openCard": "Open profile"
+      },
+      "summary": {
+        "all": "Members",
+        "actif": "Active",
+        "attente": "Pending",
+        "desactive": "Disabled",
+        "leader": "Leaders in office",
+        "toActivate": "To activate"
+      },
+      "views": {
+        "label": "Member management views",
+        "members": "Members",
+        "leaders": "Leaders",
+        "journal": "Journal"
+      },
+      "statusFilter": {
+        "all": "All",
+        "actif": "Active",
+        "attente": "Pending",
+        "desactive": "Disabled",
+        "leader": "Leaders"
+      },
+      "duration": {
+        "days_one": "{{count}} day",
+        "days_other": "{{count}} days",
+        "months_one": "{{count}} month",
+        "months_other": "{{count}} months",
+        "years_one": "{{count}} year",
+        "years_other": "{{count}} years"
+      },
+      "leaders": {
+        "title": "Leaders",
+        "subtitle": "Members entrusted with a position of responsibility, and the history of their terms.",
+        "filterLabel": "Filter by role",
+        "allFunctions": "All roles",
+        "appoint": "Appoint a leader",
+        "appointShort": "Appoint leader",
+        "currentTitle_one": "{{count}} leader in office",
+        "currentTitle_other": "{{count}} leaders in office",
+        "pastTitle_one": "{{count}} past term",
+        "pastTitle_other": "{{count}} past terms",
+        "noneCurrent": "No leader in office for this selection.",
+        "nonePast": "No past terms.",
+        "since": "Since {{date}}",
+        "edit": "Edit",
+        "dismissAction": "Remove",
+        "reasonLabel": "Reason",
+        "titles": {
+          "level": "Level leader",
+          "country": "Country leader",
+          "tontine": "Tontine group leader",
+          "training": "Training leader",
+          "community": "Community leader",
+          "other": "Other role"
+        },
+        "scopeHints": {
+          "level": "E.g.: Builder",
+          "country": "E.g.: Cameroon",
+          "tontine": "E.g.: Starter, group A",
+          "training": "E.g.: Sales techniques",
+          "community": "E.g.: Douala community",
+          "other": "E.g.: area or team concerned"
+        },
+        "reasons": {
+          "mandateEnd": "End of term",
+          "inactivity": "Inactivity",
+          "misconduct": "Breach of the rules",
+          "request": "At their request",
+          "other": "Other reason",
+          "deactivated": "Account disabled",
+          "removed": "Member deleted"
+        },
+        "columns": {
+          "member": "Member",
+          "function": "Role",
+          "period": "Period",
+          "reason": "End reason"
+        },
+        "form": {
+          "appointTitle": "Appoint a leader",
+          "appointHint": "Give a role to an active member.",
+          "editTitle": "Edit role",
+          "editHint": "Changes are recorded in the journal.",
+          "member": "Member",
+          "memberPlaceholder": "Choose a member",
+          "memberHint": "Only active members who are not already leaders are listed.",
+          "noCandidate": "No active member available: all active members are already leaders, or no member has been activated yet.",
+          "function": "Role",
+          "customTitle": "Role name",
+          "scope": "Scope",
+          "startedAt": "Start date",
+          "note": "Note (optional)",
+          "notePlaceholder": "Mission, goals, remarks…",
+          "appoint": "Appoint"
+        },
+        "dismiss": {
+          "title": "Remove from role",
+          "hint": "This ends the leader role.",
+          "reason": "Reason",
+          "reasonPlaceholder": "Choose a reason",
+          "comment": "Comment (optional)",
+          "commentRequired": "Please specify the reason",
+          "date": "End date",
+          "notice": "{{name}} becomes an ordinary member again. The removal is recorded in the journal with the reason and the date.",
+          "confirm": "Remove from role"
+        }
+      },
+      "journal": {
+        "title": "Action journal",
+        "subtitle": "All creations, edits, status changes and appointments, most recent first.",
+        "all": "All",
+        "members": "Members",
+        "leaders": "Leaders",
+        "empty": "No action matches your search.",
+        "emptyMember": "No action recorded for this member.",
+        "by": "by {{name}}",
+        "events": {
+          "created": "Member created",
+          "updated": "Information edited",
+          "levelChanged": "Level changed",
+          "statusChanged": "Status: {{status}}",
+          "deleted": "Member deleted",
+          "leaderAppointed": "Appointed leader",
+          "leaderUpdated": "Leader role edited",
+          "leaderDismissed": "Removed from role",
+          "priorityRatingRequested": "Sponsor rating requested",
+          "priorityRatingRequestedDetail": "Sponsor: {{name}} · 72 h to answer",
+          "priorityRated": "Sponsor rating received",
+          "priorityRatedDetail": "Average {{average}} out of 10",
+          "priorityUrgency_validated": "Urgency validated (SPD)",
+          "priorityUrgency_rejected": "Urgency rejected (SPD)",
+          "priorityRanked": "Tontine ranking published",
+          "priorityRankedDetail": "Rank {{rank}} of {{total}} · score {{score}} out of 100"
+        },
+        "fields": {
+          "name": "name",
+          "role": "role",
+          "domain": "field of activity",
+          "city": "city",
+          "country": "country",
+          "sponsorName": "sponsor",
+          "sponsorMatricule": "sponsor ID",
+          "coins": "coins"
+        },
+        "columns": {
+          "date": "Date",
+          "action": "Action",
+          "detail": "Detail",
+          "by": "By"
+        }
+      },
+      "followUp": {
+        "leaderTitle": "Leader role",
+        "notLeader": "This member has no leader role.",
+        "mustBeActive": "This member must be active to become a leader.",
+        "pastTerms": "Past terms",
+        "timelineTitle": "Full history",
+        "tontineTitle": "Tontine",
+        "tontineStart": "Tontine start",
+        "campaign": "Choice request – {{level}}, group starting {{month}}",
+        "choices": "Choices: {{months}}",
+        "noAnswer": "Has not answered yet",
+        "turnPlanned": "Planned month: {{month}}",
+        "turnFinal": "Assigned month: {{month}}",
+        "rank": "choice no. {{n}}",
+        "outOfChoices": "outside their choices"
+      },
+      "statusHelp": {
+        "title": "What do the statuses mean?",
+        "attente": "Registration received but not yet validated. The administration must activate the member before they can fully take part.",
+        "actif": "Validated account: the member has access to their space and can be appointed leader.",
+        "desactive": "Access suspended: the member cannot use their account until reactivated. Any leader role ends."
       }
     },
     "common": {
@@ -650,7 +869,9 @@
         "October",
         "November",
         "December"
-      ]
+      ],
+      "month": "Month",
+      "year": "Year"
     },
     "reseau": {
       "title": "Network management",
@@ -689,8 +910,8 @@
         "createRootTitle": "Start the network — {{country}}",
         "assignTitle": "Assign a lead",
         "branchName": "Branch name",
-        "branchNamePlaceholder": "E.g.: Littoral, Yaoundé…",
-        "duplicateWarning": "A branch named \"{{name}}\" already exists here — you can continue if that's intended.",
+        "branchNamePlaceholder": "E.g.: Centre Chapter, Diaspora Branch…",
+        "duplicateWarning": "A branch located in \"{{name}}\" already exists here — you can continue if that's intended.",
         "searchPlaceholder": "Search a member (name, ID)",
         "allCountries": "All countries",
         "allLevels": "All levels",
@@ -701,7 +922,9 @@
         "placementBelow": "Below the selected branch",
         "placementAbove": "Right above the selected branch",
         "childHint": "A new branch will be created under: {{parent}}",
-        "aboveHint": "A new branch will be inserted right above: {{target}} (which will become one of its sub-branches)"
+        "aboveHint": "A new branch will be inserted right above: {{target}} (which will become one of its sub-branches)",
+        "branchLocation": "Specific location of the branch",
+        "branchLocationPlaceholder": "E.g.: Littoral, Yaoundé…"
       },
       "renameLevel": "Click to rename this level (applies to every branch at the same tier)",
       "viewMember": "View profile",
@@ -713,6 +936,30 @@
         "branch": "Branch",
         "noBranch": "National position (no branch)",
         "country": "Country"
+      },
+      "renameBranch": "Click to rename this branch",
+      "actions": {
+        "menu": "Actions",
+        "dismiss": "Dismiss the lead",
+        "delete": "Delete the branch"
+      },
+      "dismiss": {
+        "title": "Dismiss {{name}}?",
+        "description": "The \"{{branch}}\" position will become vacant again. The branch is kept and you can assign someone else.",
+        "confirm": "Dismiss"
+      },
+      "delete": {
+        "title": "Delete the branch \"{{name}}\"?",
+        "description": "This branch will be removed from the network tree.",
+        "descriptionMember": "This branch will be removed from the network tree. {{member}} will no longer hold a position there.",
+        "childrenLegend_one": "This branch has {{count}} sub-branch. What should happen to it?",
+        "childrenLegend_other": "This branch has {{count}} sub-branches. What should happen to them?",
+        "keepChildren": "Keep the sub-branches",
+        "keepChildrenHint": "They move up one level and go under the parent branch.",
+        "deleteChildren": "Delete the sub-branches too",
+        "deleteChildrenHint_one": "{{count}} branch below will be deleted, along with its lead.",
+        "deleteChildrenHint_other": "{{count}} branches below will be deleted, along with their leads.",
+        "confirm": "Delete the branch"
       }
     },
     "gouvernance": {
@@ -779,7 +1026,19 @@
         "noSeats": "No seats yet — edit this pole to add some.",
         "cancel": "Cancel",
         "add": "Add",
-        "save": "Save"
+        "save": "Save",
+        "addSubTitle": "New sub-pole",
+        "editSubTitle": "Edit sub-pole",
+        "nameSub": "Sub-pole title"
+      },
+      "addSubPole": "Add a sub-pole",
+      "subPoles": {
+        "label": "Sub-poles"
+      },
+      "confirmDeleteSub": {
+        "title": "Delete this sub-pole?",
+        "description": "“{{title}}” will be permanently removed from this pole.",
+        "confirmLabel": "Delete"
       }
     },
     "finance": {
@@ -795,7 +1054,139 @@
         "cycleValue": "Round {{current}}/{{total}}"
       },
       "memberCount_one": "{{count}} member at this level",
-      "memberCount_other": "{{count}} members at this level"
+      "memberCount_other": "{{count}} members at this level",
+      "tabs": {
+        "levels": "Levels and contributions",
+        "bank": "Bank"
+      },
+      "bank": {
+        "title": "DBC bank accounts",
+        "intro": "Royal Tontine contributions are deposited in a dedicated bank account, distinct and separate from DBC's operating accounts.",
+        "protection": "Even if DBC went through a serious operating crisis (loss of a partner, unexpected cost), the money in accounts B and C is legally protected and cannot be used to cover operating costs. Access to accounts B and C requires the double signature of the Founder and a Governance Committee member elected by the members of that committee.",
+        "untouchable": "Untouchable",
+        "operational": "Operating",
+        "balance": "Balance",
+        "monthIn": "Money in this month",
+        "monthOut": "Money out this month",
+        "doubleSignature": "Double signature: Founder + Governance Committee member",
+        "accounts": {
+          "A": {
+            "name": "Account A · DBC Operations",
+            "holds": "Subscriptions, commissions, running costs",
+            "access": "Day-to-day access by the management team."
+          },
+          "B": {
+            "name": "Account B · Royal Tontine",
+            "holds": "Members' monthly contributions"
+          },
+          "C": {
+            "name": "Account C · Solidarity Reserve Fund",
+            "holds": "5% of monthly contributions"
+          }
+        },
+        "tx": {
+          "subscriptions": "Member subscriptions · {{month}}",
+          "operating": "Running costs · {{month}}",
+          "staff": "Team salaries · {{month}}",
+          "sponsor": "Sponsorship commissions · {{month}}",
+          "bankFees": "Bank fees · {{month}}",
+          "contributions": "{{level}} contributions · {{month}}",
+          "reserveOut": "{{rate}}% transfer to the Reserve Fund · {{month}}",
+          "reserveIn": "Solidarity reserve ({{rate}}% of contributions) · {{month}}",
+          "payout": "Round {{tour}}: {{level}} pot payout · {{month}}",
+          "solidarity": "Solidarity aid to members · {{month}}"
+        },
+        "history": {
+          "title": "Transaction history",
+          "hint": "Every bank movement across the three accounts, newest first.",
+          "search": "Search a label or reference",
+          "account": "Account",
+          "allAccounts": "All accounts",
+          "accountOption": "{{id}} · {{name}}",
+          "direction": "Direction",
+          "allMovements": "All movements",
+          "inOnly": "Money in",
+          "outOnly": "Money out",
+          "month": "Month",
+          "allMonths": "All months",
+          "totalIn": "Total in",
+          "totalOut": "Total out",
+          "net": "Net balance",
+          "empty": "No transaction matches these filters.",
+          "signed": "Double signature",
+          "pending": "Pending",
+          "confirmed": "Confirmed",
+          "more": "Show more ({{count}})",
+          "demo": "Demonstration data: the history is computed from the tontine figures until the real bank connection is in place.",
+          "col": {
+            "date": "Date",
+            "account": "Account",
+            "label": "Label",
+            "amount": "Amount",
+            "balance": "Balance after",
+            "status": "Status",
+            "initiator": "Initiator",
+            "recipient": "Recipient"
+          },
+          "signedBy": "Signed by {{names}}",
+          "unsigned": "Signatures missing",
+          "role": {
+            "founder": "Founder",
+            "committee": "Governance Committee"
+          }
+        },
+        "party": {
+          "members": "DBC members",
+          "levelMembers": "{{level}} members",
+          "management": "DBC management",
+          "suppliers": "Suppliers (hosting, tools)",
+          "team": "DBC team",
+          "sponsors": "DBC sponsors",
+          "bank": "Bank",
+          "unknown": "Not provided"
+        },
+        "import": {
+          "button": "Import history",
+          "title": "Import bank history",
+          "close": "Close",
+          "intro": "Choose a CSV file (a bank export or your own table saved as CSV). You see what will be added before confirming; nothing leaves your browser.",
+          "columns": "Expected columns: date, account (A, B or C), label, amount (negative for money out), then optionally: initiator, recipient, reference, status, balance, signer 1, signer 2.",
+          "choose": "Choose a CSV file",
+          "template": "Download the template",
+          "toAdd": "Rows to add",
+          "duplicates": "Duplicates skipped",
+          "errors": "Rows with errors",
+          "unsigned_one": "{{count}} outgoing movement from account B or C lacks its two signatures: it will be imported with a \"Signatures missing\" alert.",
+          "unsigned_other": "{{count}} outgoing movements from account B or C lack their two signatures: they will be imported with a \"Signatures missing\" alert.",
+          "errorList": "These rows will not be imported:",
+          "errorLine": "Row {{line}}: {{reason}}",
+          "moreErrors_one": "… and {{count}} more row.",
+          "moreErrors_other": "… and {{count}} more rows.",
+          "reason": {
+            "date": "invalid date",
+            "account": "unknown account (A, B or C)",
+            "label": "missing label",
+            "amount": "invalid or zero amount"
+          },
+          "previewMore_one": "… and {{count}} more row.",
+          "previewMore_other": "… and {{count}} more rows.",
+          "replaces": "Once a history is imported it replaces the demonstration data. Balances are the bank's if the file contains them, otherwise they are computed from zero.",
+          "cancel": "Cancel",
+          "confirm_one": "Import {{count}} row",
+          "confirm_other": "Import {{count}} rows",
+          "fail": {
+            "empty": "The file is empty or only contains the header.",
+            "columns": "Columns not found: at least date, account, label and amount (or debit and credit) are needed.",
+            "size": "The file is larger than 5 MB.",
+            "read": "This file could not be read."
+          },
+          "active_one": "Imported history: {{count}} row replaces the demonstration data.",
+          "active_other": "Imported history: {{count}} rows replace the demonstration data.",
+          "remove": "Remove the import",
+          "removeConfirm": "Go back to the demonstration data?",
+          "removeYes": "Yes, remove"
+        }
+      }
     },
     "formation": {
       "title": "Training Management",
@@ -1059,6 +1450,739 @@
         "yes": "Yes, sign out",
         "cancel": "Cancel"
       }
+    },
+    "tontine": {
+      "title": "Tontine management",
+      "searchPlaceholder": "Search a group, a member, a level…",
+      "allLevels": "All levels",
+      "groupsCount_one": "{{count}} group",
+      "groupsCount_other": "{{count}} groups",
+      "group": "Group {{letter}}",
+      "tourOf": "Round {{tour}}/{{total}}",
+      "cycle": "Cycle",
+      "startsIn": "Starts in {{month}}",
+      "firstTour": "First round · {{month}}",
+      "cycleEnded": "Cycle ended in {{month}}",
+      "contributionsThisMonth": "This month's contributions",
+      "collectedOf": "{{collected}} of {{expected}}",
+      "seeDetails": "See details",
+      "openGroup": "Open Group {{letter}} — {{level}}",
+      "groupsTitle": "Tontine groups",
+      "noGroups": "No group matches these filters.",
+      "filters": {
+        "label": "Filter groups by status",
+        "all": "All",
+        "running": "Running",
+        "late": "Late",
+        "complete": "Completed",
+        "pending": "Not started"
+      },
+      "health": {
+        "late_one": "{{count}} late",
+        "late_other": "{{count}} late",
+        "awaiting_one": "{{count}} contribution expected",
+        "awaiting_other": "{{count}} contributions expected",
+        "ok": "Up to date",
+        "complete": "Cycle completed",
+        "pending": "Starts in {{month}}"
+      },
+      "stats": {
+        "groups": {
+          "label": "Running groups",
+          "detail": "{{total}} in total · completed: {{complete}} · not started: {{pending}}"
+        },
+        "contributions": {
+          "label": "Contributions received this month",
+          "detail": "{{collected}} of {{expected}}"
+        },
+        "beneficiaries": {
+          "label": "Beneficiaries this month",
+          "detail": "{{amount}} in pots · {{done}} already paid out"
+        },
+        "late": {
+          "label": "Late contributions",
+          "detail_one": "{{amount}} to collect · {{count}} group affected",
+          "detail_other": "{{amount}} to collect · {{count}} groups affected",
+          "none": "Everything is up to date"
+        },
+        "waiting": {
+          "label": "Members without a group",
+          "detail_one": "{{count}} level affected",
+          "detail_other": "{{count}} levels affected",
+          "none": "Every member has a group"
+        }
+      },
+      "beneficiaries": {
+        "title": "Beneficiaries this month",
+        "empty": "No group is running for this selection.",
+        "ready": "Pot complete, ready to pay out",
+        "missing_one": "{{count}} contribution missing",
+        "missing_other": "{{count}} contributions missing",
+        "paidOut": "Paid out",
+        "count_one": "{{count}} beneficiary",
+        "count_other": "{{count}} beneficiaries"
+      },
+      "late": {
+        "title": "Late contributions",
+        "empty": "All of this month's contributions are up to date.",
+        "days_one": "{{count}} day late",
+        "days_other": "{{count}} days late",
+        "showAll": "See all {{count}}",
+        "showLess": "Show less",
+        "hint": "Administrators validate nothing here: a contribution counts as soon as the member has sent their payment, and the member leaves this list on their own."
+      },
+      "planning": {
+        "title": "Beneficiary schedule",
+        "hint": "Who receives the pot, month by month, in each group (3 people per month). The current month is in orange.",
+        "group": "Group"
+      },
+      "waiting": {
+        "title": "Members without a group",
+        "hint": "Registered at a level but without a payout month. They do not have to wait for a crowd: place them on a free month of an open group, or open a group, even with only a few members.",
+        "empty": "Every member at this level has a payout month.",
+        "since_one": "waiting for {{count}} day",
+        "since_other": "waiting for {{count}} days",
+        "createGroup": "Open a group",
+        "placeIn_one": "Place in group {{letter}} ({{count}} free place)",
+        "placeIn_other": "Place in group {{letter}} ({{count}} free places)"
+      },
+      "detail": {
+        "close": "Close",
+        "period": "Cycle from {{start}} to {{end}}",
+        "tiles": {
+          "cotisation": "Contribution per member",
+          "dueDay": "Due on day {{day}} of each month",
+          "received": "Contributions received this month",
+          "pot": "Pot per beneficiary",
+          "cycle": "Cycle progress"
+        },
+        "paidOutOn": "Pot paid out on {{date}}",
+        "members": "Members, in order of turn",
+        "columns": {
+          "order": "Order",
+          "member": "Member",
+          "turns": "Turns",
+          "thisMonth": "This month",
+          "history": "Contribution history"
+        },
+        "turnChip": "R{{tour}} · {{month}}",
+        "paid": "Paid",
+        "unpaid": "Not paid",
+        "awaiting": "Pending",
+        "noHistory": "No round yet",
+        "historyTitle": "Round {{tour}}: {{state}}",
+        "paidCount": "{{paid}}/{{total}} paid",
+        "calendar": "Cycle calendar",
+        "free": {
+          "title_one": "{{count}} free place in this group",
+          "title_other": "{{count}} free places in this group",
+          "hint": "Place a waiting member on a free place (at most {{perTour}} members per month): they start right away, without waiting for the group to be full.",
+          "askChoices": "Ask for their choices",
+          "noWaiting": "No waiting member at this level for now.",
+          "pickFor": "Member to place in {{month}}",
+          "pick": "Choose a member",
+          "place": "Place"
+        }
+      },
+      "newGroup": "New group",
+      "membersCount_one": "{{count}} member",
+      "membersCount_other": "{{count}} members",
+      "cotisationPerMonth": "Contribution: {{amount}} / month",
+      "amounts": {
+        "title": "Amounts by level",
+        "hint": "What each member contributes per month and the pot received by each of the 3 beneficiaries of the month. Click a level to filter the page.",
+        "monthly": "Contribution per month",
+        "pot": "Pot per beneficiary"
+      },
+      "create": {
+        "title": "Create a tontine group",
+        "subtitle": "A group brings together 36 people over 12 months: 3 of them receive the pot each month. Place the waiting members, each on the month they receive the pot. The group can start even if it is not full.",
+        "level": "Level",
+        "start": "Month of the first round",
+        "summary": "Each member will contribute {{cotisation}} per month; each of the 3 beneficiaries of the month will receive {{pot}}.",
+        "waiting": "Waiting members",
+        "order": "Order of turn",
+        "selected": "{{count}}/{{size}} chosen",
+        "orderHint": "Each member receives the pot on the month shown; at most 3 members per month.",
+        "orderEmpty": "Tick members in the list on the left.",
+        "noWaiting": "No member is waiting for a group right now.",
+        "cancel": "Cancel",
+        "submit": "Create group",
+        "pickAll": "Select all",
+        "monthFor": "Month for {{name}}",
+        "openPlaces_one": "{{count}} place will stay free for new arrivals.",
+        "openPlaces_other": "{{count}} places will stay free for new arrivals.",
+        "sizeHint": "{{size}} places over {{months}} months: {{perTour}} members receive the pot each month. Unfilled places stay open for new arrivals."
+      },
+      "choices": {
+        "title": "Choosing payout months",
+        "subtitle": "The administration decides the payout order. Before forming a group, each future member receives a request (platform message, reminder by email and WhatsApp) and picks 3 months in the proposed period. These choices decide who receives the pot in which month.",
+        "launch": "Ask for choices",
+        "empty": "No request yet. Start one for an upcoming group: each member will pick their months.",
+        "status": {
+          "open": "In progress",
+          "closed": "Answers closed",
+          "validated": "Order validated"
+        },
+        "period": "From {{from}} to {{to}}",
+        "answered": "{{answered}} of {{total}} answered",
+        "before": "Reply before {{date}}",
+        "deadlinePassed": "Deadline passed ({{date}})",
+        "form": {
+          "title": "Ask members to choose their months",
+          "subtitle": "Pick the members to place (the group does not need to be full) and the period in which they will choose their months.",
+          "level": "Level",
+          "startMonth": "First month of the period",
+          "periodInfo": "Proposed period: from {{from}} to {{to}}. Each member picks {{count}} months in this period.",
+          "members": "Group members",
+          "selected": "{{count}} of {{size}}",
+          "noCandidates": "No member at this level yet. Create them first in member management.",
+          "alreadyInvited": "Already in an open request",
+          "hasEmail": "Email",
+          "noContact": "No contact details",
+          "deadline": "Reply deadline",
+          "channels": "Delivery",
+          "platform": "Platform message (always sent)",
+          "emailReminder": "Prepare an email reminder",
+          "whatsappReminder": "Prepare a WhatsApp reminder",
+          "message": "Message to members",
+          "messageHint": "This text appears on the platform. The site also prepares the email and WhatsApp reminders: you send them in one click from your mail app and WhatsApp.",
+          "messageTemplate": "Hello,\n\nWe are preparing a new {{level}} tontine group. The group has 36 people: each month, 3 of them receive the pot, between {{from}} and {{to}}.\n\nPlease choose {{count}} months in this period, from most to least preferred, before {{deadline}}. The administration takes everyone's choices into account to decide the payout order.\n\nThe DBC team",
+          "send": "Send the request",
+          "for": "Request for",
+          "newGroup": "A new group",
+          "existingGroup_one": "Group {{letter}}: {{count}} free place",
+          "existingGroup_other": "Group {{letter}}: {{count}} free places",
+          "messageTemplateJoin": "Hello,\n\nA {{level}} tontine group still has free places, between {{from}} and {{to}}: you can join it right away.\n\nPlease choose {{count}} months, from most to least preferred, before {{deadline}}. The administration takes everyone's choices into account to assign each person a month.\n\nThe DBC team"
+        },
+        "reminder": {
+          "subject": "DBC – Choose your {{count}} months for the {{level}} tontine",
+          "body": "Hello {{name}},\n\nWe are preparing a {{level}} tontine group: the pot will be received between {{from}} and {{to}}, by 3 members each month.\n\nPlease choose your {{count}} months, from most to least preferred, before {{deadline}}: {{link}}\n\nThe administration will then decide the payout order based on everyone's choices.\n\nBest regards,\nThe DBC team"
+        },
+        "detail": {
+          "title": "Month choices – {{level}}",
+          "messageSent": "Message sent to members",
+          "answersTitle": "Answers and payout order",
+          "emailPending": "Remind by email ({{count}})",
+          "propose": "Suggest an order",
+          "proposeHint": "The suggestion serves those who answered first and gives each one their first choice still available. You can edit it by hand before validating.",
+          "columns": {
+            "member": "Member",
+            "choices": "Choices (most to least preferred)",
+            "reminders": "Reminders",
+            "turn": "Assigned month"
+          },
+          "answeredAt": "Answered on {{date}}",
+          "noAnswer": "No answer yet",
+          "noEmail": "No email on file",
+          "noWhatsapp": "No WhatsApp number on file",
+          "email": "Email",
+          "sentEmail": "Email prepared on {{date}}",
+          "sentWhatsapp": "WhatsApp prepared on {{date}}",
+          "turnFor": "Month assigned to {{name}}",
+          "unassigned": "Not assigned",
+          "rank": "Choice no. {{n}}",
+          "outOfChoices": "Outside their choices",
+          "duplicate": "This month is full: too many members are assigned to it",
+          "previewTitle": "Payout order preview",
+          "tourN": "Round {{n}}",
+          "free": "Free",
+          "closeAnswers": "Close answers",
+          "reopen": "Reopen answers",
+          "needComplete": "Assign a month to every member (3 at most per month) to validate.",
+          "validate": "Validate the order",
+          "confirmTitle": "Validate the order and create the group?",
+          "confirmText": "Group {{letter}} of the {{level}} level will be created with these members, each on their month; the remaining months stay free for new arrivals. This cannot be undone.",
+          "confirmLabel": "Validate and create the group",
+          "validatedInfo": "Order validated: group {{id}} has been created.",
+          "confirmJoinTitle": "Validate the order and place the members?",
+          "confirmJoin": "Members will be placed on their month in group {{letter}} of the {{level}} level. This cannot be undone.",
+          "confirmJoinLabel": "Validate and place the members",
+          "validatedJoin": "Order validated: members have been placed in group {{id}}.",
+          "placesFilled": "{{filled}} of {{total}} places assigned",
+          "taken": "Already taken"
+        },
+        "decideOrder": "Decide the payout order",
+        "forGroup": "Free months of group {{letter}}",
+        "forNewGroup_one": "New group of {{count}} place",
+        "forNewGroup_other": "New group of {{count}} places"
+      },
+      "freeThisMonth": "This month is free: no member receives the pot for now.",
+      "noMemberYet": "No member placed yet.",
+      "places": "{{filled}} members out of {{total}} places",
+      "freePlaces_one": "{{count}} free place",
+      "freePlaces_other": "{{count}} free places",
+      "free": "Free",
+      "freeSlotTitle": "Free month — round {{tour}}/{{total}}",
+      "receivesThisMonth_one": "Receives this month",
+      "receivesThisMonth_other": "Receive this month",
+      "potEach": "{{amount}} each",
+      "openSlots_one": "{{count}} free place",
+      "openSlots_other": "{{count}} free places",
+      "tabs": {
+        "overview": "Overview",
+        "groups": "Groups",
+        "planning": "Planning",
+        "choices": "Month choices",
+        "waiting": "Waiting",
+        "label": "Page sections",
+        "reminders": "Reminders",
+        "priority": "Ranking"
+      },
+      "trackingLink": "Contribution register",
+      "registre": {
+        "title": "Contribution register",
+        "searchPlaceholder": "Search a member or a group…",
+        "back": "Tontine management",
+        "intro": "The tontine's account book: one ledger per group (one member per row, one month per column) and a journal of every transaction. Nothing to validate: a payment is recorded as soon as it is received.",
+        "tabsLabel": "Register views",
+        "tabs": {
+          "livre": "Ledger",
+          "journal": "Journal"
+        },
+        "month": {
+          "label": "Month",
+          "prev": "Previous month",
+          "next": "Next month",
+          "current": "Back to current month"
+        },
+        "export": "Export as CSV",
+        "noGroup": "No group",
+        "complete": "Completed",
+        "balance": {
+          "title": "Monthly balance",
+          "hint": "One group per row. Click a row to open its ledger.",
+          "group": "Group",
+          "payers": "Contributors",
+          "expected": "Expected",
+          "received": "Received",
+          "outstanding": "Outstanding",
+          "rate": "Rate",
+          "payouts": "Pots paid",
+          "total": "Total",
+          "payersValue": "{{paid}}/{{size}}",
+          "payoutsValue": "{{done}}/{{count}}",
+          "empty": "No contribution is expected this month."
+        },
+        "book": {
+          "title": "Group ledger",
+          "group": "Group",
+          "region": "Ledger: scrollable table, one member per row and one month per column",
+          "subtitle": "Round {{tour}}/{{total}} · {{amount}} per month · {{size}} members",
+          "subtitleWaiting": "Contributing while waiting for a group · {{amount}} per month · {{size}} members",
+          "expected": "Expected",
+          "expectedDetail": "{{size}} contributors",
+          "received": "Received",
+          "receivedDetail": "{{paid}} paid · {{rate}}%",
+          "outstanding": "Outstanding",
+          "outstandingDetail_one": "{{count}} unpaid",
+          "outstandingDetail_other": "{{count}} unpaid",
+          "outstandingDetail_zero": "All paid",
+          "payouts": "Pots paid",
+          "payoutsDetail": "{{done}}/{{count}} of {{due}}",
+          "beneficiaries": "Beneficiaries of {{month}}",
+          "paidOn": "paid on {{date}}",
+          "paid": "paid",
+          "toPay": "to be paid",
+          "noCollection": "This group has no collection for this month.",
+          "member": "Member",
+          "tourShort": "Round {{tour}}",
+          "totalPaid": "Total paid",
+          "owed": "Still owed",
+          "noMember": "No member matches your search.",
+          "rows": {
+            "expected": "Expected",
+            "received": "Received",
+            "outstanding": "Outstanding",
+            "payouts": "Pots paid"
+          }
+        },
+        "cell": {
+          "paid": "Contribution paid",
+          "unpaid": "Month not paid",
+          "late": "Late",
+          "lateTitle": "Current month: due date passed",
+          "awaiting": "Due",
+          "awaitingTitle": "Current month: before the due date",
+          "receives": "Receives the pot this month"
+        },
+        "legend": {
+          "paid": "paid",
+          "unpaid": "month not paid",
+          "late": "current month, due date passed",
+          "awaiting": "current month, before the due date",
+          "receives": "receives the pot",
+          "unit": "Amounts in CFA francs (F)"
+        },
+        "journal": {
+          "title": "Transaction journal",
+          "type": "Transaction type",
+          "period": "Period",
+          "group": "Group",
+          "allGroups": "All groups",
+          "allMonths": "All months",
+          "types": {
+            "all": "All",
+            "in": "Contributions received",
+            "out": "Pots paid",
+            "due": "Unpaid"
+          },
+          "date": "Date",
+          "member": "Member",
+          "label": "Description",
+          "in": "Received",
+          "out": "Paid out",
+          "due": "Unpaid",
+          "total_one": "Total · {{count}} transaction",
+          "total_other": "Total · {{count}} transactions",
+          "shown": "{{shown}} of {{total}} transactions shown",
+          "more_one": "Show {{count}} more",
+          "more_other": "Show {{count}} more",
+          "empty": "No transaction matches these filters."
+        },
+        "labels": {
+          "monthOf": "{{month}}",
+          "monthOfVowel": "{{month}}",
+          "in": "{{month}} contribution",
+          "inTour": "{{month}} contribution · round {{tour}}",
+          "due": "{{month}} contribution unpaid",
+          "dueTour": "{{month}} contribution unpaid · round {{tour}}",
+          "out": "Pot of round {{tour}}"
+        },
+        "statement": {
+          "close": "Close",
+          "title": "Account statement",
+          "contributed": "Contributed",
+          "months_one": "{{count}} month paid",
+          "months_other": "{{count}} months paid",
+          "received": "Pot received",
+          "owed": "Still to pay",
+          "owedMonths_one": "{{count}} month",
+          "owedMonths_other": "{{count}} months",
+          "upToDate": "Up to date",
+          "nextTurn": "Next turn",
+          "done": "Turn completed",
+          "noOrder": "No payout order yet",
+          "tour": "Round {{tour}}",
+          "amount": "Amount",
+          "balance": "Balance",
+          "balanceNow": "Current balance",
+          "unpaid": "Unpaid",
+          "empty": "No transaction recorded for this member.",
+          "note": "The balance adds what the member contributed (−) and the pot received (+): it stays negative until the pot is paid out."
+        },
+        "csv": {
+          "city": "City"
+        }
+      },
+      "quickLinks": "Quick links",
+      "export": {
+        "open": "Export",
+        "scope_one": "The displayed group ({{count}})",
+        "scope_other": "The {{count}} displayed groups",
+        "list": "Detailed list (CSV)",
+        "listHint": "One row per beneficiary, over each group's whole cycle.",
+        "grid": "Month-by-month grid (CSV)",
+        "gridHint": "Like the screen: one group per row, one month per column.",
+        "free": "Open slot",
+        "columns": {
+          "level": "Level",
+          "group": "Group",
+          "tour": "Round",
+          "month": "Month",
+          "beneficiary": "Beneficiary",
+          "city": "City",
+          "payout": "Payout (F)",
+          "status": "Status"
+        },
+        "status": {
+          "closed": "Closed",
+          "current": "Current",
+          "upcoming": "Upcoming"
+        }
+      },
+      "reminders": {
+        "sender": "DBC Team — Tontine",
+        "intro": "When a contribution isn't paid by its due date, the system reminds the member, then brings in, ever closer, their circle and the community. The steps trigger by themselves when this page opens, until the server takes over; SMS and WhatsApp messages are prepared but don't go out yet, for lack of a sending service.",
+        "ladderTitle": "The reminder ladder",
+        "ladderHint": "Delay is counted in days since the due date.",
+        "level": "Level {{level}}",
+        "range": "D+{{from}} to D+{{to}}",
+        "rangeFrom": "beyond D+{{from}}",
+        "membersAtLevel_one": "{{count}} member at this level",
+        "membersAtLevel_other": "{{count}} members at this level",
+        "stages": {
+          "1": {
+            "title": "Automatic reminder",
+            "body": "SMS and WhatsApp notification the day after the due date, then a reminder at D+3. Kind, factual message with the deadline to avoid penalties."
+          },
+          "2": {
+            "title": "Financial Community Manager",
+            "body": "The group's local Community Manager contacts the member by WhatsApp or phone, tries to understand and offers solutions: grace period, partial payment, amicable arrangement."
+          },
+          "3": {
+            "title": "Mentor-sponsor",
+            "body": "The mentor-sponsor is alerted. Their commission depends on their sponsored members' reputation: they step in as moral guarantor and local mediator."
+          },
+          "4": {
+            "title": "Joint guarantee",
+            "body": "The other group members are informed and can cover the contribution together (e.g. 1/35 each in a group of 36), the member repaying with penalties."
+          },
+          "5": {
+            "title": "Reserve Fund",
+            "body": "If the guarantee isn't enough, the DBC Reserve Fund steps in so the cycle isn't blocked. The debt is entered in the audit trail and a repayment plan is written down."
+          }
+        },
+        "penaltiesTitle": "Penalty grid",
+        "penaltiesHint": "The penalty is calculated on the monthly contribution.",
+        "col": {
+          "delay": "Delay",
+          "situation": "Situation",
+          "penalty": "Penalty",
+          "action": "Action"
+        },
+        "repeatDelay": "{{count}}rd late payment and beyond",
+        "bands": {
+          "short": {
+            "situation": "Short delay: first occurrence",
+            "penalty": "20%",
+            "action": "Automatic reminder only"
+          },
+          "medium": {
+            "situation": "Medium delay: settle urgently",
+            "penalty": "30%",
+            "action": "Community Manager and mentor step in"
+          },
+          "long": {
+            "situation": "Long delay: risk for the group",
+            "penalty": "40%",
+            "action": "Joint guarantee activated"
+          },
+          "severe": {
+            "situation": "Serious default: formal procedure",
+            "penalty": "50% + rights suspended",
+            "action": "Reserve Fund and mediation"
+          },
+          "repeat": {
+            "situation": "Systemic risk behavior",
+            "penalty": "80% + temporary exclusion",
+            "action": "Governance Committee notified"
+          }
+        },
+        "lateTitle_one": "Late member ({{count}})",
+        "lateTitle_other": "Late members ({{count}})",
+        "lateHint": "Each member with their reminder level, penalty and the steps already triggered. A “to do” step waits for a person to do it, then you mark it done.",
+        "penaltyOf": "{{rate}}% of {{amount}}",
+        "flags": {
+          "suspension": "Rights suspended",
+          "exclusion": "Temporary exclusion",
+          "governance": "Governance Committee to be notified"
+        },
+        "steps": {
+          "reminder1": "D+1 reminder",
+          "reminder2": "D+3 reminder",
+          "cm": "Chapter leader follow-up case",
+          "mentor": "Mentor-sponsor alerted",
+          "caution": "Group informed (joint guarantee)",
+          "reserve": "Reserve Fund and repayment plan",
+          "formal": "Formal procedure and mediation",
+          "governance": "Governance Committee notified"
+        },
+        "markDone": "Mark done",
+        "done": "done",
+        "journalTitle": "Reminder journal",
+        "journalHint_one": "Everything the reminders triggered. {{count}} task pending.",
+        "journalHint_other": "Everything the reminders triggered. {{count}} tasks pending.",
+        "journalEmpty": "Nothing has been triggered yet.",
+        "recipients_one": "{{count}} person notified",
+        "recipients_other": "{{count}} people notified",
+        "sharePer": "{{amount}} each",
+        "channels": {
+          "app": "App",
+          "sms": "SMS",
+          "whatsapp": "WhatsApp"
+        },
+        "delivery": {
+          "sent": "sent",
+          "queued": "ready to send"
+        },
+        "task": {
+          "todo": "to do",
+          "done": "done"
+        },
+        "msg": {
+          "j1": {
+            "title": "Contribution reminder — {{group}}",
+            "body": "Hello {{name}}, unless we're mistaken, your contribution of {{amount}} ({{month}}) hasn't been received yet. If you've already paid, please ignore this message. Otherwise, please settle it before {{deadline}} to avoid penalties (currently {{rate}}% of the contribution). If you're having difficulty, reply to us: we're here to help. The DBC team"
+          },
+          "j3": {
+            "title": "Second reminder — your {{group}} contribution",
+            "body": "Hello {{name}}, your contribution of {{amount}} ({{month}}) still hasn't arrived, {{days}} days after the due date. You can pay it by {{deadline}} to limit penalties ({{rate}}% of the contribution, i.e. {{penalty}}). If something is stopping you from paying, tell us: a Community Manager can offer a suitable solution. The DBC team"
+          },
+          "mentor": {
+            "title": "Your sponsored member {{name}} is late",
+            "body": "Hello, {{name}} (group {{group}}), whom you sponsored, hasn't paid their contribution of {{amount}}: {{days}} days late. As mentor-sponsor, you can help them get back on track: check in and encourage them to settle. Their situation also reflects on the good reputation of your sponsorship. The DBC team"
+          },
+          "caution": {
+            "title": "Joint guarantee — a member of your group is late",
+            "body": "Hello, a member of group {{group}} couldn't pay their contribution of {{amount}} ({{days}} days late). As in a joint guarantee, the group can decide to cover it together: about {{share}} per member ({{count}} other members). The member will then repay with the penalties set in the rules. Your answer is expected. The DBC team"
+          },
+          "cm": {
+            "title": "Follow-up case: {{name}}",
+            "body": "Hello, {{name}} ({{group}}) is {{days}} days late on their contribution of {{amount}}. As chapter leader, you are their Financial Community Manager: please contact them by WhatsApp or phone, understand their situation (temporary difficulty, accident, oversight) and offer a solution (grace period, partial payment, amicable arrangement). Then submit your report in the “Reminders” tab of your Leader Space. The DBC team"
+          }
+        },
+        "cm": {
+          "noLeader": "No chapter covers this member's city.",
+          "pick": "Assign a chapter leader…",
+          "assigned": "Chapter leader: {{name}} ({{branch}})",
+          "showReport": "View the report",
+          "hideReport": "Hide the report"
+        }
+      }
+    },
+    "inscriptions": {
+      "title": "Registration requests",
+      "searchPlaceholder": "Search a candidate, a country, a file…",
+      "subtitle": "Each application is a file. Assign it to a branch leader for the interview; once the leader submits a positive report, add the member in one click: the form is already filled in.",
+      "navBadge_one": "{{count}} new request",
+      "navBadge_other": "{{count}} new requests",
+      "stats": {
+        "all": "All",
+        "nouvelle": "To assign",
+        "entretien": "In interview",
+        "acceptee": "Accepted",
+        "refusee": "Declined"
+      },
+      "status": {
+        "nouvelle": "New",
+        "entretien": "Interview in progress",
+        "acceptee": "Accepted",
+        "refusee": "Declined"
+      },
+      "filters": {
+        "country": "Country",
+        "allCountries": "All countries",
+        "level": "Level",
+        "allLevels": "All levels"
+      },
+      "empty": {
+        "title": "No file here",
+        "description": "New sign-ups made from the website show up here. Change the filter to see the other files."
+      },
+      "card": {
+        "folder": "File {{ref}}",
+        "received": "Received on {{date}}",
+        "open": "Open {{name}}'s file",
+        "openCv": "Open the file",
+        "assign": "Assign to a leader",
+        "add": "Add",
+        "interviewWith": "Interview with {{name}}",
+        "interviewOn": "on {{date}}",
+        "memberCreated": "Member created · {{matricule}}",
+        "refused": "Application declined",
+        "interviewDone": "Positive interview",
+        "interviewTodo": "Interview to do",
+        "interviewUnreachable": "Candidate unreachable",
+        "addLocked": "Available once the leader submits a positive report",
+        "refusedInterview": "Interview not conclusive: {{reasons}}"
+      },
+      "cv": {
+        "title": "Application file",
+        "contact": "Contact",
+        "receivedOn": "Application received on {{date}}",
+        "profile": "Profile",
+        "birth": "Date of birth",
+        "age_one": "{{count}} year old",
+        "age_other": "{{count}} years old",
+        "cni": "ID card number",
+        "country": "Country",
+        "received": "Date received",
+        "activity": "Professional activity",
+        "profession": "Job / profession",
+        "tontineChoice": "Tontine choice",
+        "level": "Chosen level",
+        "contribution": "Contribution",
+        "sponsorship": "Sponsorship",
+        "sponsor": "Sponsor",
+        "noSponsor": "No sponsor given",
+        "sponsorUnknown": "unknown ID",
+        "interview": "Interview",
+        "steps": {
+          "received": "Application received",
+          "assigned": "Assigned to a leader",
+          "assignedPending": "Not assigned yet",
+          "interview": "Interview",
+          "interviewPending": "Date to be set",
+          "accepted": "Application accepted",
+          "refused": "Application declined",
+          "decisionPending": "Awaiting a decision",
+          "reportReceived": "Report received on {{date}}",
+          "unreachable": "Candidate unreachable on {{date}}",
+          "reportDue": "Report due before {{date}}"
+        },
+        "refuse": "Decline",
+        "reassign": "Change leader",
+        "city": "City",
+        "reportPending": "The leader's report is awaited: “Add” unlocks if it is positive.",
+        "reportUnreachable": "The leader could not reach the candidate. Another attempt is possible, or the file can be assigned to another leader.",
+        "report": "Leader's report",
+        "sponsorDefault": "default sponsor"
+      },
+      "assign": {
+        "title": "Assign to a leader",
+        "subtitle": "Interview of {{name}} · {{country}}",
+        "leadersOf": "Leaders in post — {{country}}",
+        "allLeaders": "Leaders in post — all countries",
+        "showAll": "Also show leaders from other countries",
+        "noLeader": "No leader is in post for this country in the network. Show the other countries, or appoint a lead in Network management first.",
+        "date": "Interview date (optional)",
+        "note": "Message for the leader (optional)",
+        "notePlaceholder": "E.g.: check their availability and professional project.",
+        "confirm": "Assign"
+      },
+      "create": {
+        "prefillNote": "Details taken from request {{ref}}. Check them, confirm the level, then create the member.",
+        "sponsorUnknown": "The sponsor given ({{matricule}}) doesn't match any member: pick one from the list if needed."
+      },
+      "refuse": {
+        "title": "Decline {{name}}'s application?",
+        "description": "The file is kept with the status “Declined”.",
+        "confirm": "Decline"
+      },
+      "notice": {
+        "created": "{{name}} is now a member ({{matricule}}). The request is marked as accepted.",
+        "see": "See Members management"
+      },
+      "overdueNotice_one": "{{count}} interview report is late (more than 7 days). The file can be assigned to another leader.",
+      "overdueNotice_other": "{{count}} interview reports are late (more than 7 days). The files can be assigned to another leader."
+    },
+    "investClub": {
+      "title": "DBC Invest Club",
+      "searchPlaceholder": "Search a member, a member ID, a city…",
+      "tierName": "Level {{tier}}",
+      "opensWith": "Opens with {{level}}",
+      "admittedOfEligible_one": "admitted out of {{count}} eligible",
+      "admittedOfEligible_other": "admitted out of {{count}} eligible",
+      "membersTitle": "Eligible members",
+      "summary": "{{admitted}} admitted out of {{total}}",
+      "filters": {
+        "all": "All",
+        "admitted": "Admitted",
+        "notAdmitted": "Not admitted"
+      },
+      "empty": "No member matches these filters.",
+      "admitted": "Admitted to the club",
+      "notAdmitted": "Not admitted yet",
+      "since": "since {{date}}",
+      "admit": "Admit",
+      "remove": "Remove",
+      "needsActive": "Only an active member can be admitted."
+    },
+    "navGroups": {
+      "membres": "Community",
+      "finance": "Finance and tontines",
+      "contenu": "Training and communication"
     }
   },
   "membre": {
@@ -1071,7 +2195,9 @@
       "formation": "Training",
       "parametres": "Settings",
       "piliers": "Pillars",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "leader": "Leader space",
+      "annonces": "Announcements"
     },
     "comingSoon": {
       "message": "This section is under construction and coming soon."
@@ -1096,14 +2222,19 @@
           "formation": "New training",
           "antenne": "New branch",
           "niveau": "Your next level",
-          "general": "DBC news"
+          "general": "DBC news",
+          "announcement": {
+            "admin": "DBC Administration",
+            "leader": "Branch leader"
+          }
         },
         "cta": {
           "participate": "I'll attend",
           "openFormation": "View the training",
           "requestLevel": "Request this level",
           "seeNetwork": "View my network",
-          "discover": "Discover"
+          "discover": "Discover",
+          "readAnnouncement": "Read the announcement"
         },
         "dateStarts": "Starts {{date}}",
         "dateOpens": "Opens {{date}}",
@@ -1247,21 +2378,23 @@
     "tontine": {
       "hero": {
         "label": "This month's pot — Round {{tour}}",
-        "beneficiary": "Beneficiary: {{name}}",
         "paidProgress": "{{paid}}/{{total}} members have paid this month",
         "cycleCompleteLabel": "Cycle complete",
         "cycleCompleteMessage": "Every round of this cycle has been paid out.",
-        "cycleCompleteLastBeneficiary": "Last round: {{name}} ({{amount}})"
+        "cycleCompleteLastBeneficiary": "Last round: {{names}} ({{amount}} each)",
+        "each": "per beneficiary",
+        "beneficiary_one": "Beneficiary: {{names}}",
+        "beneficiary_other": "This month's {{count}} beneficiaries: {{names}}"
       },
       "legend": {
         "title": "Understanding the statuses",
         "closed": {
           "label": "Closed",
-          "description": "This round is over: the pot has already been paid out to its beneficiary."
+          "description": "This round is over: the pot has already been paid out to its beneficiaries."
         },
         "current": {
           "label": "In progress",
-          "description": "This is this month's round: the pot is being paid out to this beneficiary."
+          "description": "This is this month's round: the pot is being paid out to these beneficiaries."
         },
         "upcoming": {
           "label": "Upcoming",
@@ -1317,11 +2450,11 @@
         "items": [
           {
             "question": "How is the payout calculated?",
-            "answer": "Every member of the group contributes the same amount each month, based on their DBC level. The sum of all that month's contributions forms the payout given to that round's beneficiary."
+            "answer": "Every member of the group contributes the same amount each month, based on their DBC level. A group has 36 people: each month, 3 of them receive the pot of their level."
           },
           {
             "question": "How is the payout order decided?",
-            "answer": "The order is set when the cycle starts, for all 12 rounds of the year: each member receives the payout exactly once per cycle, on their turn."
+            "answer": "The order is set when the cycle starts, for all 12 rounds of the year: 3 members receive the pot each month, and each member receives it exactly once per cycle, on their turn."
           },
           {
             "question": "What happens if I miss a month?",
@@ -1333,7 +2466,34 @@
           }
         ]
       },
-      "searchPlaceholder": "Search a group member…"
+      "searchPlaceholder": "Search a group member…",
+      "monthChoice": {
+        "title": "Choose your {{count}} months to receive the pot",
+        "resultTitle": "Your payout month – {{level}}",
+        "period": "{{level}} tontine · from {{from}} to {{to}}",
+        "deadline": "Reply before {{date}}",
+        "fromAdmin": "Message from the administration",
+        "hint": "Tap {{count}} months, in order of preference: the first is the one you want most. The administration will then decide the payout order, taking the whole group's choices into account.",
+        "rank": "Choice no. {{n}}",
+        "progress_one": "{{count}} month chosen out of {{total}}",
+        "progress_other": "{{count}} months chosen out of {{total}}",
+        "clear": "Clear all",
+        "send": "Send my choices",
+        "update": "Update my choices",
+        "saved": "Your choices are saved: {{months}}. You can change them until the deadline.",
+        "failed": "Could not send: this request is no longer open.",
+        "closedAnswered": "Answers are closed. Your choices: {{months}}. The administration decides the payout order.",
+        "closedNoAnswer": "Answers are closed and you did not send any choices. The administration will give you one of the remaining months.",
+        "yourMonth": "You receive the pot in",
+        "rankResult": {
+          "0": "This month was not among your choices: the administration adjusted it so that each month has at most 3 people.",
+          "1": "It is your first choice.",
+          "2": "It is your second choice.",
+          "3": "It is your third choice."
+        },
+        "rankNone": "This month was assigned to you by the administration.",
+        "noMonth": "The payout order is validated. Find your turn in the cycle below."
+      }
     },
     "mlm": {
       "overviewTitle": "Longrich MLM Business, My tree",
@@ -1694,7 +2854,9 @@
       "coursePdf": {
         "title": "Full course handout",
         "hint": "One PDF with every chapter of the course: download it to keep it on your computer."
-      }
+      },
+      "formerBadge": "Train pillar · {{program}}",
+      "formerSection": "Train pillar programs"
     },
     "parametres": {
       "saved": "Saved",
@@ -1880,6 +3042,564 @@
         "yes": "Yes, sign me out",
         "cancel": "Cancel"
       }
+    },
+    "leader": {
+      "banner": "Leader of {{branch}}",
+      "badge_one": "{{count}} action to take",
+      "badge_other": "{{count}} actions to take",
+      "tabs": {
+        "interviews": "Interviews",
+        "antenne": "My branch",
+        "guide": "Interview guide",
+        "role": "My role",
+        "tontine": "Tontine",
+        "annonces": "Announcements",
+        "relances": "Reminders"
+      },
+      "deadline": {
+        "left_one": "{{count}} day to submit the report",
+        "left_other": "{{count}} days to submit the report",
+        "today": "Due today",
+        "overdue_one": "{{count}} day late",
+        "overdue_other": "{{count}} days late"
+      },
+      "stage": {
+        "todo": "Interview to do",
+        "unreachable": "Unreachable: try again",
+        "done": "Positive interview",
+        "refused": "Not conclusive"
+      },
+      "interviews": {
+        "subtitle": "These are the candidates the administration has entrusted to you. Contact each one, run the interview, then come back here to fill in the report: it is what lets the administration create the member.",
+        "searchPlaceholder": "Search a candidate, a city…",
+        "stats": {
+          "open": "Interviews to do",
+          "overdue": "Late",
+          "closed": "Reports submitted"
+        },
+        "filter": {
+          "label": "Filter files",
+          "open": "To handle",
+          "closed": "Submitted",
+          "all": "All"
+        },
+        "card": {
+          "open": "Open the file",
+          "view": "See the report"
+        },
+        "empty": {
+          "open": {
+            "title": "No interview to do",
+            "description": "When the administration assigns you a candidate, you will get a notification and the file will appear here."
+          },
+          "closed": {
+            "title": "No report submitted",
+            "description": "Files whose report you have submitted will appear here."
+          },
+          "all": {
+            "title": "No file yet",
+            "description": "When the administration assigns you a candidate, you will get a notification and the file will appear here."
+          },
+          "search": {
+            "title": "No results",
+            "description": "Try another name or city."
+          }
+        }
+      },
+      "dossier": {
+        "back": "Back to interviews",
+        "folder": "File {{ref}}",
+        "place": "Location",
+        "age": "Age",
+        "job": "Occupation",
+        "sponsor": "Sponsor",
+        "tontine": "Chosen tontine",
+        "assignedOn": "File assigned on {{date}}",
+        "cniHidden": "The ID number stays reserved for the administration.",
+        "adminNote": "Message from the administration",
+        "notFound": {
+          "title": "File not found",
+          "description": "This file does not exist or was not assigned to you."
+        }
+      },
+      "contact": {
+        "title": "Contact the candidate",
+        "whatsapp": "Write on WhatsApp",
+        "call": "Call",
+        "hint": "WhatsApp opens with a ready-made message: just press “Send”. After the conversation, come back here to fill in the report.",
+        "invalid": "This candidate's number cannot be used. Let the administration know.",
+        "message": "Hello {{name}}, I am {{leader}}, leader of {{branch}} at the DBC (Les Déployés Business Community). Following your registration (file {{ref}}), I would like to talk with you for a few minutes to get to know you better and answer your questions. When would you be available? Thank you!"
+      },
+      "report": {
+        "title": "Interview report",
+        "subtitle": "Everything is a tick box: two minutes is enough, no writing needed. Your answers are saved as you go.",
+        "lockedSubtitle": "The report has been sent to the administration.",
+        "mode": {
+          "title": "How did the conversation take place?",
+          "hint": "Choose one answer.",
+          "options": {
+            "whatsapp": {
+              "label": "On WhatsApp",
+              "hint": "Messages or voice notes"
+            },
+            "call": {
+              "label": "By call",
+              "hint": "Phone or WhatsApp call"
+            },
+            "inPerson": {
+              "label": "In person",
+              "hint": "Face-to-face meeting"
+            }
+          }
+        },
+        "reachable": {
+          "title": "Were you able to reach the candidate?",
+          "yes": "Yes, we spoke",
+          "no": "No, no answer",
+          "noHint": "No problem: you can mark the candidate as unreachable. The file stays open, you can try again, and the administration can assign it to another leader."
+        },
+        "criteria": {
+          "title": "Check these 5 points",
+          "hint": "Answer Yes, Medium or No based on what the candidate told you.",
+          "items": {
+            "tontine": {
+              "label": "Understands how the tontine works",
+              "hint": "They can explain that you contribute every month and receive the pot in your turn."
+            },
+            "contribution": {
+              "label": "Commits to the monthly contribution",
+              "hint": "They can pay their level's amount every month without getting into difficulty."
+            },
+            "project": {
+              "label": "Has a clear professional project",
+              "hint": "They can say what they do and what they want to achieve."
+            },
+            "consistency": {
+              "label": "Information consistent with the registration",
+              "hint": "City, occupation and sponsor match what they tell you."
+            },
+            "motivation": {
+              "label": "Sincere motivation",
+              "hint": "They are joining the community for good reasons, not just quick money."
+            }
+          }
+        },
+        "ratings": {
+          "yes": "Yes",
+          "medium": "Medium",
+          "no": "No"
+        },
+        "flags": {
+          "title": "Warning signs",
+          "hint": "Tick the ones you noticed, if any.",
+          "items": {
+            "pressure": "Feels pushed or pressured by someone",
+            "money": "Hesitates a lot when talking about money",
+            "contradiction": "Contradicts themselves or stays very vague"
+          }
+        },
+        "comment": {
+          "title": "Anything to add? (optional)",
+          "placeholder": "One sentence is enough",
+          "counter": "{{count}}/{{max}}"
+        },
+        "reasons": {
+          "title": "If it is not conclusive: why?",
+          "hint": "Tick at least one reason. The administration will see it.",
+          "items": {
+            "tontine": "Does not understand the tontine",
+            "contribution": "Cannot commit to the contribution",
+            "project": "Professional project unclear",
+            "consistency": "Inconsistent information",
+            "motivation": "Motivation not sincere",
+            "other": "Other reason"
+          }
+        },
+        "decision": {
+          "title": "Your decision",
+          "concluant": "Positive interview",
+          "nonConcluant": "Not conclusive",
+          "injoignable": "Unreachable"
+        },
+        "suggest": {
+          "concluant": "Based on your answers, the interview looks positive. This is only a suggestion: the decision is yours.",
+          "nonConcluant": "Based on your answers, the interview looks not conclusive. This is only a suggestion: the decision is yours.",
+          "toReview": "Your answers are mixed: it is up to you to decide."
+        },
+        "missing": {
+          "title": "To unlock the buttons:",
+          "mode": "choose how the conversation took place",
+          "reachable": "say whether you reached the candidate",
+          "criteria": "rate the 5 points ({{done}}/{{total}})",
+          "reasons": "For “Not conclusive”, first tick at least one reason."
+        },
+        "confirm": {
+          "title": "Send the report?",
+          "concluant": "The administration will be able to add {{name}} as a member. You will no longer be able to edit this report.",
+          "nonConcluant": "{{name}}'s application will be refused and the administration will see your reasons. You will no longer be able to edit this report.",
+          "injoignable": "{{name}}'s file stays open: you can try again, and the administration can assign it to another leader.",
+          "send": "Send",
+          "cancel": "Cancel"
+        },
+        "sent": {
+          "concluant": "Report sent: the administration can now add {{name}} as a member.",
+          "nonConcluant": "Report sent: {{name}}'s application is refused.",
+          "injoignable": "Report sent: {{name}} is marked as unreachable. You can try again later."
+        },
+        "retry": {
+          "title_one": "Last attempt: candidate unreachable ({{count}} try)",
+          "title_other": "Last attempt: candidate unreachable ({{count}} tries)",
+          "description": "Try to reach them again, then fill in a new report."
+        },
+        "summary": {
+          "by": "Submitted by {{name}} on {{date}}",
+          "mode": "Conversation",
+          "flags": "Warning signs",
+          "reasons": "Reasons"
+        }
+      },
+      "antenne": {
+        "subtitle": "The members of your branch and the status of their contribution for the current round. For a late member, “Remind” prepares a polite message that you read and send yourself.",
+        "searchPlaceholder": "Search a member…",
+        "stats": {
+          "members": "Branch members",
+          "late": "Late",
+          "ok": "Up to date"
+        },
+        "filter": {
+          "label": "Filter members",
+          "all": "All",
+          "late": "Late",
+          "ok": "Up to date"
+        },
+        "status": {
+          "late_one": "Late: {{count}} contribution",
+          "late_other": "Late: {{count}} contributions",
+          "ok": "Up to date",
+          "none": "No contribution tracked"
+        },
+        "remind": "Remind",
+        "remindAgain": "Remind again",
+        "lastReminder": {
+          "today": "Reminded today ({{channel}})",
+          "on": "Last reminder on {{date}} ({{channel}})"
+        },
+        "channel": {
+          "whatsapp": "WhatsApp",
+          "email": "email",
+          "app": "notification"
+        },
+        "reminder": {
+          "title": "Remind {{name}}",
+          "hint": "Read the message. “Send reminder” drops it into the member’s notifications. WhatsApp and email open in your app: nothing goes out until you press “Send” there.",
+          "subject": "Reminder: your DBC contribution",
+          "whatsapp": "Open WhatsApp",
+          "email": "Write by email",
+          "noContact": "This member has no usable phone number or email: the reminder will reach them in their notifications.",
+          "message_one": "Hello {{name}}, this is {{leader}}, leader of {{branch}} at the DBC. A friendly reminder: your {{level}} tontine contribution of {{amount}} FCFA has not been received yet this month ({{month}}). Could you pay it as soon as possible? If you are facing any difficulty, please tell me and we will find a solution together. Thank you very much!",
+          "message_other": "Hello {{name}}, this is {{leader}}, leader of {{branch}} at the DBC. A friendly reminder: {{count}} {{level}} tontine contributions are pending, i.e. {{total}} FCFA ({{amount}} FCFA per month). Could you settle your situation as soon as possible? If you are facing any difficulty, please tell me and we will find a solution together. Thank you very much!",
+          "send": "Send reminder"
+        },
+        "empty": {
+          "title": "No member to show",
+          "description": "The members of your branch will appear here, with the status of their contribution."
+        }
+      },
+      "guide": {
+        "subtitle": "A good interview lasts 10 to 15 minutes. It checks that the candidate understood the tontine, can contribute every month and is joining the DBC for the right reasons.",
+        "step": "Step {{n}}",
+        "before": {
+          "title": "Before the interview",
+          "intro": "Get ready in two minutes.",
+          "items": [
+            "Open the candidate's file and re-read their occupation, city, sponsor and chosen tontine.",
+            "Read the administration's message, if there is one.",
+            "Write to them with the WhatsApp button: the message is ready, you suggest a time to talk.",
+            "You have {{days}} days from receiving the file to submit your report."
+          ]
+        },
+        "during": {
+          "title": "During the conversation",
+          "intro": "Stay simple and friendly, like a real conversation. A few useful questions:",
+          "items": [
+            "Can you tell me what you do today, and what you would like to build?",
+            "How did you hear about the DBC, and what made you want to join us?",
+            "How does the tontine work in your view? (monthly contribution, pot in your turn)",
+            "Are you comfortable paying this amount every month without getting into difficulty?",
+            "Do you have any questions or concerns?"
+          ]
+        },
+        "verify": {
+          "title": "What to check",
+          "intro": "These are the 5 points of the report:",
+          "items": [
+            "They understand how the tontine works.",
+            "They commit to the monthly contribution.",
+            "Their professional project is clear.",
+            "What they say matches their registration (city, occupation, sponsor).",
+            "Their motivation is sincere."
+          ]
+        },
+        "after": {
+          "title": "After the conversation: the report",
+          "intro": "Come back to the platform, in the candidate's file. Nothing to write: everything is ticked.",
+          "items": [
+            "Tick how the conversation went (WhatsApp, call or in person).",
+            "Say whether you reached the candidate. If not, choose “Unreachable”: you can try again.",
+            "Rate each point: Yes, Medium or No. Tick the warning signs, if any.",
+            "Add a one-line note if needed, then click “Positive interview” or “Not conclusive”. The buttons stay greyed out until the report is filled in.",
+            "For “Not conclusive”, tick at least one reason: the administration will see it. You have {{days}} days to submit everything; after that, the administration is notified."
+          ]
+        },
+        "tips": {
+          "title": "Good habits",
+          "items": [
+            "Be warm and patient, and stay respectful.",
+            "Never promise a gain or a pot date.",
+            "Never ask for money during the interview.",
+            "If in doubt, tick “Medium”: the administration will decide.",
+            "A candidate who does not answer? Try again another day before marking them unreachable."
+          ]
+        }
+      },
+      "role": {
+        "subtitle": "A branch leader is a trusted member: they represent the DBC to the members of their area. Here is what the community expects of you.",
+        "items": {
+          "interviews": {
+            "title": "Run interviews on time",
+            "text": "You receive the candidates of your area, talk with them and submit your report within {{days}} days at most."
+          },
+          "welcome": {
+            "title": "Welcome new members",
+            "text": "You welcome the new members of your branch, answer their first questions and guide them through the platform."
+          },
+          "animate": {
+            "title": "Energise your branch",
+            "text": "You keep in touch with the members of your area, invite them to DBC meetings and trainings and encourage good relations."
+          },
+          "sponsor": {
+            "title": "Encourage sponsorship",
+            "text": "You set the example and encourage everyone to invite serious people around them."
+          },
+          "followUp": {
+            "title": "Follow contributions",
+            "text": "You follow how the tontines of your branch are doing in the “Tontine” tab, spot late members in “My branch” and remind them kindly so the round is not blocked."
+          },
+          "confidential": {
+            "title": "Respect confidentiality",
+            "text": "A candidate's or member's information (situation, contacts, difficulties) stays between you and the administration."
+          }
+        },
+        "donts": {
+          "title": "What you do not do",
+          "items": [
+            "You never collect money yourself: contributions go through the official payment methods.",
+            "You promise no gain, no pot date and no level.",
+            "You do not decide alone to accept a member: you submit your report, the administration creates the member.",
+            "You do not share a candidate's or member's information with anyone else."
+          ]
+        }
+      },
+      "tontine": {
+        "searchPlaceholder": "Search a member or a city…",
+        "subtitle": "How the tontines of your branch are doing: the groups where members of your area contribute, what each one has paid, who receives the pot this month and what comes next. A group has 36 people over 12 months, with 3 beneficiaries each month.",
+        "stats": {
+          "members": {
+            "label": "Members in a tontine",
+            "detail_one": "in {{count}} group ({{running}} running)",
+            "detail_other": "spread over {{count}} groups ({{running}} running)"
+          },
+          "paid": {
+            "label": "This month's contributions",
+            "detail": "{{percent}}% of the branch is up to date this month"
+          },
+          "late": {
+            "label": "Late contributions",
+            "detail": "{{amount}} to collect",
+            "none": "Everything is up to date"
+          },
+          "receiving": {
+            "label": "Receiving this month",
+            "detail": "{{amount}} in pots · {{done}} already paid out"
+          }
+        },
+        "lateNotice_one": "{{count}} member of your branch has a late contribution.",
+        "lateNotice_other": "{{count}} members of your branch have a late contribution.",
+        "lateLink": "See and remind in \"My branch\"",
+        "evolution": {
+          "paidTitle": "Contributions paid, month by month",
+          "paidHint": "Share of the branch members who paid their contribution, over the last months.",
+          "paidAria": "{{month}}: {{paid}} contributions paid out of {{total}}",
+          "turnTitle": "Branch beneficiaries, month by month",
+          "turnHint": "How many members of your branch receive the pot each month (past and coming months).",
+          "turnAria_one": "{{month}}: {{count}} branch beneficiary ({{amount}})",
+          "turnAria_other": "{{month}}: {{count}} branch beneficiaries ({{amount}})"
+        },
+        "receiving": {
+          "title": "Who receives the pot this month",
+          "empty": "Nobody in your branch receives the pot this month.",
+          "paidOut": "Pot paid out",
+          "pending": "Not paid out yet"
+        },
+        "groupsTitle": "Your branch's groups",
+        "noMatch": "No member matches this search.",
+        "empty": {
+          "title": "No tontine group yet",
+          "description": "As soon as members of your branch join a tontine group, you will follow their contributions and turns here."
+        },
+        "group": {
+          "name": "Group {{letter}}",
+          "running": "Running",
+          "pending": "Starts in {{month}}",
+          "complete": "Cycle complete",
+          "cycle": "Cycle",
+          "tour": "Round {{tour}}/{{total}}",
+          "antenneShare_one": "{{count}} member of your branch out of {{size}}",
+          "antenneShare_other": "{{count}} members of your branch out of {{size}}",
+          "paidCount": "{{paid}}/{{total}} paid this month"
+        },
+        "status": {
+          "paid": "Paid",
+          "awaiting": "Pending",
+          "late_one": "Late: {{count}} month",
+          "late_other": "Late: {{count}} months",
+          "pending": "Not started yet",
+          "complete": "Cycle complete"
+        },
+        "turn": {
+          "thisMonth": "Receives the pot this month",
+          "paidOut": "Pot paid out this month",
+          "received": "Received in {{month}}",
+          "upcoming": "Receives in {{month}}",
+          "none": "No month assigned"
+        }
+      },
+      "followUp": {
+        "searchPlaceholder": "Search a member…",
+        "subtitle": "The members of your chapter whose contribution is late and whom the automatic reminders handed over to you. Contact them, understand their situation, offer a solution, then submit your report.",
+        "stats": {
+          "open": "To do",
+          "closed": "Reports submitted"
+        },
+        "owes": "Contribution due: {{amount}}",
+        "stage": {
+          "todo": "To contact",
+          "unreachable": "Unreachable",
+          "done": "Report submitted",
+          "unassigned": "No chapter leader"
+        },
+        "empty": {
+          "open": {
+            "title": "No follow-up to do",
+            "description": "When a member of your chapter goes past D+3 without paying, their case lands here."
+          },
+          "closed": {
+            "title": "No report submitted",
+            "description": "The reports you submit will appear here."
+          },
+          "all": {
+            "title": "No follow-up case",
+            "description": "When a member of your chapter goes past D+3 without paying, their case lands here."
+          },
+          "search": {
+            "title": "No results",
+            "description": "No case matches your search."
+          }
+        },
+        "back": "Back to reminders",
+        "notFound": {
+          "title": "Case not found",
+          "description": "This follow-up case doesn't exist or wasn't assigned to you."
+        },
+        "facts": {
+          "late": "Delay",
+          "amount": "Contribution",
+          "penalty": "Current penalty"
+        },
+        "contact": {
+          "message": "Hello {{name}}, this is {{leader}} from the {{branch}}. I'm checking in about your DBC contribution of {{amount}}, which hasn't arrived yet. Is there a difficulty? We can find a solution together.",
+          "hint": "The message is ready but never sent by itself: you press “Send” yourself."
+        },
+        "report": {
+          "title": "Follow-up report",
+          "subtitle": "Tick-box form. It goes to the administration.",
+          "lockedSubtitle": "Report submitted: it can no longer be edited."
+        },
+        "form": {
+          "modeHint": "How did you contact the member?",
+          "reachableTitle": "Were you able to reach the member?",
+          "unreachableHint": "The case stays open: you can try again later, and the administration sees your attempt.",
+          "causeTitle": "Why are they late?",
+          "causeHint": "Choose the main cause.",
+          "solutionTitle": "Agreed solution",
+          "solutionHint": "What you proposed and they accept.",
+          "promiseDate": "Promised payment date (optional)",
+          "missing": "Say how you contacted the member, whether you reached them, and, if so, the cause and the solution.",
+          "readyHint": "The report is complete: you can send it.",
+          "send": "Send the report"
+        },
+        "causes": {
+          "forgot": "Forgot",
+          "temporary": "Temporary difficulty",
+          "health": "Accident or health",
+          "dispute": "Disagreement about the contribution",
+          "unwilling": "Unwilling to pay",
+          "other": "Other"
+        },
+        "solutions": {
+          "payNow": {
+            "label": "Immediate payment",
+            "hint": "They pay right away."
+          },
+          "grace": {
+            "label": "Exceptional grace period",
+            "hint": "Extra time is granted."
+          },
+          "partial": {
+            "label": "Partial payment",
+            "hint": "Part now, the rest later."
+          },
+          "arrangement": {
+            "label": "Amicable arrangement",
+            "hint": "Another agreement was found."
+          },
+          "none": {
+            "label": "No solution",
+            "hint": "No agreement for now."
+          }
+        },
+        "confirm": {
+          "title": "Send the report?",
+          "reached": "{{name}}'s case will be marked as handled. The report can no longer be edited.",
+          "unreachable": "You are stating that {{name}} is unreachable. The case stays open and you can try again."
+        },
+        "sent": {
+          "reached": "Report sent: {{name}}'s case is handled.",
+          "unreachable": "Attempt recorded: {{name}} is still to be reached."
+        },
+        "retry": {
+          "title_one": "Member unreachable: {{count}} attempt",
+          "title_other": "Member unreachable: {{count}} attempts",
+          "description": "Try to reach them again, then submit a new report."
+        },
+        "outcome": {
+          "reached": "Member reached",
+          "unreachable": "Member unreachable"
+        },
+        "summary": {
+          "by": "By {{name}}, on {{date}}",
+          "cause": "Cause of the delay",
+          "solution": "Agreed solution",
+          "promise": "promised for {{date}}",
+          "attempts_one": "{{count}} attempt",
+          "attempts_other": "{{count}} attempts"
+        }
+      }
+    },
+    "navGroups": {
+      "argent": "My money",
+      "developper": "Grow",
+      "communication": "Communication"
     }
   },
   "piliers": {
@@ -2005,7 +3725,7 @@
           },
           "2": {
             "label": "Pack prices",
-            "value": "24,000 to 1,800,000 F"
+            "value": "24,000 to 1,800,000 FCFA"
           }
         }
       },
@@ -2155,7 +3875,9 @@
       "coins": "Coins",
       "formation": "Trainings",
       "community": "DBC and meetings",
-      "system": "Platform"
+      "system": "Platform",
+      "leader": "Leader space",
+      "annonces": "Announcements"
     },
     "searchPlaceholder": "Search a notification",
     "noResults": "No results",
@@ -2341,18 +4063,18 @@
     "items": {
       "cotisationRetard": {
         "title": "Late contribution: {{level}}",
-        "text": "{{amount}} F were due on {{due}}. Please pay your contribution so the turn is not held up."
+        "text": "{{amount}} FCFA were due on {{due}}. Please pay your contribution so the turn is not held up."
       },
       "cotisationRappel": {
         "title": "Contribution reminder: {{level}}",
-        "text": "{{amount}} F to pay by {{due}} (in {{days}} days).",
+        "text": "{{amount}} FCFA to pay by {{due}} (in {{days}} days).",
         "tomorrow": {
           "title": "Your contribution is due tomorrow: {{level}}",
-          "text": "{{amount}} F to pay before tomorrow ({{due}})."
+          "text": "{{amount}} FCFA to pay before tomorrow ({{due}})."
         },
         "today": {
           "title": "Your contribution is due today: {{level}}",
-          "text": "{{amount}} F to pay today ({{due}})."
+          "text": "{{amount}} FCFA to pay today ({{due}})."
         }
       },
       "cotisationSuivi": {
@@ -2364,8 +4086,8 @@
         }
       },
       "tourAttribue": {
-        "title": "Turn {{tour}} of the {{level}} tontine: {{name}}",
-        "text": "The {{amount}} F pot goes to {{name}} this month."
+        "title": "Round {{tour}} of the {{level}} tontine",
+        "text": "This month, {{amount}} FCFA go to each of the beneficiaries: {{names}}."
       },
       "tourProche": {
         "title": "Your tontine turn is coming: {{level}}",
@@ -2412,8 +4134,873 @@
         "text": "{{count}} member(s) have not paid yet: {{names}}."
       },
       "adminTour": {
-        "title": "Turn {{tour}} of the {{level}} tontine: {{name}}",
-        "text": "{{name}} is this month's beneficiary."
+        "title": "Round {{tour}} of the {{level}} tontine",
+        "text": "This month's beneficiaries: {{names}}."
+      },
+      "choixMois": {
+        "title": "Choose your payout months: {{level}}",
+        "text": "The administration asks you to choose months between {{start}} and {{end}}. Reply before {{date}}."
+      },
+      "choixMoisEnvoye": {
+        "title": "Your month choices are saved",
+        "text": "You chose: {{months}}. The administration will decide the payout order."
+      },
+      "choixMoisOrdre": {
+        "title": "Your payout month: {{month}}",
+        "text": "The {{level}} tontine order is validated. You receive the pot in {{month}}."
+      },
+      "leaderDossier": {
+        "title": "New interview to do: {{name}}",
+        "text": "{{place}} · due before {{due}}. File {{ref}} is waiting in your Leader space."
+      },
+      "leaderRappel": {
+        "title": "Report due: {{name}}",
+        "text_one": "You have {{days}} day left to submit the interview report.",
+        "text_other": "You have {{days}} days left to submit the interview report.",
+        "today": {
+          "title": "Report due today: {{name}}",
+          "text": "The deadline ends today. Submit your interview report as soon as possible."
+        }
+      },
+      "leaderRetard": {
+        "title": "Late report: {{name}}",
+        "text_one": "The deadline passed {{days}} day ago. Submit your report soon so the candidate is not left waiting.",
+        "text_other": "The deadline passed {{days}} days ago. Submit your report soon so the candidate is not left waiting."
+      },
+      "leaderRetards": {
+        "title": "Late contributions in your branch",
+        "text_one": "{{count}} member to remind: {{names}}.",
+        "text_other": "{{count}} members to remind: {{names}}."
+      },
+      "adminEntretienRendu": {
+        "concluant": {
+          "title": "Positive interview: {{name}}",
+          "text": "{{leader}} submitted the report. The member can now be added from Sign-ups."
+        },
+        "nonConcluant": {
+          "title": "Interview not conclusive: {{name}}",
+          "text": "{{leader}} submitted the report: the application is refused."
+        },
+        "injoignable": {
+          "title": "Candidate unreachable: {{name}}",
+          "text": "{{leader}} could not reach the candidate. Another attempt is possible, or the file can be assigned to another leader."
+        }
+      },
+      "adminEntretienRetard": {
+        "title": "Late report: {{name}}",
+        "text_one": "{{leader}} is {{days}} day late. The leader can be reminded or the file assigned to another.",
+        "text_other": "{{leader}} is {{days}} days late. The leader can be reminded or the file assigned to another."
+      }
+    }
+  },
+  "guideJourney": {
+    "open": "Interactive guide",
+    "route": "Guide route",
+    "stepOf": "Step {{current}} of {{total}}",
+    "admin": {
+      "title": "Understanding the tontine and the register",
+      "steps": {
+        "cycle": {
+          "short": "The cycle",
+          "title": "One group, 12 rounds",
+          "text": "A group brings together 36 members. Every month, 3 of them receive the pot: within 12 months, everyone has had a turn.",
+          "hint": "Tap a round to see which members receive the pot that month."
+        },
+        "money": {
+          "short": "The money",
+          "title": "Contribute 12 times, receive one pot",
+          "text": "Each member contributes every month for 12 months. When their turn comes, they receive the pot: 11 net contributions, because the 1st one covers the annual registration fee.",
+          "hint": "Switch level to see the matching amounts."
+        },
+        "auto": {
+          "short": "Nothing to approve",
+          "title": "Administration approves nothing",
+          "text": "A contribution shows as paid as soon as it is received. There is no “approve” button and no “mark as paid out”: the register updates by itself.",
+          "hint": "Simulate a payment arriving and watch the row change."
+        },
+        "ledger": {
+          "short": "Ledger",
+          "title": "Reading the ledger",
+          "text": "One row per member, one column per month. The cells show the state of each contribution at a glance, and the totals at the bottom give what is still outstanding.",
+          "hint": "Tap a state in the legend to highlight the matching cells."
+        },
+        "journal": {
+          "short": "Journal",
+          "title": "The journal: everything, by date",
+          "text": "Every transaction in date order, like an account book: what is received, what is paid out, and what was not paid. Totals are at the bottom.",
+          "hint": "Filter by transaction type and watch the totals recalculate."
+        },
+        "statement": {
+          "short": "Account statement",
+          "title": "A member's account statement",
+          "text": "Click a name to open their statement: what they contributed, the pot received and the running balance. The balance stays negative until the pot is paid out: that is normal.",
+          "hint": "Step through the lines and watch the balance change."
+        }
+      },
+      "intro": "Scroll down to move along the road: each step comes alive with a small demo you can play with.",
+      "doneTitle": "Tour complete",
+      "doneText": "The register holds no more secrets. The tour stays available and can be replayed at any time."
+    },
+    "member": {
+      "title": "Understanding my tontine",
+      "steps": {
+        "cycle": {
+          "short": "The cycle",
+          "title": "Your group, 12 rounds",
+          "text": "You are part of a group of 36 members. Every month, 3 members receive the pot: within 12 months, everyone has had a turn. Administration sets the order.",
+          "hint": "Tap a round to see which members receive the pot that month."
+        },
+        "money": {
+          "short": "The money",
+          "title": "Contribute, then receive",
+          "text": "You contribute every month for 12 months. When your turn comes, you receive the pot: 11 net contributions, because the 1st one covers the annual registration fee.",
+          "hint": "Switch level to see the matching amounts."
+        },
+        "auto": {
+          "short": "You pay",
+          "title": "You pay, it is recorded",
+          "text": "As soon as your payment is received, your row switches to “paid” by itself. Nobody has to approve anything.",
+          "hint": "Simulate a payment arriving and watch the row change."
+        }
+      },
+      "intro": "Scroll down to move along the road: each step comes alive with a small demo you can play with.",
+      "doneTitle": "You have been all the way around!",
+      "doneText": "You now know how your tontine works. You can replay the tour whenever you like."
+    },
+    "scenes": {
+      "cycle": {
+        "tours": "The 12 rounds",
+        "tourN": "Round {{tour}}",
+        "caption": "Round {{tour}}: members no. {{from}} to {{to}} receive the pot this month.",
+        "legend": {
+          "now": "receive the pot this month",
+          "done": "already received it",
+          "todo": "not yet their turn"
+        }
+      },
+      "money": {
+        "level": "Level",
+        "coins": "A member's 12 contributions",
+        "feeTag": "Fee",
+        "potTag": "11 net contributions = the pot",
+        "fee": "1st contribution",
+        "feeDetail": "Annual registration fee",
+        "pot": "Pot received",
+        "potDetail": "11 × {{amount}}",
+        "month": "Collected every month",
+        "monthDetail": "36 members × {{amount}}"
+      },
+      "auto": {
+        "received": "Received this month",
+        "paid": "Paid",
+        "pending": "Due",
+        "simulate": "Simulate a payment received",
+        "reset": "Start over",
+        "allPaid": "Everything is paid, and nothing was approved by hand.",
+        "caption": {
+          "admin": "The payment arrives: the row switches to “paid” without any action from administration.",
+          "member": "Your payment arrives: your row switches to “paid” without anyone approving it."
+        }
+      },
+      "ledger": {
+        "legend": "Ledger legend",
+        "states": {
+          "paid": "Paid",
+          "unpaid": "Unpaid",
+          "late": "Late",
+          "awaiting": "Due",
+          "gift": "Pot"
+        },
+        "explain": {
+          "paid": "Paid: the month's contribution has arrived, the amount shows in the cell.",
+          "unpaid": "Unpaid: a past month without a contribution. A red dash, and the amount adds to “still owed”.",
+          "late": "Late: the current month, and the due date has passed.",
+          "awaiting": "Due: the current month, the due date has not passed yet.",
+          "gift": "Pot: the member receives the pot that month (orange gift)."
+        }
+      },
+      "journal": {
+        "total": "Total",
+        "caption": "Received = contributions in · Paid out = pots · Unpaid = contributions of a past month not paid.",
+        "labels": {
+          "in": "Contribution received",
+          "out": "Pot paid out",
+          "due": "Contribution unpaid"
+        }
+      },
+      "statement": {
+        "balance": "Member balance",
+        "next": "Next line",
+        "replay": "Replay",
+        "caption": "Each contribution lowers the balance.",
+        "captionEnd": "With the pot, the balance goes back above zero.",
+        "lines": {
+          "in": "Contribution {{n}}",
+          "due": "Contribution {{n}}",
+          "out": "Pot received"
+        }
+      }
+    },
+    "start": "Start",
+    "finish": "Finish",
+    "replay": "Replay the tour"
+  },
+  "announcements": {
+    "important": "Important",
+    "author": {
+      "admin": "DBC Administration",
+      "leader": "Leader · {{branch}}"
+    },
+    "audience": {
+      "more_one": "and {{count}} other",
+      "more_other": "and {{count}} others",
+      "label": {
+        "all": "All members",
+        "levels_one": "Level {{levels}}",
+        "levels_other": "Levels {{levels}}",
+        "groups_one": "Group {{groups}}",
+        "groups_other": "Groups {{groups}}",
+        "antenne": "{{branch}} branch",
+        "leadersAll": "All branch leaders",
+        "leaders": "Leaders: {{names}}",
+        "members_one": "{{count}} chosen member",
+        "members_other": "{{count}} chosen members"
+      },
+      "forMe": {
+        "all": "For all members",
+        "levels": "For your level",
+        "groups": "For your tontine group",
+        "antenne": "For your branch",
+        "leaders": "For branch leaders",
+        "you": "For you",
+        "members": "Targeted message"
+      }
+    },
+    "feed": {
+      "title": "Announcements",
+      "unread_one": "{{count}} new",
+      "unread_other": "{{count}} new",
+      "more": "Read more",
+      "less": "Show less",
+      "markRead": "Mark as read",
+      "showAll_one": "See {{count}} more announcement",
+      "showAll_other": "See {{count}} more announcements",
+      "showLess": "Show less",
+      "empty": "No announcements yet. Messages from the administration and from your branch leader will show up here.",
+      "imageAlt": "Image {{n}} of {{count}} of the announcement “{{title}}”",
+      "imageOpen": "Enlarge image {{n}} of {{count}}",
+      "imageClose": "Close image",
+      "imagePrev": "Previous image",
+      "imageNext": "Next image"
+    },
+    "manage": {
+      "new": "New announcement",
+      "search": "Search an announcement…",
+      "filters": "Filter announcements",
+      "filter": {
+        "all": "All",
+        "mine": "From administration",
+        "leaders": "From leaders"
+      },
+      "leaderIntro": "Write to the members of your branch ({{branch}}): the announcement appears in their news feed and notifications.",
+      "empty": "No announcement published",
+      "emptyHint": {
+        "admin": "Publish a message for all members, a level, a tontine group, a branch, the leaders or specific members.",
+        "leader": "Publish a message for your whole branch, a level or specific members."
+      },
+      "noResults": "No announcement matches",
+      "expired": "Expired",
+      "remove": "Remove",
+      "removeTitle": "Remove this announcement?",
+      "removeText": "“{{title}}” will disappear from the news feed and notifications of all its recipients.",
+      "audience": "Recipients",
+      "author": "Author",
+      "published": "Published",
+      "until": "End date",
+      "untilDate": "Shown until {{date}}",
+      "people_one": "{{count}} person",
+      "people_other": "{{count}} people",
+      "byAdmin": "Published by DBC administration",
+      "byLeader": "Published by a leader · {{branch}}"
+    },
+    "composer": {
+      "title": "New announcement",
+      "close": "Close",
+      "subtitle": {
+        "admin": "The message appears in the news feed and notifications of the chosen members.",
+        "leader": "Your message appears in the news feed and notifications of the members of your branch you choose."
+      },
+      "message": "Message",
+      "titleLabel": "Title",
+      "titlePlaceholder": "E.g.: Members meeting on Saturday",
+      "bodyLabel": "Text",
+      "bodyPlaceholder": "Write to your members: they will read it directly.",
+      "importanceLabel": "Importance",
+      "importance": {
+        "normal": "Normal",
+        "important": "Important"
+      },
+      "expiresLabel": "Last day shown",
+      "expiresHint": "Optional. Without a date, the announcement stays until it is removed.",
+      "dateInPast": "This date has already passed.",
+      "audienceLabel": "Who is the announcement for?",
+      "types": {
+        "all": {
+          "label": "All members",
+          "hint": "The whole platform, including future members."
+        },
+        "levels": {
+          "label": "One or more levels",
+          "hint": "The members of these levels."
+        },
+        "groups": {
+          "label": "Tontine groups",
+          "hint": "The members of the chosen groups."
+        },
+        "antenne": {
+          "label": "A branch",
+          "hint": "The members of a leader's branch."
+        },
+        "myAntenne": {
+          "label": "My whole branch",
+          "hint": "All the members of your branch."
+        },
+        "leaders": {
+          "label": "Branch leaders",
+          "hint": "All of them, or only some."
+        },
+        "members": {
+          "label": "Chosen members",
+          "hint": "A single person, or several."
+        }
+      },
+      "pickLevels": "Targeted levels",
+      "noLevels": "No member is attached to a level.",
+      "pickGroups": "Targeted groups",
+      "groupCount_one": "{{count}} member",
+      "groupCount_other": "{{count}} members",
+      "pickAntenne": "Targeted branch",
+      "memberCount_one": "{{count}} member",
+      "memberCount_other": "{{count}} members",
+      "noAntenne": "No branch has a leader yet.",
+      "leadersAll": "All branch leaders",
+      "leadersSome": "Some leaders",
+      "myAntenneInfo_one": "The member of your branch ({{branch}}) will receive the announcement.",
+      "myAntenneInfo_other": "The {{count}} members of your branch ({{branch}}) will receive the announcement.",
+      "searchMembers": "Search a member (name, ID, city)",
+      "selected_one": "{{count}} selected",
+      "selected_other": "{{count}} selected",
+      "clear": "Clear selection",
+      "noMember": "No member found.",
+      "preview": "Preview for members",
+      "previewTitle": "Announcement title",
+      "previewBody": "The announcement text will appear here.",
+      "recipients": {
+        "all": "All members ({{count}})",
+        "count_one": "{{count}} person will receive this announcement",
+        "count_other": "{{count}} people will receive this announcement",
+        "none": "Nobody is targeted by this choice. Pick at least one recipient.",
+        "example": "For example: {{names}}"
+      },
+      "cancel": "Cancel",
+      "publish": "Publish the announcement",
+      "storageFull": "The images exceed the space available in the browser: remove some images or delete older announcements, then publish again.",
+      "images": {
+        "label": "Images",
+        "optional": "optional",
+        "add": "Add images",
+        "busy": "Preparing images…",
+        "hint": "Drop files here or click. Up to {{max}} images (JPG, PNG, WebP or GIF), automatically resized.",
+        "thumbAlt": "Attached image {{n}}",
+        "remove": "Remove image {{n}}",
+        "tooMany": "Maximum {{max}} images per announcement.",
+        "type": "“{{name}}” is not a JPG, PNG, WebP or GIF image.",
+        "size": "“{{name}}” is larger than {{mb}} MB.",
+        "read": "“{{name}}” could not be read."
+      }
+    },
+    "page": {
+      "intro": "Messages from DBC administration and branch leaders that concern you. The newest come first; new announcements also scroll in the carousel on your home page.",
+      "filter": {
+        "all": "All",
+        "unread": "Unread",
+        "admin": "Administration",
+        "leader": "Leaders"
+      },
+      "markAllRead": "Mark all as read"
+    },
+    "seed": {
+      "when": "When: {{date}}",
+      "where": "Where: {{place}}"
+    }
+  },
+  "registrationProof": {
+    "label": "Proof of activity",
+    "view": "View",
+    "download": "Download",
+    "missing": "No proof attached (request submitted before it was added)"
+  },
+  "tontinePriority": {
+    "points_one": "{{count}} pt",
+    "points_other": "{{count}} pts",
+    "maxPoints": "{{count}} points maximum",
+    "step": "Criterion {{n}}",
+    "title": "How the payout order is decided",
+    "intro": "The order in which the members of a group receive the pot is not chosen: the platform calculates it with the DBC Priority Score (SPD), a mark out of 100 points spread over 5 criteria.",
+    "sixMonths": "A new member cannot receive the pot during their first {{months}} months in the community: their turn is placed at the first possible month.",
+    "sender": "DBC Platform",
+    "common": {
+      "close": "Close",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "status": {
+      "validated": "Validated",
+      "rejected": "Rejected"
+    },
+    "criteria": {
+      "urgency": {
+        "name": "Verified and documented urgency",
+        "short": "Urgency",
+        "how": "A real, verified and documented need. The Governance Committee validates each urgency within 72 h; proofs are uploaded in the app and kept in the audit trail.",
+        "footnote": "An urgency not validated by the Committee earns no points."
+      },
+      "regularity": {
+        "name": "Payment regularity",
+        "short": "Regularity",
+        "how": "Calculated automatically by the platform from the payment history. No input, no evaluation deadline: it cannot be edited and everything is kept in the audit trail.",
+        "footnote": "A settled payment does not erase the delay: it stays counted."
+      },
+      "coins": {
+        "name": "Community engagement (DBC Coins)",
+        "short": "Coins",
+        "how": "Read automatically by the platform from the member's journal and activities. No input, no evaluation deadline.",
+        "footnote": "A member who is too recent has nothing to evaluate yet: the box stays empty (—). To earn Coins: completed training +50, referral +100, monthly challenge +75, DBC event +50, public testimonial +30, and other actions."
+      },
+      "level": {
+        "name": "Seniority and DBC level",
+        "short": "Level",
+        "how": "Read automatically by the platform from the member's journal: registration date and level reached. No input, no evaluation deadline.",
+        "footnote": "During the first 2 months in the community the box stays empty (—): probation period."
+      },
+      "recommendation": {
+        "name": "Mentor-sponsor recommendation",
+        "short": "Reco.",
+        "how": "The mentor-sponsor rates their mentee from 0 to 10 on four qualities; the average gives the points. They have 72 h to submit their rating, with automatic reminders at 24 h, 48 h and 66 h.",
+        "footnote": "With no rating within 72 h, the criterion takes its default value (3 points). A veto only counts if it is justified in writing and recognised as valid by the Governance Committee."
+      }
+    },
+    "rows": {
+      "urgency": {
+        "productive": {
+          "label": "Documented productive investment",
+          "detail": "Professional equipment, stock, premises: quote or pro-forma validated by the Governance Committee.",
+          "proof": "Quote or pro-forma for the equipment, stock or premises."
+        },
+        "debt": {
+          "label": "Repayment of a debt at immediate risk",
+          "detail": "Workshop rent overdue, critical supplier. Proof required.",
+          "proof": "Proof of the debt (reminder, contract, unpaid invoice)."
+        },
+        "opportunity": {
+          "label": "Business opportunity with a verifiable deadline",
+          "detail": "Call for tenders, customer order with deposit, certifying training on a fixed date. Purchase order or summons required.",
+          "proof": "Purchase order, summons or call-for-tenders notice."
+        },
+        "social": {
+          "label": "Urgent non-productive need",
+          "detail": "School fees, uncovered medical costs. Proof required.",
+          "proof": "Proof of the costs (invoice, school certificate, medical quote)."
+        },
+        "planned": {
+          "label": "Planned future need, no urgency",
+          "detail": "Project described, no deadline."
+        },
+        "none": {
+          "label": "No project or need",
+          "detail": "The member only wants to save."
+        }
+      },
+      "regularity": {
+        "zero": {
+          "label": "No delay since registration",
+          "detail": "Every payment was made on time."
+        },
+        "one": {
+          "label": "Only 1 delay of under 7 days",
+          "detail": "Settled."
+        },
+        "two": {
+          "label": "2 delays of under 7 days",
+          "detail": "Settled."
+        },
+        "three": {
+          "label": "3 delays, or 1 delay of 8 to 15 days",
+          "detail": "All settled."
+        },
+        "many": {
+          "label": "Multiple delays",
+          "detail": "But always settled."
+        },
+        "active": {
+          "label": "Unpaid penalties, or a delay in progress",
+          "detail": "At the time of calculation."
+        }
+      },
+      "coins": {
+        "c1000": {
+          "label": "1,000 Coins or more",
+          "detail": "Very high engagement in the community."
+        },
+        "c500": {
+          "label": "500 to 999 Coins",
+          "detail": "High engagement."
+        },
+        "c200": {
+          "label": "200 to 499 Coins",
+          "detail": "Regular engagement."
+        },
+        "c50": {
+          "label": "50 to 199 Coins",
+          "detail": "Early engagement."
+        },
+        "c0": {
+          "label": "Fewer than 50 Coins",
+          "detail": "No engagement measured yet."
+        }
+      },
+      "level": {
+        "high": {
+          "label": "Levels 5 to 8",
+          "detail": "Performer Pro, Strategist, Elite, Legend."
+        },
+        "mid": {
+          "label": "Levels 3 to 4",
+          "detail": "Builder Pro, Performer."
+        },
+        "low": {
+          "label": "Levels 1 to 2",
+          "detail": "Starter, Builder."
+        },
+        "probation": {
+          "label": "Probation period",
+          "detail": "Under 2 months in the community (first tontine cycle)."
+        }
+      },
+      "recommendation": {
+        "rated": {
+          "label": "Average of the sponsor's ratings",
+          "detail": "Points = the rounded average, from 0 to 10."
+        },
+        "default": {
+          "label": "Default value",
+          "detail": "No rating submitted within 72 h."
+        },
+        "veto": {
+          "label": "Justified veto",
+          "detail": "At least one member objects in writing, and the Governance Committee recognises the reason as valid."
+        }
+      }
+    },
+    "rules": {
+      "title": "The 7 golden rules",
+      "items": {
+        "publication": {
+          "title": "Published from the first month",
+          "text": "The full ranking is calculated, validated by the Executive Committee and published from the first month. Each member receives a notification with their rank, the expected date of receipt and the expected amount. It is the law of the group."
+        },
+        "topScores": {
+          "title": "The first 3 months go to the best scores",
+          "text": "The pots of months 1, 2 and 3 go to the highest SPD scores."
+        },
+        "ends": {
+          "title": "Mentor-sponsor and Local Community Manager at the end",
+          "text": "The group's mentor-sponsor receives second to last, the Local Community Manager last."
+        },
+        "swap": {
+          "title": "Voluntary rank swap",
+          "text": "Two members can swap ranks. The swap is formalised in the app, digitally co-signed by both, validated by the Governance Committee and recorded in the audit trail. It is final and irrevocable."
+        },
+        "tie": {
+          "title": "Tied scores",
+          "text": "The administration chooses each member's place among tied members."
+        },
+        "recalc": {
+          "title": "Score recalculated every cycle",
+          "text": "The score is not frozen for life: it is recalculated at each new cycle."
+        },
+        "bylaws": {
+          "title": "The internal rules prevail",
+          "text": "The internal rules, signed by everyone at the start of the cycle, prevail over everything in case of dispute."
+        }
+      }
+    },
+    "example": {
+      "title": "Example: a group of 10 members (Table XXVI)",
+      "intro": "A group of 10 members at the Builder level, 10,000 Fcfa per month. The ranking follows the total, from highest to lowest.",
+      "cols": {
+        "rank": "Rank",
+        "member": "Member",
+        "urgency": "Urgency",
+        "regularity": "Regularity",
+        "coins": "Coins",
+        "levelMentor": "Level + Mentor",
+        "total": "Total"
+      },
+      "notes": {
+        "equipment": "Documented equipment purchase",
+        "order": "Urgent customer order",
+        "school": "School fees",
+        "mentor": "Group mentor-sponsor",
+        "cm": "Local Community Manager"
+      },
+      "ellipsis": "…",
+      "footnote": "* Same high scores, but these two members deliberately go last, as written in the internal rules. They receive the same amount, only later."
+    },
+    "urgencyReview": {
+      "title": "Urgencies to validate",
+      "hint": "The Governance Committee validates each urgency within {{hours}} h. The decision is kept with its date and author, and the member is told by private message.",
+      "empty": "No urgency waiting.",
+      "declared": "Declared: {{category}} ({{points}} points)",
+      "before": "Decide before {{date}}",
+      "overdue": "Deadline passed ({{date}})",
+      "noProof": "No proof attached.",
+      "retained": "Category retained",
+      "note": "Note for the member (optional)",
+      "validate": "Validate",
+      "reject": "Reject",
+      "recent": "Recent decisions",
+      "msg": {
+        "noNote": "no further detail",
+        "validated": {
+          "title": "Your urgency is validated",
+          "body": "The Governance Committee validated your declaration: {{category}} ({{points}} points). Detail: {{note}}."
+        },
+        "rejected": {
+          "title": "Your urgency declaration was not accepted",
+          "body": "The Governance Committee could not validate your declaration. Reason: {{note}}. You can submit a new one with the requested proofs."
+        }
+      }
+    },
+    "ranking": {
+      "title": "Ranking by group",
+      "hint": "The payout order is calculated by the platform. The administration validates urgencies, enters the Mastermind Circle votes, appoints the mentor-sponsor and the Local Community Manager, then publishes the ranking.",
+      "group": "Group",
+      "mentor": "Group mentor-sponsor",
+      "cm": "Local Community Manager",
+      "nobody": "None",
+      "demoNotice_one": "{{count}} member of this group is a demo profile: their Coins, seniority, urgency and vote are fictitious until the server is connected.",
+      "demoNotice_other": "{{count}} members of this group are demo profiles: their Coins, seniority, urgency and vote are fictitious until the server is connected.",
+      "tableTitle": "Payout order from {{month}}",
+      "cols": {
+        "when": "Payout",
+        "edit": "Edit vote"
+      },
+      "role": {
+        "mentor": "Mentor-sponsor",
+        "cm": "Local Community Manager"
+      },
+      "tie": "Tie: to be placed by the administration",
+      "swapped": "Rank swapped",
+      "delayed": "Moved back (under {{months}} months)",
+      "urgencyPending": "Urgency to validate",
+      "demo": "Demo",
+      "editVote": "See the recommendation for {{name}}",
+      "draw": "Keep this order ({{count}} tied)",
+      "drawHint": "Some scores are equal. The administration chooses each member's place: use the arrows next to the rank to move them, or keep the displayed order with the button.",
+      "legend": "The columns are the 5 criteria (hover: the row applied). A member is never placed on a month within their first 6 months; the mentor-sponsor is second to last and the Local Community Manager last.",
+      "mentorAuto": "Automatic: {{name}}",
+      "mentorAutoNone": "Automatic (no sponsor found in the group)",
+      "mentorHint": "Taken from the “Sponsor” field at registration; can be changed.",
+      "cmHint": "An antenna leader of the group, picked automatically; the administration can choose another.",
+      "cmAutoNone": "Automatic (no antenna leader in the group)",
+      "leaders": "Antenna leaders",
+      "others": "Other group members",
+      "rating": {
+        "pending": "Sponsor rating awaited",
+        "expired": "Rating not submitted: 3 pts"
+      },
+      "tiePlaced": "Place chosen by the administration",
+      "moveUp": "Place {{name}} earlier",
+      "moveDown": "Place {{name}} later",
+      "howTo": "How to read this list: members are ranked from 1st to last by their score out of 100. Those in the same month receive the pot together. The breakdown of the 5 criteria (urgency, regularity, coins, level, recommendation) explains where each score comes from.",
+      "showDetail": "Show the criteria breakdown for everyone",
+      "hideDetail": "Hide the criteria breakdown",
+      "showRow": "See criteria",
+      "hideRow": "Hide",
+      "monthGroup_one": "{{count}} member receives the pot ({{amount}})",
+      "monthGroup_other": "{{count}} members receive the pot ({{amount}} each)",
+      "rankTitle": "Rank no. {{rank}} in the payout order",
+      "scoreOf": "{{name}}'s score out of 100"
+    },
+    "publish": {
+      "msgTitle": "Your rank in the tontine",
+      "msgBody": "The ranking of {{group}} ({{level}}) is published. You are ranked no. {{rank}} of {{total}}, with a score of {{score}} out of 100. Expected payout: {{month}}. Expected amount: {{amount}}. It is the law of the group: in case of dispute, the internal rules prevail.",
+      "upToDate": "Published on {{date}} by {{by}}: up to date.",
+      "changed": "Published on {{date}} by {{by}}, but the ranking has changed since.",
+      "never": "Not published yet.",
+      "publish": "Publish the ranking",
+      "republish": "Publish again"
+    },
+    "swap": {
+      "title": "Rank swap",
+      "hint": "Two members can voluntarily swap ranks. Both must co-sign and the Governance Committee must validate.",
+      "first": "First member",
+      "second": "Second member",
+      "choose": "Choose a member",
+      "signed": "{{name}} co-signed the swap",
+      "validated": "The Governance Committee validated the swap",
+      "final": "A recorded swap is final and irrevocable.",
+      "record": "Record the swap"
+    },
+    "admin": {
+      "views": {
+        "label": "View",
+        "ranking": "Ranking",
+        "roadmap": "Roadmap"
+      }
+    },
+    "declare": {
+      "title": "Declare my urgency",
+      "intro": "Pick the situation that fits you and attach the requested proof. The Governance Committee has {{hours}} h to validate it; until then it earns no points.",
+      "category": "My situation",
+      "description": "Describe your situation in a few words",
+      "descriptionPlaceholder": "Example: buying a sewing machine for my workshop, quote attached.",
+      "proof": "Proof",
+      "removeProof": "Remove the proof",
+      "upload": "Upload a proof",
+      "preparing": "Preparing the file...",
+      "formats": "PDF, JPG, PNG or WebP · PDF up to {{mb}} MB",
+      "errType": "This file is not accepted: choose a PDF, or a JPG, PNG or WebP photo.",
+      "errPdf": "This PDF is over {{mb}} MB. Shrink it or send a photo instead.",
+      "errImage": "This image is over {{mb}} MB.",
+      "errRead": "This file could not be read. Try another file.",
+      "noProofNeeded": "This category needs no proof, but it earns few points.",
+      "submit": "Send my declaration"
+    },
+    "member": {
+      "title": "My payout order",
+      "tabs": {
+        "label": "Views",
+        "score": "My score",
+        "roadmap": "How it works"
+      },
+      "noGroup": "You do not have a tontine group at this level yet: your score and rank will appear once you are placed in a group. The roadmap stays available under “How it works”.",
+      "myScore": "My priority score",
+      "rank": "Rank {{rank}} of {{total}}",
+      "expected": "Expected payout: {{month}} · {{amount}}",
+      "published": "Ranking published on {{date}}",
+      "provisional": "Provisional ranking, not published yet",
+      "newcomer": "You have been in the community for under {{months}} months: you cannot receive before {{month}}. Your turn is placed at the first possible month.",
+      "role": {
+        "mentor": "You are the group's mentor-sponsor: you receive second to last, with the same amount as the others.",
+        "cm": "You are the group's Local Community Manager: you receive last, with the same amount as the others."
+      },
+      "tie": "Your score equals another member's: the administration will choose each member's place.",
+      "tips": {
+        "urgency": "Declare a real need with its proof: an urgency validated by the Committee earns up to 30 points.",
+        "regularity": "Pay on time every month: each delay costs points, and a delay in progress costs them all.",
+        "coins": "Earn Coins: training, referrals, the monthly challenge, DBC events, a public testimonial. The platform reads them on its own.",
+        "level": "Move up a level and stay in the community: the platform reads it on its own. During the first 2 months the box stays empty.",
+        "recommendation": "Depends on your mentor-sponsor's rating: your conduct in the group makes the difference."
+      },
+      "urgencyState": {
+        "none": "You have not declared an urgency.",
+        "pending": "Declaration sent: the Governance Committee has {{hours}} h to validate it.",
+        "validated": "Urgency validated by the Governance Committee.",
+        "rejected": "Your declaration was not accepted."
+      },
+      "declare": "Declare my urgency",
+      "redeclare": "Submit again",
+      "seeRoadmap": "See how the score is calculated",
+      "groupRanking": "Group ranking",
+      "notPublished": "The group ranking will appear here once it is published.",
+      "showAll": "Show the other {{count}}",
+      "showLess": "Show less",
+      "notYet": "Not evaluated yet",
+      "ratingState": {
+        "pending": "{{name}}, your mentor-sponsor, has until {{date}} to rate you.",
+        "done": "Rating from {{name}} received: average {{average}} out of 10.",
+        "expired": "{{name}} did not submit a rating in time: default value, 3 points."
+      }
+    },
+    "evaluation": {
+      "title": "Who evaluates, and how fast",
+      "intro": "Three criteria are read by the platform alone, with no input or deadline. Two need a person: the Governance Committee for urgency, the mentor-sponsor for the recommendation.",
+      "rows": {
+        "urgency": {
+          "who": "Governance Committee",
+          "delay": "72 h from the moment the member sends their proof."
+        },
+        "regularity": {
+          "who": "Platform (automatic)",
+          "delay": "No deadline: calculated at each ranking."
+        },
+        "coins": {
+          "who": "Platform (automatic)",
+          "delay": "No deadline: read from the member's journal."
+        },
+        "level": {
+          "who": "Platform (automatic)",
+          "delay": "No deadline: read from the member's journal."
+        },
+        "recommendation": {
+          "who": "The member's mentor-sponsor",
+          "delay": "72 h from the request, with automatic reminders at 24 h, 48 h and 66 h."
+        }
+      }
+    },
+    "vote": {
+      "title": "Mentor-sponsor recommendation",
+      "sponsor": "Mentor-sponsor: {{name}}",
+      "noSponsor": "No sponsor is recorded for this member.",
+      "state": {
+        "none": "No rating request sent yet.",
+        "pending": "Waiting for the sponsor's rating, due before {{date}}.",
+        "done": "Rating submitted on {{ratedAt}}: average {{average}} out of 10.",
+        "expired": "Deadline passed ({{date}}): default value, 3 points."
+      },
+      "extend": "Give the sponsor another 72 h",
+      "veto": "Veto by at least one member",
+      "reason": "Written reason for the veto",
+      "valid": "Reason recognised as valid by the Governance Committee"
+    },
+    "rating": {
+      "title": "Rating to give to {{name}}",
+      "intro": "You are their mentor-sponsor: rate each quality from 0 (very weak) to 10 (excellent). The average of your four ratings gives their points for the “Recommendation” criterion.",
+      "left": "{{hours}} h left (before {{date}})",
+      "sectionTitle_one": "One rating to give ({{hours}} h to submit it)",
+      "sectionTitle_other": "{{count}} ratings to give ({{hours}} h to submit them)",
+      "incomplete": "Pick a rating for each quality.",
+      "average": "Average: {{average}} out of 10, i.e. {{points}} points.",
+      "submit": "Send my rating",
+      "aspects": {
+        "reliability": {
+          "label": "Reliability and punctuality",
+          "hint": "Keeps commitments, pays on time, answers when contacted."
+        },
+        "commitment": {
+          "label": "Commitment to the community",
+          "hint": "Takes part in meetings, trainings and group activities."
+        },
+        "teamwork": {
+          "label": "Team spirit",
+          "hint": "Helps other members, respects the group and its rules."
+        },
+        "integrity": {
+          "label": "Honesty and trust",
+          "hint": "Tells the truth, does not cheat, can be relied on."
+        }
+      },
+      "msg": {
+        "request": {
+          "title": "Rating to give to {{name}}",
+          "body": "{{name}} is part of {{group}} and you are their mentor-sponsor. Please give them a rating from 0 to 10 on four qualities: My Tontine, then “My payout order”. You have 72 h, until {{date}}."
+        },
+        "reminder": {
+          "title": "Reminder: rating for {{name}}",
+          "body": "You have not rated {{name}} yet. About {{hours}} h remain: without a rating, they keep 3 points by default."
+        }
       }
     }
   }

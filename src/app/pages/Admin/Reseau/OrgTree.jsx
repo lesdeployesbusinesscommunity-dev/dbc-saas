@@ -22,7 +22,10 @@ function TreeNode({
   onAssign,
   onAddChild,
   onRenameLevel,
+  onRenameBranch,
   onViewMember,
+  onDismiss,
+  onDelete,
   searchMatches,
 }) {
   const { t } = useTranslation();
@@ -57,7 +60,10 @@ function TreeNode({
         levelLabel={levelLabel}
         onAssign={() => onAssign(node, depth)}
         onRenameLevel={(title) => onRenameLevel(depth, title)}
+        onRenameBranch={(name) => onRenameBranch(node, name)}
         onViewMember={() => onViewMember(node, depth)}
+        onDismiss={() => onDismiss(node, depth)}
+        onDelete={() => onDelete(node, depth)}
         matchState={matchState}
       />
 
@@ -84,7 +90,10 @@ function TreeNode({
               onAssign={onAssign}
               onAddChild={onAddChild}
               onRenameLevel={onRenameLevel}
+              onRenameBranch={onRenameBranch}
               onViewMember={onViewMember}
+              onDismiss={onDismiss}
+              onDelete={onDelete}
               searchMatches={searchMatches}
             />
           ))}
@@ -100,9 +109,12 @@ function TreeNode({
 // quand on clique sur un rond "+" (créer une nouvelle branche enfant de
 // "node", avec son nom + le membre qui l'occupe — voir Reseau/index.jsx) ;
 // "onRenameLevel(depth, title)" quand on clique sur le badge d'une carte
-// pour renommer le titre de rôle de tout un échelon ; "onViewMember(node,
+// pour renommer le titre de rôle de tout un échelon ; "onRenameBranch(node,
+// name)" pour renommer le nom propre d'une branche ; "onViewMember(node,
 // depth)" quand on clique sur un poste déjà pourvu, pour ouvrir la fiche
-// complète de son responsable. "searchMatches" (voir getTreeSearchMatches
+// complète de son responsable ; "onDismiss(node, depth)" / "onDelete(node,
+// depth)" depuis le menu "..." de la carte, pour destituer le responsable ou
+// supprimer la branche (les confirmations sont gérées par Reseau/index.jsx). "searchMatches" (voir getTreeSearchMatches
 // dans mockData.js, calculé par Reseau/index.jsx) met en évidence/estompe
 // les cartes selon la recherche en cours dans AdminTopBar — null quand il
 // n'y a pas de recherche, l'arbre reste alors identique à avant.
@@ -112,7 +124,10 @@ export function OrgTree({
   onAssign,
   onAddChild,
   onRenameLevel,
+  onRenameBranch,
   onViewMember,
+  onDismiss,
+  onDelete,
   searchMatches = null,
 }) {
   return (
@@ -125,7 +140,10 @@ export function OrgTree({
           onAssign={onAssign}
           onAddChild={onAddChild}
           onRenameLevel={onRenameLevel}
+          onRenameBranch={onRenameBranch}
           onViewMember={onViewMember}
+          onDismiss={onDismiss}
+          onDelete={onDelete}
           searchMatches={searchMatches}
         />
       </ul>

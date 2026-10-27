@@ -1,5 +1,5 @@
 // Import Dependencies
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
@@ -9,10 +9,15 @@ import {
   CalendarDaysIcon,
   IdentificationIcon,
   GlobeAltIcon,
+  MapPinIcon,
   DevicePhoneMobileIcon,
   BanknotesIcon,
   BriefcaseIcon,
   UserGroupIcon,
+  ArrowUpTrayIcon,
+  DocumentTextIcon,
+  PhotoIcon,
+  XMarkIcon,
   ArrowRightIcon,
   ArrowLeftIcon,
   ArrowPathIcon,
@@ -24,6 +29,15 @@ import {
 // Local Imports
 import { Page } from "components/shared/Page";
 import { levels, formatMoney } from "app/pages/Simulateur/data";
+import { addRegistration } from "app/pages/Admin/Inscriptions/registrationsStore";
+import {
+  PROOF_ACCEPT,
+  PROOF_MAX_IMAGE_MB,
+  PROOF_MAX_PDF_MB,
+  formatFileSize,
+  isImageProof,
+  prepareProof,
+} from "app/pages/Admin/Inscriptions/proofUtils";
 
 // ----------------------------------------------------------------------
 
@@ -60,8 +74,8 @@ const STEP_COUNT = 3;
 // valeur par défaut — voir le state "form" — donc jamais vides).
 const REQUIRED_FIELDS_BY_STEP = {
   1: ["nom", "prenom", "email", "dateNaissance"],
-  2: ["cni", "whatsapp"],
-  3: ["travail", "parrain"],
+  2: ["cni", "ville", "whatsapp"],
+  3: ["travail"],
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -155,6 +169,127 @@ function FieldSelect({ label, icon: Icon, error, children, ...selectProps }) {
   );
 }
 
+// Le justificatif d'activité : un document qui prouve que la personne exerce
+// bien le métier qu'elle vient d'indiquer. On clique (ou on glisse un fichier) ;
+// une photo ou un scan est réduit dans le navigateur, un PDF est gardé tel quel
+// (voir Admin/Inscriptions/proofUtils.js). Une fois choisi, le fichier s'affiche
+// avec son nom et son poids, et peut être changé ou retiré. "error" : même
+// présentation que les autres champs du formulaire.
+function ProofUpload({ proof, onChange, error }) {
+  const inputRef = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [problem, setProblem] = useState("");
+
+  const choose = async (fileList) => {
+    const file = fileList?.[0];
+    if (!file) return;
+    setBusy(true);
+    setProblem("");
+    try {
+      onChange(await prepareProof(file));
+    } catch (failure) {
+      if (failure?.code === "type") setProblem("Ce fichier n'est pas accepté : choisis un PDF, une photo JPG, PNG ou WebP.");
+      else if (failure?.code === "size")
+        setProblem(
+          file.type === "application/pdf"
+            ? `Ce PDF dépasse ${String(PROOF_MAX_PDF_MB).replace(".", ",")} Mo. Réduis-le ou envoie plutôt une photo.`
+            : `Cette image dépasse ${PROOF_MAX_IMAGE_MB} Mo.`,
+        );
+      else setProblem("Ce fichier n'a pas pu être lu. Essaie avec un autre fichier.");
+    }
+    setBusy(false);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const shownError = problem || error;
+  const Icon = isImageProof(proof) ? PhotoIcon : DocumentTextIcon;
+
+  return (
+    <div>
+      <p className="text-sm font-semibold text-gray-700">Justificatif de ton activité</p>
+      <p className="mt-0.5 text-xs text-gray-500">
+        Un document qui prouve que tu exerces bien ce métier : attestation de travail, carte professionnelle, registre
+        de commerce, patente, bulletin de salaire ou facture récente.
+      </p>
+
+      {proof ? (
+        <div className="mt-2 flex items-center gap-3 rounded-lg border border-[#52A2DF]/[0.32] bg-[#52A2DF]/[0.05] p-3">
+          {isImageProof(proof) ? (
+            <img src={proof.dataUrl} alt="" className="size-12 shrink-0 rounded-md object-cover ring-1 ring-black/5" />
+          ) : (
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-white text-[#EE7115] ring-1 ring-black/5">
+              <Icon aria-hidden="true" className="size-6" />
+            </span>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-gray-900">{proof.name}</p>
+            <p className="text-xs text-gray-500">{formatFileSize(proof.size)}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            aria-label="Retirer le justificatif"
+            className="rounded-full p-2 text-gray-400 transition-colors hover:bg-white hover:text-gray-700"
+          >
+            <XMarkIcon aria-hidden="true" className="size-5" />
+          </button>
+        </div>
+      ) : (
+        <label
+          onDragOver={(event) => {
+            event.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(event) => {
+            event.preventDefault();
+            setDragging(false);
+            choose(event.dataTransfer.files);
+          }}
+          className={clsx(
+            "relative mt-2 flex cursor-pointer flex-col items-center gap-1 rounded-lg border-2 border-dashed px-4 py-5 text-center transition-colors",
+            dragging
+              ? "border-[#52A2DF] bg-[#52A2DF]/[0.08]"
+              : shownError
+                ? "border-red-400 bg-red-50/40"
+                : "border-[#52A2DF]/[0.4] hover:bg-[#52A2DF]/[0.05]",
+          )}
+        >
+          <input
+            ref={inputRef}
+            type="file"
+            accept={PROOF_ACCEPT}
+            disabled={busy}
+            onChange={(event) => choose(event.target.files)}
+            className="sr-only"
+          />
+          <ArrowUpTrayIcon aria-hidden="true" className={clsx("size-6", shownError ? "text-red-500" : "text-[#52A2DF]")} />
+          <span className="text-sm font-semibold text-gray-800">
+            {busy ? "Préparation du fichier..." : "Importer un justificatif"}
+          </span>
+          <span className="text-xs text-gray-400">
+            PDF, JPG, PNG ou WebP · PDF de {String(PROOF_MAX_PDF_MB).replace(".", ",")} Mo maximum
+          </span>
+        </label>
+      )}
+
+      <span
+        role={shownError ? "alert" : undefined}
+        className={clsx(
+          "grid text-xs font-medium text-red-600 transition-all duration-200 ease-out",
+          shownError ? "mt-1.5 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <span className="flex items-center gap-1 overflow-hidden">
+          <ExclamationCircleIcon aria-hidden="true" className="size-3.5 shrink-0" />
+          {shownError}
+        </span>
+      </span>
+    </div>
+  );
+}
+
 // Schéma 1 → 2 → 3 en haut du formulaire : un cercle par étape, relié par
 // un trait qui se colore au fur et à mesure que les étapes sont validées.
 // L'étape déjà passée affiche une coche plutôt que son numéro.
@@ -221,9 +356,11 @@ export default function Inscription() {
     dateNaissance: "",
     cni: "",
     pays: countries[0],
+    ville: "",
     whatsapp: "",
     tontine: levels[0].key,
     travail: "",
+    justificatif: null,
     parrain: sponsorFromRef,
   });
 
@@ -244,6 +381,9 @@ export default function Inscription() {
       if (!form[field].trim()) {
         errors[field] = "Ce champ est requis";
       }
+    }
+    if (step === 3 && !form.justificatif) {
+      errors.justificatif = "Ajoute un document qui prouve ton activité";
     }
     if (step === 1 && form.email.trim() && !EMAIL_PATTERN.test(form.email.trim())) {
       errors.email = "Adresse email invalide";
@@ -282,6 +422,15 @@ export default function Inscription() {
     const errors = validateStep(currentStep);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
+      return;
+    }
+    // La demande arrive dans "Demandes d'inscription" côté admin (registre
+    // local en attendant l'endpoint d'inscription du backend). Elle n'est pas
+    // enregistrée si le navigateur n'a plus la place de garder le justificatif.
+    if (!addRegistration(form)) {
+      setFieldErrors({
+        justificatif: "Ce fichier est trop lourd pour être enregistré ici. Choisis une photo ou un PDF plus léger.",
+      });
       return;
     }
     setStatus("sending");
@@ -488,6 +637,15 @@ export default function Inscription() {
                         ))}
                       </FieldSelect>
                       <FieldInput
+                        label="Ville"
+                        icon={MapPinIcon}
+                        type="text"
+                        value={form.ville}
+                        onChange={updateField("ville")}
+                        placeholder="Ta ville de résidence"
+                        error={fieldErrors.ville}
+                      />
+                      <FieldInput
                         label="Numéro WhatsApp"
                         icon={DevicePhoneMobileIcon}
                         type="tel"
@@ -524,8 +682,16 @@ export default function Inscription() {
                         placeholder="Ton activité actuelle"
                         error={fieldErrors.travail}
                       />
+                      <ProofUpload
+                        proof={form.justificatif}
+                        onChange={(justificatif) => {
+                          setForm((prev) => ({ ...prev, justificatif }));
+                          setFieldErrors((prev) => (prev.justificatif ? { ...prev, justificatif: null } : prev));
+                        }}
+                        error={fieldErrors.justificatif}
+                      />
                       <FieldInput
-                        label="Matricule du parrain"
+                        label="Matricule du parrain (facultatif)"
                         icon={UserGroupIcon}
                         type="text"
                         value={form.parrain}
@@ -533,6 +699,11 @@ export default function Inscription() {
                         placeholder="Ex : DBC-1-0001"
                         error={fieldErrors.parrain}
                       />
+                      {!form.parrain.trim() && (
+                        <p className="-mt-2 text-xs text-gray-500">
+                          Pas de parrain ? Aucun souci : l&apos;administration DBC sera ton parrain.
+                        </p>
+                      )}
                       {sponsorFromRef && form.parrain === sponsorFromRef && (
                         <p className="-mt-2 flex items-center gap-1.5 text-xs font-medium text-green-700">
                           <CheckCircleIcon aria-hidden="true" className="size-3.5 shrink-0" />

@@ -30,7 +30,7 @@ export function NotificationRow({ item, onOpen, compact = false, to = item.to })
         <span className={clsx("block text-sm leading-snug", item.read ? "font-semibold text-gray-700" : "font-bold text-gray-900")}>
           {title}
         </span>
-        {!compact && <span className="mt-0.5 block text-sm text-gray-500">{text}</span>}
+        {!compact && <span className="mt-0.5 block line-clamp-3 whitespace-pre-line text-sm text-gray-500">{text}</span>}
         <span className="mt-1 block text-xs text-gray-400">{formatRelative(item.at, locale)}</span>
       </span>
       {!item.read && (

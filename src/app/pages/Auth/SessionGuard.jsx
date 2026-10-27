@@ -18,6 +18,11 @@ import { endSession, useSessionState } from "./session";
 // Admin/Parametres/platformSettings.js — 5 minutes par défaut) ; elle est
 // relue à chaque vérification, donc un changement s'applique aux sessions
 // déjà ouvertes.
+// MODE PRÉSENTATION : passe ce réglage à "false" pour que l'espace MEMBRE ne se
+// déconnecte plus tout seul (ni compte à rebours, ni retour à /login). Laisse-le
+// à "true" pour la déconnexion automatique normale.
+const MEMBER_AUTO_LOGOUT = true;
+
 const WARNING_MS = 60 * 1000;
 const idleLimitMs = () =>
   Math.max(2 * WARNING_MS, getPlatformSettings().security.memberIdleMinutes * 60 * 1000);
@@ -57,7 +62,7 @@ export function SessionGuard({ role }) {
 
   return (
     <>
-      <IdleWatcher />
+      {(role !== "membre" || MEMBER_AUTO_LOGOUT) && <IdleWatcher />}
       <Outlet />
     </>
   );
@@ -125,8 +130,8 @@ function IdleWatcher() {
   return (
     <Dialog open={secondsLeft !== null} onClose={() => {}} className="relative z-[100]">
       <div aria-hidden="true" className="fixed inset-0 bg-black/50" />
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl">
           <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-orange-50 text-[#EE7115]">
             <ClockIcon aria-hidden="true" className="size-6" />
           </span>

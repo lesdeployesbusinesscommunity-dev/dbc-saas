@@ -6,6 +6,7 @@ import clsx from "clsx";
 
 // Local Imports
 import { Avatar } from "../components/Avatar";
+import { NodeActionsMenu } from "./NodeActionsMenu";
 import { getMember } from "./mockData";
 
 // ----------------------------------------------------------------------
@@ -16,15 +17,14 @@ import { getMember } from "./mockData";
 // réduite : Math.min ci-dessous plafonne l'index).
 const AVATAR_SIZES = ["size-24", "size-20", "size-16"];
 
-// Badge cliquable en haut de chaque carte : affiche le TITRE DE RÔLE de cet
-// échelon (ex: "Le Visionnaire", "Responsable Régional") et permet de le
-// renommer sur place (un simple clic transforme le badge en champ texte).
-// Ce titre s'applique à toute une profondeur de l'arbre du pays courant
-// (voir resolveLevelLabel dans mockData.js) — le renommer ici met donc à
-// jour le badge de toutes les branches du même niveau, pas seulement celle
-// de cette carte.
-function LevelBadge({ label, isNational, onRename }) {
-  const { t } = useTranslation();
+// Badge cliquable en haut de chaque carte, au-dessus du responsable : affiche
+// le NOM de la branche (ex: "Antenne Centre") quand elle en a un, et permet de
+// le renommer sur place (un simple clic transforme le badge en champ texte).
+// Une branche sans nom (ou le poste National) retombe sur le TITRE DE RÔLE de
+// son échelon (ex: "Le Visionnaire", "Responsable Régional") : le renommer
+// met alors à jour toutes les branches du même niveau (voir
+// resolveLevelLabel dans mockData.js).
+function LevelBadge({ label, isNational, onRename, hint }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(label);
 
@@ -62,9 +62,9 @@ function LevelBadge({ label, isNational, onRename }) {
     <button
       type="button"
       onClick={() => setEditing(true)}
-      title={t("admin.reseau.renameLevel")}
+      title={hint}
       className={clsx(
-        "mb-2.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors",
+        "mb-2.5 max-w-[8.5rem] truncate rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors",
         isNational
           ? "bg-[#EE7115]/[0.12] text-[#EE7115] hover:bg-[#EE7115]/[0.2]"
           : "bg-[#52A2DF]/[0.12] text-[#52A2DF] hover:bg-[#52A2DF]/[0.2]",
@@ -87,18 +87,26 @@ export function NodeCard({
   levelLabel,
   onAssign,
   onRenameLevel,
+  onRenameBranch,
   onViewMember,
+  onDismiss,
+  onDelete,
   matchState,
 }) {
   const { t } = useTranslation();
   const member = node.memberId ? getMember(node.memberId) : null;
   const avatarSize = AVATAR_SIZES[Math.min(depth, AVATAR_SIZES.length - 1)];
   const isNational = depth === 0;
+  // Le badge montre le nom propre de la branche s'il existe ; sinon le titre
+  // de rôle de l'échelon.
+  const badgeLabel = node.name || levelLabel;
+  const renameBadge = node.name ? onRenameBranch : onRenameLevel;
+  const badgeHint = node.name ? t("admin.reseau.renameBranch") : t("admin.reseau.renameLevel");
 
   return (
     <div
       className={clsx(
-        "flex w-44 flex-col items-center rounded-2xl px-1 py-2 text-center transition-all",
+        "relative flex w-44 flex-col items-center rounded-2xl px-1 py-2 text-center transition-all",
         // "match" : résultat direct de la recherche en cours (voir
         // OrgTree.jsx) -> ressort avec un halo orange. "dim" : ni un
         // résultat ni sur son chemin -> estompé pour laisser ressortir les
@@ -108,7 +116,20 @@ export function NodeCard({
         matchState === "dim" && "opacity-30",
       )}
     >
-      <LevelBadge label={levelLabel} isNational={isNational} onRename={onRenameLevel} />
+      <NodeActionsMenu
+        hasMember={Boolean(member)}
+        canDelete={!isNational}
+        onView={onViewMember}
+        onDismiss={onDismiss}
+        onDelete={onDelete}
+      />
+
+      <LevelBadge
+        label={badgeLabel}
+        isNational={isNational}
+        onRename={renameBadge}
+        hint={badgeHint}
+      />
 
       {member ? (
         <button
@@ -152,7 +173,10 @@ export function NodeCard({
             {t("admin.reseau.vacant")}
           </p>
           {node.label && (
-            <p className="mt-0.5 text-xs font-semibold text-gray-400">{node.label}</p>
+            <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-gray-400">
+              <MapPinIcon aria-hidden="true" className="size-3.5 shrink-0" />
+              {node.label}
+            </p>
           )}
         </button>
       )}

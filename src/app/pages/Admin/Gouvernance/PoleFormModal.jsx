@@ -30,11 +30,15 @@ const EMPTY_FORM = () => ({
 // (poste unique non réassignable, branches réelles, niveau automatique)
 // — les modifier ici ne touche que leur identité (titre/description/
 // icône), jamais leurs postes.
-export function PoleFormModal({ open, pole, onClose, onSubmit }) {
+//
+// "isSub" : le même formulaire sert à créer/modifier un SOUS-PÔLE d'un pôle
+// (seuls les libellés changent). Un sous-pôle est toujours "à postes nommés".
+export function PoleFormModal({ open, pole, isSub = false, onClose, onSubmit }) {
   const { t } = useTranslation();
   const [form, setForm] = useState(EMPTY_FORM);
 
   const editableSeats = !pole || pole.kind === "assignable";
+  const prefix = isSub ? "Sub" : "";
 
   useEffect(() => {
     if (!open) return;
@@ -102,11 +106,11 @@ export function PoleFormModal({ open, pole, onClose, onSubmit }) {
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
 
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-xl">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-xl">
           <div className="flex items-center justify-between border-b border-gray-100 p-6">
             <DialogTitle className="text-base font-bold text-gray-900">
-              {pole ? t("admin.gouvernance.poleForm.editTitle") : t("admin.gouvernance.poleForm.addTitle")}
+              {pole ? t(`admin.gouvernance.poleForm.edit${prefix}Title`) : t(`admin.gouvernance.poleForm.add${prefix}Title`)}
             </DialogTitle>
             <button
               type="button"
@@ -121,7 +125,7 @@ export function PoleFormModal({ open, pole, onClose, onSubmit }) {
           <form onSubmit={handleSubmit}>
             <div className="max-h-[65vh] space-y-5 overflow-y-auto p-6">
               <label className="block text-xs font-semibold text-gray-500">
-                {t("admin.gouvernance.poleForm.name")}
+                {t(`admin.gouvernance.poleForm.name${prefix}`)}
                 <input
                   type="text"
                   required

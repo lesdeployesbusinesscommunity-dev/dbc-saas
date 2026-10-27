@@ -90,8 +90,37 @@ function levelSlide(ownedLevelKeys) {
   };
 }
 
-export function getNewsSlides(ownedLevelKeys) {
+// Nombre d'annonces publiées mises en avant en tête du carrousel.
+const ANNOUNCEMENTS_SHOWN = 5;
+
+// Le carrousel montre les annonces PUBLIÉES PAR L'ADMINISTRATION et adressées au
+// membre (voir Annonces/useMyAnnouncements.js), les plus récentes d'abord : la
+// première image jointe (le flyer) sert de photo, sinon une photo de la DBC. Le
+// bouton mène à la page Annonces. Ni les messages privés (relances) ni les
+// annonces des leaders n'y défilent. Il n'y a pas de contenu propre au
+// carrousel : tant que l'administration n'a rien publié pour ce membre, on garde
+// les diapositives de démonstration ci-dessous.
+function announcementSlides(announcements) {
+  return announcements
+    .filter((announcement) => announcement.kind !== "reminder" && announcement.author.role === "admin")
+    .slice(0, ANNOUNCEMENTS_SHOWN)
+    .map((announcement) => ({
+      id: `annonce-${announcement.id}`,
+      kind: "announcement",
+      image: announcement.images?.[0] ?? "/investir 4.jpg",
+      title: announcement.title,
+      body: announcement.body,
+      authorRole: announcement.author.role,
+      authorName: announcement.author.name,
+      cta: { type: "link", to: "/membre/annonces", labelKey: `${NEWS_KEY}.cta.readAnnouncement` },
+    }));
+}
+
+export function getNewsSlides(ownedLevelKeys, announcements = []) {
   const [firstFormation, secondFormation] = formationSlides(ownedLevelKeys);
+
+  const published = announcementSlides(announcements);
+  if (published.length > 0) return published;
 
   // Ordre voulu : on alterne les types pour que le défilement reste varié.
   return [

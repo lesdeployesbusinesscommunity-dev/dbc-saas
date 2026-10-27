@@ -72,8 +72,8 @@ export function MemberSearchModal({ open, seatTitle, onClose, onConfirm }) {
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
 
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white p-6 shadow-xl sm:p-7">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto flex max-h-[85dvh] w-full max-w-lg flex-col rounded-2xl bg-white p-6 shadow-xl sm:p-7">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-base font-bold text-gray-900">
               {t("admin.gouvernance.assignModal.title", { seat: seatTitle })}

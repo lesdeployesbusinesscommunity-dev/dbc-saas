@@ -94,6 +94,43 @@ const adminMemberProfile = {
   profession: "Fondateur & CEO",
 };
 
+// Profil MEMBRE d'une LEADER D'ANTENNE : un leader est d'abord un membre
+// (ses chiffres viennent de sa fiche dans Gestion des membres), avec en plus
+// "leader" : la branche qu'elle dirige dans Gestion du réseau (voir
+// Admin/Reseau/mockData.js : "Antenne Centre"). C'est ce champ qui fait
+// apparaître l'"Espace leader" dans son menu et qui dit quels dossiers
+// d'inscription lui sont confiés ("memberId" = l'identifiant de sa fiche
+// membre) et quels membres sont dans son antenne ("cities"). Placeholder en
+// attendant le backend : le serveur dira qui est leader et de quelle branche.
+const nadegeRecord = initialMembersByLevel.starter.find((member) => member.matricule === "DBC-1-0003");
+
+const nadegeProfile = {
+  name: "Nadège Mbarga",
+  role: "Leader d'antenne",
+  levelKeys: ["starter"],
+  city: "Yaoundé, Cameroun",
+  domain: "Coach bien-être · Membre actif",
+  photo: null,
+  coins: nadegeRecord?.coins ?? 0,
+  sponsoredCount: nadegeRecord?.sponsoredMembers?.length ?? 0,
+  referralEarnings: nadegeRecord?.referralEarnings ?? 0,
+  matricule: "DBC-1-0003",
+  firstName: "Nadège",
+  lastName: "Mbarga",
+  email: "nadege.mbarga@example.com",
+  whatsapp: "+237000000003",
+  town: "Yaoundé",
+  country: "Cameroun",
+  profession: "Coach bien-être",
+  leader: {
+    memberId: "m5",
+    branchName: "Antenne Centre",
+    location: "Yaoundé",
+    country: "Cameroun",
+    cities: ["Yaoundé"],
+  },
+};
+
 // Le profil affiché dépend de la SESSION (voir Auth/session.js) : chaque
 // compte a le sien, choisi par le nom de la session (celui du compte connecté
 // — le serveur le fournira plus tard). Un compte inconnu retombe sur le
@@ -101,6 +138,7 @@ const adminMemberProfile = {
 const PROFILES = {
   "Thierry Mbida": { key: "thierry", data: thierryProfile, storageKey: "dbc-membre-profile-v1" },
   "Hubert Wakap": { key: "admin", data: adminMemberProfile, storageKey: "dbc-membre-profile-admin-v1" },
+  "Nadège Mbarga": { key: "leader", data: nadegeProfile, storageKey: "dbc-membre-profile-leader-v1" },
 };
 const DEFAULT_PROFILE = PROFILES["Thierry Mbida"];
 

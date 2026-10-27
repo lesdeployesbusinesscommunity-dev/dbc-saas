@@ -102,6 +102,7 @@ const kindStyles = {
   antenne: { Icon: BuildingOffice2Icon, iconClass: "text-[#4ADE80]" },
   niveau: { Icon: ArrowTrendingUpIcon, iconClass: "text-[#A78BFA]" },
   general: { Icon: MegaphoneIcon, iconClass: "text-[#FACC15]" },
+  announcement: { Icon: MegaphoneIcon, iconClass: "text-[#F59E4B]" },
 };
 
 const ctaClass =
@@ -170,6 +171,9 @@ function NewsSlide({ slide, position, onPopoverOpenChange }) {
     title = slide.title;
     text = t(`${base}.formationText`, { trainer: slide.trainer, duration: slide.duration });
     dateLabel = t(`${base}.dateStarts`, { date: formatDate(slide.date, locale) });
+  } else if (slide.kind === "announcement") {
+    title = slide.title;
+    text = slide.body;
   } else if (slide.kind === "niveau") {
     title = t(`${base}.levelTitle`, { level: levelName });
     text = t(`${base}.levelText`, {
@@ -206,7 +210,9 @@ function NewsSlide({ slide, position, onPopoverOpenChange }) {
         <span className="inline-flex w-fit max-w-[calc(100%-7.5rem)] items-center gap-1.5 rounded-full bg-gray-950/55 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
           <Icon aria-hidden="true" className={clsx("size-3.5 shrink-0", iconClass)} />
           <span className="truncate">
-            {t(`${base}.kind.${slide.kind}`)}
+            {slide.kind === "announcement"
+              ? t(`${base}.kind.announcement.${slide.authorRole}`, { name: slide.authorName })
+              : t(`${base}.kind.${slide.kind}`)}
             {slide.kind === "formation" && levelName ? (
               <span className="font-medium text-white/75"> · {levelName}</span>
             ) : null}

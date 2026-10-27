@@ -11,12 +11,14 @@ import { SearchEmpty } from "../components/SearchEmpty";
 import { useSearchSummary } from "../components/searchSummary";
 import { CagnotteHero } from "./CagnotteHero";
 import { MyTontineStatus } from "./MyTontineStatus";
+import { PrioritySection } from "./PrioritySection";
 import { StatusLegend } from "./StatusLegend";
 import { TontineFaq } from "./TontineFaq";
 import { TontineCycle } from "./TontineCycle";
 import { CotisationTracking } from "./CotisationTracking";
 import { CycleHistory } from "./CycleHistory";
 import { NextStepButton } from "./NextStepButton";
+import { TontineGuide } from "app/pages/Admin/Tontine/guide/TontineGuide";
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +36,13 @@ import { NextStepButton } from "./NextStepButton";
 // composant que la carte de profil du Dashboard, voir
 // components/LevelSwitcherBadge.jsx) permet de changer de niveau
 // directement depuis cette page, sans repasser par le Dashboard.
+//
+// "Mon ordre de passage" (PrioritySection) : l'ordre dans lequel le groupe reçoit
+// la cagnotte est décidé par la plateforme (Score de Priorité DBC), pas par les
+// membres : ma note sur 100, mon rang, et la feuille de route qui explique le calcul.
+//
+// Les membres ne choisissent plus leur mois : l'administration les place, et
+// départage elle-même les égalités de score.
 //
 // La recherche de l'en-tête cherche un membre du groupe par son nom : elle
 // filtre le cycle des 12 tours et le suivi des cotisations (voir
@@ -57,8 +66,12 @@ export default function MembreTontine() {
           searchPlaceholder={t("membre.tontine.searchPlaceholder")}
         />
         {noResults && <SearchEmpty query={query} className="mt-6" />}
+        <div className="mt-4 flex justify-end">
+          <TontineGuide voice="member" />
+        </div>
         <CagnotteHero />
         <MyTontineStatus />
+        <PrioritySection />
         <StatusLegend />
         <TontineFaq />
         <TontineCycle query={query} onMatches={report} />

@@ -65,8 +65,8 @@ export function MemberCvModal({ member, open, onClose, relationLabel, showContac
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
 
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
+      <div className="fixed inset-0 flex w-screen items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <DialogPanel className="my-auto w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
           <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-6">
             <div className="flex items-center gap-4">
               <span
